@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Phases</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .btn { padding: 10px 20px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 3px; }
+        .btn:hover { background: #0056b3; }
+        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 3px; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <h1>Test de l'API des Phases</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Charger les données d'énergie</h3>
+        <button class="btn" onclick="testEnergies()">Tester /api/energies</button>
+        <div id="energies-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Charger les détails d'un transport</h3>
+        <input type="text" id="transport-ref" placeholder="Référence du transport" value="tes" style="padding: 5px; margin: 5px;">
+        <button class="btn" onclick="testTransportDetail()">Tester /api/transport/{ref}</button>
+        <div id="transport-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Sauvegarder des phases</h3>
+        <button class="btn" onclick="testSavePhases()">Tester sauvegarde phases</button>
+        <div id="save-result" class="result"></div>
+    </div>
+    
+    <script>
+        function testEnergies() {
+            const resultDiv = document.getElementById('energies-result');
+            resultDiv.innerHTML = 'Chargement...';
+            
+            fetch('/api/energies')
+                .then(response => response.json())
+                .then(data => {
+                    resultDiv.innerHTML = '<strong>Succès!</strong><br><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                    resultDiv.className = 'result success';
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = '<strong>Erreur:</strong> ' + error.message;
+                    resultDiv.className = 'result error';
+                });
+        }
+        
+        function testTransportDetail() {
+            const ref = document.getElementById('transport-ref').value;
+            if (!ref) {
+                alert('Veuillez entrer une référence de transport');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('transport-result');
+            resultDiv.innerHTML = 'Chargement...';
+            
+            fetch(`/api/transport/${ref}`)
+                .then(response => response.text())
+                .then(html => {
+                    resultDiv.innerHTML = '<strong>Succès!</strong><br><div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: white;">' + html + '</div>';
+                    resultDiv.className = 'result success';
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = '<strong>Erreur:</strong> ' + error.message;
+                    resultDiv.className = 'result error';
+                });
+        }
+        
+        function testSavePhases() {
+            const ref = document.getElementById('transport-ref').value;
+            if (!ref) {
+                alert('Veuillez entrer une référence de transport');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('save-result');
+            resultDiv.innerHTML = 'Test de sauvegarde...';
+            
+            const testPhases = [
+                {
+                    type: 'collecte',
+                    energie: 'gazole',
+                    conso: 25.5,
+                    distance: 50.0,
+                    date: '2024-01-15',
+                    emis_kg: 40.43,
+                    emis_tkm: 0.809
+                }
+            ];
+            
+            fetch(`/api/transport/${ref}/phases`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({phases: testPhases})
+            })
+            .then(response => response.json())
+            .then(data => {
+                resultDiv.innerHTML = '<strong>Réponse API:</strong><br><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                resultDiv.className = 'result success';
+            })
+            .catch(error => {
+                resultDiv.innerHTML = '<strong>Erreur:</strong> ' + error.message;
+                resultDiv.className = 'result error';
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

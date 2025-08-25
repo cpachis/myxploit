@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Correction Facteurs d'Émission - Niveau 2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .problem-section {
+            background: #f8d7da;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+            margin: 20px 0;
+        }
+        .problem-section h3 {
+            color: #721c24;
+            margin-top: 0;
+        }
+        .solution-section {
+            background: #d4edda;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            margin: 20px 0;
+        }
+        .solution-section h3 {
+            color: #155724;
+            margin-top: 0;
+        }
+        .test-section {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+            margin: 20px 0;
+        }
+        .test-section h3 {
+            color: #007acc;
+            margin-top: 0;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        .input-group label {
+            display: inline-block;
+            width: 250px;
+            font-weight: bold;
+        }
+        .input-group input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 150px;
+        }
+        .btn {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #005a9e;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .result.correct {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .result.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .formula {
+            background: #e6f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Correction Facteurs d'Émission - Niveau 2</h1>
+    
+    <div class="container">
+        <h2>📋 Problème Identifié</h2>
+        
+        <div class="problem-section">
+            <h3>❌ Calcul Incorrect (Avant) :</h3>
+            <p><strong>Confusion entre deux types de facteurs d'émission :</strong></p>
+            <ul>
+                <li><strong>Facteur véhicule :</strong> 1945 g CO2e/t.km (émissions par tonne-kilomètre)</li>
+                <li><strong>Facteur énergie :</strong> 3.17 kg CO2e/L (émissions par litre de carburant)</li>
+            </ul>
+            <p>Le code utilisait incorrectement le facteur du véhicule comme s'il était un facteur d'émission par kilomètre.</p>
+        </div>
+        
+        <div class="solution-section">
+            <h3>✅ Solution Implémentée (Après) :</h3>
+            <p><strong>Distinction claire entre les deux niveaux :</strong></p>
+            <ul>
+                <li><strong>Niveau 1 :</strong> Utilise le facteur véhicule (1945 g CO2e/t.km)</li>
+                <li><strong>Niveau 2 :</strong> Utilise le facteur énergie (3.17 kg CO2e/L)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>🧮 Test des Calculs Corrigés</h2>
+        
+        <div class="test-section">
+            <h3>Données du véhicule VUL3.5express :</h3>
+            <div class="input-group">
+                <label>Facteur véhicule (niveau 1) :</label>
+                <input type="number" id="facteur-vehicule" value="1945" step="0.001" min="0"> g CO2e/t.km
+            </div>
+            <div class="input-group">
+                <label>Facteur énergie (niveau 2) :</label>
+                <input type="number" id="facteur-energie" value="3.17" step="0.001" min="0"> kg CO2e/L
+            </div>
+            <div class="input-group">
+                <label>Consommation du véhicule :</label>
+                <input type="number" id="consommation-vehicule" value="16" step="0.1" min="0"> L/100km
+            </div>
+            <div class="input-group">
+                <label>Poids transporté :</label>
+                <input type="number" id="poids-transport" value="0.26" step="0.001" min="0"> tonnes
+            </div>
+            <div class="input-group">
+                <label>Distance :</label>
+                <input type="number" id="distance" value="100" step="0.1" min="0"> km
+            </div>
+            
+            <button class="btn btn-success" onclick="calculerEmissions()">Calculer les émissions</button>
+        </div>
+        
+        <div id="resultats" style="display: none;">
+            <div class="container">
+                <h3>📊 Résultats des calculs :</h3>
+                
+                <div class="result correct" id="niveau1-result">
+                    <h4>🚛 Niveau 1 (Facteur véhicule) :</h4>
+                    <div id="niveau1-details"></div>
+                </div>
+                
+                <div class="result correct" id="niveau2-result">
+                    <h4>⛽ Niveau 2 (Facteur énergie) :</h4>
+                    <div id="niveau2-details"></div>
+                </div>
+                
+                <div class="result" id="comparison-result">
+                    <h4>🔍 Comparaison et validation :</h4>
+                    <div id="comparison-details"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>📚 Explication des Formules</h2>
+        
+        <div class="formula">
+            <h4>Niveau 1 (Facteur véhicule) :</h4>
+            <p><strong>Émissions = Poids × Distance × Facteur véhicule</strong></p>
+            <p>Unités : tonnes × km × (g CO2e/t.km) = g CO2e</p>
+            <p>Conversion : g CO2e ÷ 1000 = kg CO2e</p>
+        </div>
+        
+        <div class="formula">
+            <h4>Niveau 2 (Facteur énergie) :</h4>
+            <p><strong>Émissions = Consommation totale × Facteur énergie</strong></p>
+            <p>Unités : L × (kg CO2e/L) = kg CO2e</p>
+            <p>Où : Consommation totale = (Consommation/100) × Distance</p>
+        </div>
+        
+        <div class="formula">
+            <h4>Vérification cohérence :</h4>
+            <p><strong>Émissions par tonne-kilomètre = Émissions totales ÷ (Poids × Distance)</strong></p>
+            <p>Unités : kg CO2e ÷ (tonnes × km) = kg CO2e/t.km</p>
+        </div>
+    </div>
+
+    <script>
+        function calculerEmissions() {
+            // Récupérer les valeurs
+            const facteurVehicule = parseFloat(document.getElementById('facteur-vehicule').value);
+            const facteurEnergie = parseFloat(document.getElementById('facteur-energie').value);
+            const consommationVehicule = parseFloat(document.getElementById('consommation-vehicule').value);
+            const poidsTransport = parseFloat(document.getElementById('poids-transport').value);
+            const distance = parseFloat(document.getElementById('distance').value);
+            
+            if (facteurVehicule <= 0 || facteurEnergie <= 0 || consommationVehicule <= 0 || poidsTransport <= 0 || distance <= 0) {
+                alert('Veuillez saisir des valeurs positives pour tous les champs.');
+                return;
+            }
+            
+            // Calculs niveau 1 (facteur véhicule)
+            const emissionsNiveau1G = facteurVehicule * poidsTransport * distance; // g CO2e
+            const emissionsNiveau1Kg = emissionsNiveau1G / 1000; // kg CO2e
+            const emissionsNiveau1Tkm = facteurVehicule / 1000; // kg CO2e/t.km
+            
+            // Calculs niveau 2 (facteur énergie)
+            const consommationParKm = consommationVehicule / 100; // L/km
+            const consommationTotale = consommationParKm * distance; // L
+            const emissionsNiveau2 = consommationTotale * facteurEnergie; // kg CO2e
+            const emissionsNiveau2Tkm = emissionsNiveau2 / (poidsTransport * distance); // kg CO2e/t.km
+            
+            // Affichage des résultats
+            document.getElementById('niveau1-details').innerHTML = `
+                <p><strong>Facteur véhicule :</strong> ${facteurVehicule} g CO2e/t.km = ${emissionsNiveau1Tkm.toFixed(3)} kg CO2e/t.km</p>
+                <p><strong>Calcul :</strong> ${poidsTransport} t × ${distance} km × ${emissionsNiveau1Tkm.toFixed(3)} kg CO2e/t.km</p>
+                <p><strong>Émissions totales :</strong> ${emissionsNiveau1Kg.toFixed(2)} kg CO2e</p>
+                <p><strong>Émissions par t.km :</strong> ${emissionsNiveau1Tkm.toFixed(3)} kg CO2e/t.km</p>
+            `;
+            
+            document.getElementById('niveau2-details').innerHTML = `
+                <p><strong>Facteur énergie :</strong> ${facteurEnergie} kg CO2e/L</p>
+                <p><strong>Consommation par km :</strong> ${consommationVehicule} L/100km = ${consommationParKm.toFixed(3)} L/km</p>
+                <p><strong>Consommation totale :</strong> ${consommationTotale.toFixed(2)} L</p>
+                <p><strong>Calcul :</strong> ${consommationTotale.toFixed(2)} L × ${facteurEnergie} kg CO2e/L</p>
+                <p><strong>Émissions totales :</strong> ${emissionsNiveau2.toFixed(2)} kg CO2e</p>
+                <p><strong>Émissions par t.km :</strong> ${emissionsNiveau2Tkm.toFixed(3)} kg CO2e/t.km</p>
+            `;
+            
+            // Comparaison et validation
+            const difference = Math.abs(emissionsNiveau1Kg - emissionsNiveau2);
+            const differencePourcentage = (difference / Math.max(emissionsNiveau1Kg, emissionsNiveau2)) * 100;
+            
+            let comparisonClass = 'correct';
+            let comparisonMessage = '';
+            
+            if (differencePourcentage < 5) {
+                comparisonClass = 'correct';
+                comparisonMessage = `✅ Les deux niveaux donnent des résultats cohérents ! Différence : ${difference.toFixed(2)} kg CO2e (${differencePourcentage.toFixed(1)}%)`;
+            } else if (differencePourcentage < 15) {
+                comparisonClass = 'correct';
+                comparisonMessage = `⚠️ Les résultats sont acceptables. Différence : ${difference.toFixed(2)} kg CO2e (${differencePourcentage.toFixed(1)}%)`;
+            } else {
+                comparisonClass = 'incorrect';
+                comparisonMessage = `❌ Les résultats ne sont pas cohérents. Différence : ${difference.toFixed(2)} kg CO2e (${differencePourcentage.toFixed(1)}%)`;
+            }
+            
+            document.getElementById('comparison-details').innerHTML = `
+                <p><strong>Niveau 1 :</strong> ${emissionsNiveau1Kg.toFixed(2)} kg CO2e</p>
+                <p><strong>Niveau 2 :</strong> ${emissionsNiveau2.toFixed(2)} kg CO2e</p>
+                <p><strong>Différence :</strong> ${difference.toFixed(2)} kg CO2e</p>
+                <p><strong>Écart relatif :</strong> ${differencePourcentage.toFixed(1)}%</p>
+                <p><strong>Validation :</strong> ${comparisonMessage}</p>
+            `;
+            
+            document.getElementById('comparison-result').className = `result ${comparisonClass}`;
+            
+            // Afficher les résultats
+            document.getElementById('resultats').style.display = 'block';
+        }
+        
+        // Calcul automatique au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            calculerEmissions();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+

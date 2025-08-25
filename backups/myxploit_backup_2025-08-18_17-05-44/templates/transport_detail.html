@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% block title %}Transport {{ ref }}{% endblock %}
+
+{% block content %}
+  <div class="detail-card">
+    <a href="{{ url_for('liste_transports') }}" class="back-link">← Retour à la liste des transports</a>
+    <h1 class="detail-title">Transport <span class="id">{{ ref }}</span></h1>
+    <div class="detail-table">
+      <div class="row"><span class="label">Date :</span><span class="value"><a href="{{ url_for('transports_par_date', date=transport.date) }}">{{ transport.date|date_fr }}</a></span></div>
+      <div class="row"><span class="label">Client :</span><span class="value"><a href="{{ url_for('transports_par_client', client_id=transport.client) }}">{{ client.nom if client else transport.client }}</a></span></div>
+      <div class="row"><span class="label">Sous-traitant :</span><span class="value">{{ soustraitant.nom if soustraitant else transport.proprietaire }}</span></div>
+      <div class="row"><span class="label">Type de transport :</span><span class="value">
+        {% if transport.type_transport == 'direct' %}
+          🚛 Direct
+        {% elif transport.type_transport == 'indirect' %}
+          🔄 Indirect
+        {% else %}
+          -
+        {% endif %}
+      </span></div>
+      <div class="row"><span class="label">Poids transporté (t) :</span><span class="value">{{ transport.poids if transport.poids is defined else '-' }}</span></div>
+      <div class="row"><span class="label">CO₂e (kg) :</span><span class="value">{{ "%.2f"|format(transport.emis_kg) }}</span></div>
+      <div class="row"><span class="label">CO₂e/t.km :</span><span class="value">{{ "%.3f"|format(transport.emis_tkm) }}</span></div>
+    </div>
+  </div>
+
+  <!-- Section des phases -->
+  <div class="phases-section">
+    <div class="phases-header">
+      <h2 class="section-title">Détail des phases</h2>
+      <button class="btn-add-phase" id="btn-add-phase">+ Ajouter une phase</button>
+    </div>
+    
+    <form id="edit-phases-form" method="post" action="{{ url_for('transport_detail', ref=ref) }}">
+      <input type="hidden" name="phases" id="phases_edit_input" value="">
+      <table class="styled-table" id="phases-table-edit">
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th>Énergie</th>
+            <th>Ville départ</th>
+            <th>Ville arrivée</th>
+            <th>Conso / 100 km</th>
+            <th>Distance (km)</th>
+            <th>Date</th>
+            <th>Émissions (kg)</th>
+            <th>Émissions (kg/t.km)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if transport.phases and transport.phases|length > 0 %}
+            {% for p in transport.phases %}
+            <tr class="phase-row" data-index="{{ loop.index0 }}">
+              <td>
+                <select class="edit-phase-type">
+                  <option value="collecte" {% if p.type == 'collecte' %}selected{% endif %}>collecte</option>
+                  <option value="traction" {% if p.type == 'traction' %}selected{% endif %}>traction</option>
+                  <option value="distribution" {% if p.type == 'distribution' %}selected{% endif %}>distribution</option>
+                </select>
+              </td>
+              <td>
+                <select class="edit-phase-energie">
+                  {% for e_id, e in energies.items() %}
+                  <option value="{{ e_id }}" {% if p.energie == e_id %}selected{% endif %}>
+                    {{ e.nom }} ({{ e.facteur }} {{ e.unite }})
+                  </option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td><input type="text" class="edit-phase-ville-depart" placeholder="Ville départ" value="{{ p.ville_depart if p.ville_depart is defined else '' }}"></td>
+              <td><input type="text" class="edit-phase-ville-arrivee" placeholder="Ville arrivée" value="{{ p.ville_arrivee if p.ville_arrivee is defined else '' }}"></td>
+              <td><input type="number" step="0.01" class="edit-phase-conso" value="{{ p.conso }}" min="0"></td>
+              <td><input type="number" step="0.01" class="edit-phase-distance" value="{{ p.distance }}" min="0"></td>
+              <td><input type="date" class="edit-phase-date" value="{{ p.date }}"></td>
+              <td class="emis-kg">{{ "%.2f"|format(p.emis_kg) }}</td>
+              <td class="emis-tkm">{{ "%.3f"|format(p.emis_tkm) }}</td>
+              <td>
+                <button type="button" class="btn-remove-phase" onclick="removePhase(this.closest('tr'))" title="Supprimer cette phase">🗑️</button>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr class="no-phases">
+              <td colspan="10" style="text-align: center; color: #888; font-style: italic;">
+                Aucune phase définie. Cliquez sur "Ajouter une phase" pour commencer.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Enregistrer les phases</button>
+      </div>
+    </form>
+  </div>
+
+  <style>
+    .detail-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      padding: 2rem 2.5rem;
+      max-width: 1400px;
+      margin: 2rem auto;
+    }
+    
+    .back-link {
+      color: #2a7de1;
+      text-decoration: none;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    
+    .detail-title {
+      font-size: 2.2rem;
+      color: #2a7de1;
+      margin-bottom: 1.2rem;
+    }
+    
+    .detail-title .id {
+      font-size: 1.2rem;
+      color: #555;
+      background: #f0f4ff;
+      border-radius: 5px;
+      padding: 0.2em 0.6em;
+      margin-left: 0.5em;
+    }
+    
+    .detail-table {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7em;
+      margin-top: 1.5em;
+    }
+    
+    .detail-table .row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 0.3em 0;
+      border-bottom: 1px solid #f0f4ff;
+    }
+    
+    .detail-table .row:last-child {
+      border-bottom: none;
+    }
+    
+    .detail-table .label {
+      flex: 0 0 220px;
+      font-weight: bold;
+      color: #333;
+      margin-right: 1em;
+      text-align: right;
+    }
+    
+    .detail-table .value {
+      flex: 1;
+      color: #2a7de1;
+      text-align: left;
+      font-size: 1.08em;
+    }
+    
+    /* Section des phases */
+    .phases-section {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      padding: 2rem 2.5rem;
+      max-width: 1400px;
+      margin: 2rem auto;
+    }
+    
+    .phases-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+      color: #2a7de1;
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    
+    .btn-add-phase {
+      background: linear-gradient(90deg,#2a7de1 60%,#4fd1c5 100%);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 0.5em 1.2em;
+      font-size: 1em;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(42,125,225,0.07);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    
+    .btn-add-phase:hover {
+      background: linear-gradient(90deg,#1e5bb8 60%,#38b2ac 100%);
+      box-shadow: 0 2px 8px rgba(42,125,225,0.13);
+    }
+    
+    .styled-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .styled-table th,
+    .styled-table td {
+      padding: 0.8em 1em;
+      border: 1px solid #e0e0e0;
+      text-align: left;
+    }
+    
+    .styled-table th {
+      background: #eaf2fb;
+      font-weight: 600;
+      color: #2a7de1;
+      font-size: 0.85rem;
+      border-bottom: 2px solid #d0e2fa;
+    }
+    
+    .styled-table td {
+      background: #f7fafd;
+      vertical-align: middle;
+    }
+    
+    .styled-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .styled-table input,
+    .styled-table select {
+      width: 100%;
+      min-width: 80%;
+      max-width: 100%;
+      height: 2.2em;
+      vertical-align: middle;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.9rem;
+    }
+    
+    .styled-table input:focus,
+    .styled-table select:focus {
+      border-color: #2a7de1;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(42, 125, 225, 0.1);
+    }
+    
+    .styled-table td:nth-child(5),
+    .styled-table td:nth-child(6) {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      min-width: 120px;
+      max-width: 140px;
+    }
+    
+    .styled-table td:nth-child(7) {
+      min-width: 120px;
+      max-width: 140px;
+    }
+    
+    .styled-table td:nth-child(8),
+    .styled-table td:nth-child(9) {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      min-width: 100px;
+      max-width: 120px;
+    }
+    
+    .btn-remove-phase {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      width: 2rem;
+      height: 2rem;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s;
+    }
+    
+    .btn-remove-phase:hover {
+      background: #b91c1c;
+    }
+    
+    .btn-remove-phase:active {
+      transform: scale(0.95);
+    }
+    
+    .form-actions {
+      text-align: right;
+      margin-top: 1.5rem;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(90deg,#2a7de1 60%,#4fd1c5 100%);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 0.75em 1.5em;
+      font-size: 1em;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(42,125,225,0.07);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(90deg,#1e5bb8 60%,#38b2ac 100%);
+      box-shadow: 0 2px 8px rgba(42,125,225,0.13);
+    }
+    
+    .highlight-row {
+      background: #ffe3ef !important;
+      transition: background 0.5s;
+    }
+    
+    .no-phases td {
+      color: #aaa;
+      font-style: italic;
+      background: #f7fafd;
+      text-align: center;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .detail-card,
+      .phases-section {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+      
+      .phases-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+      }
+      
+      .btn-add-phase {
+        width: 100%;
+      }
+      
+      .styled-table {
+        font-size: 0.8rem;
+      }
+      
+      .styled-table th,
+      .styled-table td {
+        padding: 0.5em 0.5em;
+      }
+    }
+  </style>
+  
+  <script src="{{ url_for('static', filename='js/transport_detail.js') }}"></script>
+  <script>
+    // Initialisation des données au chargement de la page
+    document.addEventListener('DOMContentLoaded', function() {
+      const energiesData = JSON.parse(document.getElementById('energies-data').textContent);
+      const transportPoids = parseFloat(document.getElementById('transport-poids').textContent);
+      const vehiculeFacteurEmissions = parseFloat(document.getElementById('vehicule-facteur-emissions').textContent) || 0;
+      
+      initializeData(energiesData, transportPoids, vehiculeFacteurEmissions);
+      
+      // Définir le facteur d'émission du véhicule pour les phases
+      if (typeof window.setVehiculeFacteur === 'function') {
+        window.setVehiculeFacteur(vehiculeFacteurEmissions);
+      }
+    });
+  </script>
+  
+  <!-- Données cachées pour le JavaScript -->
+  <div id="energies-data" style="display: none;">{{ energies|tojson }}</div>
+  <div id="transport-poids" style="display: none;">{{ transport.poids|default(1) }}</div>
+  <div id="vehicule-facteur-emissions" style="display: none;">{{ transport.vehicule_facteur|default(0) }}</div>
+{% endblock %} 

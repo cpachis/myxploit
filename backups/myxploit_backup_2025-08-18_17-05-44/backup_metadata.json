@@ -1,0 +1,22 @@
+{
+  "backup_name": "myxploit_backup_2025-08-18_17-05-44",
+  "timestamp": "2025-08-18_17-05-44",
+  "datetime": "2025-08-18T17:05:44.170761",
+  "project_root": "D:\\PROJETS\\myxploit\\myxploit",
+  "backup_path": "D:\\PROJETS\\myxploit\\myxploit\\backups\\myxploit_backup_2025-08-18_17-05-44",
+  "copied_items": [
+    "📄 app.py",
+    "📄 models.py",
+    "📁 templates//",
+    "📁 static//",
+    "📁 data//",
+    "📁 .vscode//"
+  ],
+  "skipped_items": [
+    "❌ *.md (introuvable)",
+    "❌ *.html (introuvable)",
+    "❌ *.py (introuvable)"
+  ],
+  "total_files": 6,
+  "version": "1.0"
+}

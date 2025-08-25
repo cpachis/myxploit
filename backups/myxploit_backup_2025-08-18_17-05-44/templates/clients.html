@@ -1,0 +1,1033 @@
+{% extends "base.html" %}
+{% block title %}Paramétrage Clients - Green Calc{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- En-tête avec KPIs -->
+  <div class="dashboard-header">
+    <h1>Paramétrage Clients</h1>
+    <p class="subtitle">Gestion de votre base de données clients</p>
+    
+    <div class="kpi-grid">
+      <div class="kpi-card primary">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-content">
+          <div class="kpi-number">{{ clients|length }}</div>
+          <div class="kpi-label">Clients</div>
+        </div>
+      </div>
+      
+      <div class="kpi-card success">
+        <div class="kpi-icon">📧</div>
+        <div class="kpi-content">
+          <div class="kpi-number">
+            {% set clients_with_email = 0 %}
+            {% for cid, c in clients.items() %}
+              {% if c.email and c.email.strip() %}
+                {% set clients_with_email = clients_with_email + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ clients_with_email }}
+          </div>
+          <div class="kpi-label">Avec email</div>
+        </div>
+      </div>
+      
+      <div class="kpi-card warning">
+        <div class="kpi-icon">📍</div>
+        <div class="kpi-content">
+          <div class="kpi-number">
+            {% set clients_with_address = 0 %}
+            {% for cid, c in clients.items() %}
+              {% if c.adresse and c.adresse.strip() %}
+                {% set clients_with_address = clients_with_address + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ clients_with_address }}
+          </div>
+          <div class="kpi-label">Avec adresse</div>
+        </div>
+      </div>
+      
+      <div class="kpi-card info">
+        <div class="kpi-icon">🚛</div>
+        <div class="kpi-content">
+          <div class="kpi-number">
+            {% set active_clients = 0 %}
+            {% for cid, c in clients.items() %}
+              {% if c.nom and c.nom.strip() %}
+                {% set active_clients = active_clients + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ active_clients }}
+          </div>
+          <div class="kpi-label">Actifs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section principale -->
+  <div class="dashboard-content">
+    <!-- Section liste des clients -->
+    <div class="clients-section">
+      <div class="section-header">
+        <h3>Liste des clients</h3>
+        <div class="header-actions">
+          <button class="btn-primary" onclick="showAddClientForm()">➕ Nouveau client</button>
+        </div>
+      </div>
+      
+      <div class="table-container">
+        <table class="clients-table" id="clients-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nom</th>
+              <th>Adresse</th>
+              <th>Email</th>
+              <th>Contact</th>
+              <th>Téléphone</th>
+              <th>Niveau 2</th>
+              <th>Niveau 3</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cid, c in clients.items() %}
+            <tr class="client-row">
+              <td class="client-id">
+                <strong>{{ cid }}</strong>
+              </td>
+              <td class="client-name">
+                {{ c.get('nom', 'N/A') }}
+              </td>
+              <td class="client-address">
+                {{ c.get('adresse', 'N/A') }}
+              </td>
+              <td class="client-email">
+                {% if c.get('email') %}
+                  <a href="mailto:{{ c.email }}" class="email-link">{{ c.email }}</a>
+                {% else %}
+                  <span class="no-data">N/A</span>
+                {% endif %}
+              </td>
+              <td class="client-contact">
+                {{ c.get('contact', 'N/A') }}
+              </td>
+              <td class="client-phone">
+                {% if c.get('telephone') %}
+                  <a href="tel:{{ c.telephone }}" class="phone-link">{{ c.telephone }}</a>
+                {% else %}
+                  <span class="no-data">N/A</span>
+                {% endif %}
+              </td>
+              <td class="client-niveau2">
+                {% if c.get('niveau2_enabled') %}
+                  <span class="badge enabled">Activé</span>
+                  <small class="niveau-details">
+                    {{ c.get('niveau2_consommation_moyenne', 'N/A') }} L/100km
+                  </small>
+                {% else %}
+                  <span class="badge disabled">Standard</span>
+                {% endif %}
+              </td>
+              <td class="client-niveau3">
+                {% if c.get('niveau3_enabled') %}
+                  <span class="badge enabled">Activé</span>
+                  <small class="niveau-details">
+                    {{ c.get('niveau3_consommation_moyenne', 'N/A') }} L/100km<br>
+                    {{ c.get('niveau3_unites_moyennes', 'N/A') }} unités
+                  </small>
+                {% else %}
+                  <span class="badge disabled">Standard</span>
+                {% endif %}
+              </td>
+              <td class="actions-cell">
+                <div class="action-buttons">
+                  <a href="{{ url_for('client_detail', client_id=cid) }}" class="btn-detail" title="Voir détails">
+                    👁️
+                  </a>
+                  <button class="btn-edit" onclick="editClient('{{ cid }}')" title="Modifier">
+                    ✏️
+                  </button>
+                  <button class="btn-access" onclick="openAccessModal('{{ cid }}')" title="Gestion accès">
+                    🔑
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="9" class="empty-state">
+                <div class="empty-icon">👥</div>
+                <h3>Aucun client enregistré</h3>
+                <p>Commencez par ajouter votre premier client.</p>
+                <button class="btn-primary" onclick="showAddClientForm()">Ajouter un client</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section formulaire -->
+    <div id="client-form-section" class="form-section" style="display: none;">
+      <div class="section-header">
+        <h3 id="form-title">Ajouter un client</h3>
+        <button class="btn-close" onclick="hideClientForm()">×</button>
+      </div>
+      
+      <form method="post" action="{{ url_for('parametrage_clients') }}" class="client-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="cid">ID Client *</label>
+            <input type="text" id="cid" name="id" required value="{{ edit_id or '' }}" placeholder="Ex: CLIENT001">
+          </div>
+          
+          <div class="form-group">
+            <label for="nom">Nom *</label>
+            <input type="text" id="nom" name="nom" required value="{{ edit_data.get('nom','') if edit_data else '' }}" placeholder="Nom du client">
+          </div>
+          
+          <div class="form-group">
+            <label for="adresse">Adresse</label>
+            <input type="text" id="adresse" name="adresse" value="{{ edit_data.get('adresse','') if edit_data else '' }}" placeholder="Adresse complète">
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="{{ edit_data.get('email','') if edit_data else '' }}" placeholder="email@exemple.com">
+          </div>
+          
+          <div class="form-group">
+            <label for="contact">Contact</label>
+            <input type="text" id="contact" name="contact" value="{{ edit_data.get('contact','') if edit_data else '' }}" placeholder="Nom du contact">
+          </div>
+          
+          <div class="form-group">
+            <label for="telephone">Téléphone</label>
+            <input type="tel" id="telephone" name="telephone" value="{{ edit_data.get('telephone','') if edit_data else '' }}" placeholder="01 23 45 67 89">
+          </div>
+        </div>
+        
+        <!-- Section Valeurs Agrégées de Niveau 2 -->
+        <div class="form-section-divider">
+          <h4>📊 Valeurs Agrégées de Niveau 2</h4>
+          <p class="section-description">Activez cette option pour que le client saisisse sa propre consommation moyenne au lieu d'utiliser celle du véhicule</p>
+        </div>
+        
+        <div class="niveau2-config-section">
+          <div class="niveau2-header">
+            <div class="toggle-switch">
+              <input type="checkbox" id="niveau2_enabled" name="niveau2_enabled" 
+                     {{ 'checked' if edit_data.get('niveau2_enabled') else '' }}>
+              <label for="niveau2_enabled" class="toggle-label"></label>
+            </div>
+            <span class="toggle-label-text">Permettre au client de saisir sa consommation moyenne</span>
+          </div>
+          
+          <div class="niveau2-fields" id="niveau2-fields">
+            <div class="form-group">
+              <label for="niveau2_consommation_moyenne">Consommation moyenne client (L/100km)</label>
+                              <input type="number" id="niveau2_consommation_moyenne" name="niveau2_consommation_moyenne" 
+                       step="0.1" min="0" 
+                       value=""
+                       placeholder="Ex: 35.0">
+                              <small class="form-help">
+                  <strong>Saisissez la consommation moyenne de ce client</strong> pour remplacer celle du véhicule.<br>
+                  Toutes les autres valeurs (facteurs d'émission, capacité, etc.) restent celles du niveau 1.
+                </small>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Section Valeurs Agrégées de Niveau 3 -->
+        <div class="form-section-divider">
+          <h4>🔬 Valeurs Agrégées de Niveau 3</h4>
+          <p class="section-description">Activez cette option pour que le client saisisse ses propres valeurs : consommation moyenne et nombre moyen d'unités transportées</p>
+        </div>
+        
+        <div class="niveau3-config-section">
+          <div class="niveau3-header">
+            <div class="toggle-switch">
+              <input type="checkbox" id="niveau3_enabled" name="niveau3_enabled" 
+                     {{ 'checked' if edit_data.get('niveau3_enabled') else '' }}>
+              <label for="niveau3_enabled" class="toggle-label"></label>
+            </div>
+            <span class="toggle-label-text">Permettre au client de saisir sa consommation et ses unités</span>
+          </div>
+          
+          <div class="niveau3-fields" id="niveau3-fields">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="niveau3_consommation_moyenne">Consommation moyenne client (L/100km)</label>
+                <input type="number" id="niveau3_consommation_moyenne" name="niveau3_consommation_moyenne" 
+                       step="0.1" min="0" 
+                       value=""
+                       placeholder="Ex: 35.0">
+                                            <small class="form-help">
+                              <strong>Saisissez la consommation moyenne de ce client</strong> pour remplacer celle du véhicule.
+                            </small>
+              </div>
+              
+              <div class="form-group">
+                <label for="niveau3_unites_moyennes">Nombre moyen d'unités transportées</label>
+                <input type="number" id="niveau3_unites_moyennes" name="niveau3_unites_moyennes" 
+                       step="0.1" min="0" 
+                       value=""
+                       placeholder="Ex: 2.5">
+                                            <small class="form-help">
+                              <strong>Saisissez le nombre moyen d'unités transportées par ce client</strong> pour remplacer la capacité du véhicule.
+                            </small>
+              </div>
+            </div>
+            
+            <div class="niveau3-info">
+              <p class="info-text">
+                <strong>📋 Principe du Niveau 3 :</strong><br>
+                • Consommation client + Unités transportées client + Facteurs standards niveau 1<br>
+                • Personnalisation avancée pour une précision optimale
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">
+            {{ 'Mettre à jour' if edit_id else 'Enregistrer' }}
+          </button>
+          <button type="button" class="btn-secondary" onclick="hideClientForm()">
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Gestion Accès -->
+<div id="accessModal" class="modal-bg" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Gestion des accès pour <span id="modalClientId"></span></h3>
+      <button class="modal-close" onclick="closeAccessModal()">×</button>
+    </div>
+    
+    <form method="post" action="{{ url_for('parametrage_clients') }}" class="access-form">
+      <input type="hidden" name="client_id" id="clientIdField">
+      
+      <div class="form-group">
+        <label for="login">Login *</label>
+        <input type="text" name="login" id="login" required placeholder="Nom d'utilisateur">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Mot de passe *</label>
+        <input type="password" name="password" id="password" required placeholder="Mot de passe">
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Enregistrer accès</button>
+        <button type="button" class="btn-secondary" onclick="closeAccessModal()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+/* Styles du dashboard moderne */
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+}
+
+.dashboard-header {
+  margin-bottom: 3rem;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  color: #2a7de1;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+/* KPIs Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.kpi-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.kpi-card.primary { border-left: 4px solid #2a7de1; }
+.kpi-card.success { border-left: 4px solid #10b981; }
+.kpi-card.warning { border-left: 4px solid #f59e0b; }
+.kpi-card.info { border-left: 4px solid #3b82f6; }
+
+.kpi-icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+}
+
+.kpi-content {
+  flex: 1;
+}
+
+.kpi-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.kpi-label {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Section Headers */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.section-header h3 {
+  font-size: 1.25rem;
+  color: #2a7de1;
+  margin: 0;
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Table */
+.clients-section {
+  padding: 2rem;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.clients-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.clients-table th {
+  background: #f8fafc;
+  color: #374151;
+  font-weight: 600;
+  padding: 1rem 0.75rem;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.clients-table td {
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.client-row:hover {
+  background: #f8fafc;
+}
+
+.client-id strong {
+  color: #2a7de1;
+  font-weight: 600;
+}
+
+.client-name {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.email-link, .phone-link {
+  color: #2a7de1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.email-link:hover, .phone-link:hover {
+  text-decoration: underline;
+}
+
+.no-data {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-detail, .btn-edit, .btn-access {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.btn-detail:hover {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.btn-edit:hover {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.btn-access:hover {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Form Section */
+.form-section {
+  padding: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.client-form {
+  margin-top: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #2a7de1;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* Modal */
+.modal-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #2a7de1;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.modal-close, .btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover, .btn-close:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.access-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Boutons */
+.btn-primary {
+  background: linear-gradient(135deg, #2a7de1, #4fd1c5);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1e5bb8, #38b2ac);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+/* Styles pour les valeurs agrégées de niveau 2 */
+.form-section-divider {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border-radius: 12px;
+  border-left: 4px solid #2a7de1;
+}
+
+.form-section-divider h4 {
+  margin: 0 0 0.5rem 0;
+  color: #1e293b;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.section-description {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.niveau2-config-section {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.niveau2-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.toggle-label-text {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-label {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.toggle-label:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-label {
+  background-color: #2a7de1;
+}
+
+.toggle-switch input:checked + .toggle-label:before {
+  transform: translateX(26px);
+}
+
+.niveau2-fields {
+  display: none;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.form-help {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+.form-help strong {
+  color: #374151;
+}
+
+/* Badges pour le niveau 2 dans le tableau */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge.enabled {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.badge.disabled {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.niveau-details {
+  display: block;
+  margin-top: 0.25rem;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+/* Styles pour le niveau 3 */
+.niveau3-config-section {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.niveau3-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.niveau3-info {
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border: 1px solid #0ea5e9;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.info-text {
+  margin: 0;
+  color: #0c4a6e;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.info-text strong {
+  color: #0369a1;
+}
+
+
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #6b7280;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #374151;
+}
+
+.empty-state p {
+  margin-bottom: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}
+</style>
+
+<script>
+// Gestion du formulaire client
+function showAddClientForm() {
+  document.getElementById('form-title').textContent = 'Ajouter un client';
+  document.getElementById('client-form-section').style.display = 'block';
+  
+  // Réinitialiser le formulaire
+  document.getElementById('cid').value = '';
+  document.getElementById('nom').value = '';
+  document.getElementById('adresse').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('contact').value = '';
+  document.getElementById('telephone').value = '';
+  
+  // Réinitialiser le niveau 2
+  document.getElementById('niveau2_enabled').checked = false;
+  document.getElementById('niveau2_consommation_moyenne').value = '';
+  
+  // Réinitialiser le niveau 3
+  document.getElementById('niveau3_enabled').checked = false;
+  document.getElementById('niveau3_consommation_moyenne').value = '';
+  document.getElementById('niveau3_unites_moyennes').value = '';
+  
+  // Mettre à jour l'affichage des champs
+  updateNiveau2Fields();
+  updateNiveau3Fields();
+  
+  // Scroll vers le formulaire
+  document.getElementById('client-form-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideClientForm() {
+  document.getElementById('client-form-section').style.display = 'none';
+}
+
+function editClient(clientId) {
+  // Ici tu peux ajouter la logique pour charger les données du client
+  // et remplir le formulaire pour l'édition
+  document.getElementById('form-title').textContent = 'Modifier le client';
+  document.getElementById('client-form-section').style.display = 'block';
+  
+  // Scroll vers le formulaire
+  document.getElementById('client-form-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Modal gestion accès
+function openAccessModal(clientId) {
+  document.getElementById('modalClientId').textContent = clientId;
+  document.getElementById('clientIdField').value = clientId;
+  document.getElementById('accessModal').style.display = 'flex';
+}
+
+function closeAccessModal() {
+  document.getElementById('accessModal').style.display = 'none';
+}
+
+// Fermer la modal en cliquant à l'extérieur
+document.addEventListener('click', function(event) {
+  const modal = document.getElementById('accessModal');
+  if (event.target === modal) {
+    closeAccessModal();
+  }
+});
+
+// Gestion des toggles niveau 2 et 3
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialiser l'état des champs selon les toggles
+  updateNiveau2Fields();
+  updateNiveau3Fields();
+  
+  // Ajouter les event listeners pour les toggles
+  const niveau2Toggle = document.getElementById('niveau2_enabled');
+  const niveau3Toggle = document.getElementById('niveau3_enabled');
+  
+  if (niveau2Toggle) {
+    niveau2Toggle.addEventListener('change', updateNiveau2Fields);
+  }
+  
+  if (niveau3Toggle) {
+    niveau3Toggle.addEventListener('change', updateNiveau3Fields);
+  }
+});
+
+function updateNiveau2Fields() {
+  const niveau2Enabled = document.getElementById('niveau2_enabled')?.checked || false;
+  const niveau2Fields = document.getElementById('niveau2-fields');
+  
+  if (niveau2Fields) {
+    niveau2Fields.style.display = niveau2Enabled ? 'block' : 'none';
+  }
+}
+
+function updateNiveau3Fields() {
+  const niveau3Enabled = document.getElementById('niveau3_enabled')?.checked || false;
+  const niveau3Fields = document.getElementById('niveau3-fields');
+  
+  if (niveau3Fields) {
+    niveau3Fields.style.display = niveau3Enabled ? 'block' : 'none';
+  }
+}
+
+
+
+// DataTables (si jQuery est disponible)
+if (typeof $ !== 'undefined') {
+  $(document).ready(function() {
+    $('#clients-table').DataTable({
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
+      },
+      pageLength: 25,
+      responsive: true,
+      order: [[1, 'asc']] // Trier par nom par défaut
+    });
+  });
+}
+</script>
+{% endblock %}

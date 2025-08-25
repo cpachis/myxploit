@@ -1,0 +1,264 @@
+from flask import Flask, render_template, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_cors import CORS
+import logging
+import os
+
+# Import de la configuration
+from config import get_config
+
+# Import du Blueprint des transports
+from transport_api import transport_api
+
+# Configuration de l'application
+app = Flask(__name__)
+app.config.from_object(get_config())
+
+# Initialisation des extensions
+db = SQLAlchemy()
+migrate = Migrate()
+CORS(app)
+
+# Initialiser les extensions avec l'app
+db.init_app(app)
+migrate.init_app(app, db)
+
+# Configuration du logging
+logging.basicConfig(
+    level=getattr(logging, app.config['LOG_LEVEL']),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(app.config['LOG_FILE']),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+# Import des modèles (après l'initialisation de db)
+from models import Transport, Vehicule, Energie
+
+# Enregistrement du Blueprint des transports
+app.register_blueprint(transport_api)
+
+@app.route('/')
+def index():
+    """Page d'accueil"""
+    return render_template('index.html')
+
+@app.route('/dashboard')
+def dashboard():
+    """Dashboard principal"""
+    try:
+        # Récupérer les statistiques
+        total_transports = Transport.query.count()
+        total_clients = 0
+        if hasattr(Transport, 'client_id'):
+            try:
+                result = db.session.query(db.func.count(db.distinct(Transport.client_id))).scalar()
+                total_clients = result if result is not None else 0
+            except Exception:
+                total_clients = 0
+        
+        logger.info(f"Affichage du dashboard - {total_transports} transports")
+        
+        return render_template('dashboard.html', 
+                            total_transports=total_transports,
+                            total_clients=total_clients)
+                            
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage du dashboard: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/transports')
+def liste_transports():
+    """Liste des transports"""
+    try:
+        # Récupérer tous les transports
+        transports = Transport.query.all()
+        
+        # Récupérer les véhicules et énergies pour l'affichage
+        vehicules = {v.id: v for v in Vehicule.query.all()}
+        energies = {e.id: e for e in Energie.query.all()}
+        
+        logger.info(f"Affichage de {len(transports)} transports")
+        
+        return render_template('liste_transports.html', 
+                            transports=transports,
+                            vehicules=vehicules,
+                            energies=energies)
+                            
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des transports: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/api/vehicules')
+def api_vehicules():
+    """API pour récupérer les véhicules"""
+    try:
+        vehicules = Vehicule.query.all()
+        vehicules_data = []
+        
+        for v in vehicules:
+            vehicules_data.append({
+                'id': v.id,
+                'nom': v.nom,
+                'type': v.type,
+                'consommation': v.consommation,
+                'emissions': v.emissions,
+                'charge_utile': v.charge_utile
+            })
+        
+        return jsonify({
+            'success': True,
+            'vehicules': vehicules_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur API véhicules: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/energies')
+def api_energies():
+    """API pour récupérer les énergies"""
+    try:
+        energies = Energie.query.all()
+        energies_data = []
+        
+        for e in energies:
+            energies_data.append({
+                'id': e.id,
+                'nom': e.nom,
+                'identifiant': e.identifiant,
+                'facteur': e.facteur,
+                'description': e.description
+            })
+        
+        return jsonify({
+            'success': True,
+            'energies': energies_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur API énergies: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/administration')
+def administration():
+    """Page d'administration"""
+    try:
+        return render_template('administration.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage de l'administration: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/parametrage_clients')
+def parametrage_clients():
+    """Page de paramétrage des clients"""
+    try:
+        return render_template('clients.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des clients: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/parametrage_energies')
+def parametrage_energies():
+    """Page de paramétrage des énergies"""
+    try:
+        return render_template('parametrage_energies.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des énergies: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/import_csv')
+def import_csv():
+    """Page d'import CSV"""
+    try:
+        return render_template('import_csv.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage de l'import CSV: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/transport')
+@app.route('/transport/<int:transport_id>')
+def transport(transport_id=None):
+    """Page de création/modification d'un transport"""
+    try:
+        transport = None
+        if transport_id:
+            transport = Transport.query.get_or_404(transport_id)
+        
+        # Récupérer les véhicules et énergies pour le formulaire
+        vehicules = Vehicule.query.all()
+        energies = Energie.query.all()
+        
+        return render_template('transport.html', 
+                            transport=transport,
+                            vehicules=vehicules,
+                            energies=energies)
+                            
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage du transport: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/logout')
+def logout():
+    """Déconnexion"""
+    return render_template('login.html')
+
+@app.route('/health')
+def health_check():
+    """Point de contrôle de santé pour le déploiement"""
+    try:
+        # Vérifier la base de données
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
+        db_status = 'OK'
+    except Exception as e:
+        db_status = f'ERROR: {str(e)}'
+    
+    return jsonify({
+        'status': 'healthy',
+        'database': db_status,
+        'timestamp': logging.Formatter().formatTime(logging.LogRecord('', 0, '', 0, '', (), None))
+    })
+
+@app.errorhandler(404)
+def not_found(error):
+    """Gestion des erreurs 404"""
+    return render_template('error.html', error='Page non trouvée'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Gestion des erreurs 500"""
+    db.session.rollback()
+    logger.error(f"Erreur interne: {str(error)}")
+    return render_template('error.html', error='Erreur interne du serveur'), 500
+
+if __name__ == '__main__':
+    # Démarrage de l'application
+    logger.info("🚀 Démarrage de l'application Myxploit...")
+    
+    try:
+        # Créer les tables si elles n'existent pas
+        with app.app_context():
+            db.create_all()
+            logger.info("✅ Base de données initialisée")
+        
+        # Démarrer le serveur
+        app.run(
+            host=app.config['HOST'],
+            port=app.config['PORT'],
+            debug=app.config['DEBUG']
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur au démarrage: {str(e)}")
+        raise

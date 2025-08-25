@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% block title %}Administration — GreenXploit{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+  <!-- Header de l'Administration -->
+  <div class="admin-header">
+    <div class="header-content">
+      <h1>⚙️ Administration</h1>
+      <p class="header-subtitle">Gestion des données et paramètres de l'application</p>
+    </div>
+  </div>
+
+  <!-- Sections d'Administration -->
+  <div class="admin-sections">
+    <!-- Section Clients -->
+    <div class="admin-section">
+      <div class="section-header">
+        <div class="section-icon">👥</div>
+        <div class="section-content">
+          <h2>Gestion des Clients</h2>
+          <p>Gérez vos clients, leurs informations et leurs accès</p>
+        </div>
+        <a href="{{ url_for('parametrage_clients') }}" class="btn-primary">Gérer les Clients</a>
+      </div>
+      <div class="section-actions">
+        <a href="{{ url_for('parametrage_clients') }}" class="action-link">
+          <span class="action-icon">📋</span>
+          <span class="action-text">Liste des Clients</span>
+        </a>
+        <a href="{{ url_for('parametrage_clients') }}" class="action-link">
+          <span class="action-icon">➕</span>
+          <span class="action-text">Ajouter un Client</span>
+        </a>
+        <a href="{{ url_for('parametrage_clients') }}" class="action-link">
+          <span class="action-icon">📊</span>
+          <span class="action-text">Statistiques Clients</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Section Énergies -->
+    <div class="admin-section">
+      <div class="section-header">
+        <div class="section-icon">⚡</div>
+        <div class="section-content">
+          <h2>Gestion des Énergies</h2>
+          <p>Configurez les types d'énergies et leurs facteurs d'émission</p>
+        </div>
+        <a href="{{ url_for('parametrage_energies') }}" class="btn-primary">Gérer les Énergies</a>
+      </div>
+      <div class="section-actions">
+        <a href="{{ url_for('parametrage_energies') }}" class="action-link">
+          <span class="action-icon">📋</span>
+          <span class="action-text">Liste des Énergies</span>
+        </a>
+        <a href="{{ url_for('parametrage_energies') }}" class="action-link">
+          <span class="action-icon">➕</span>
+          <span class="action-text">Ajouter une Énergie</span>
+        </a>
+        <a href="{{ url_for('parametrage_energies') }}" class="action-link">
+          <span class="action-icon">⚙️</span>
+          <span class="action-text">Configuration</span>
+        </a>
+      </div>
+    </div>
+
+                    <!-- Section Types de Véhicules -->
+                <div class="admin-section">
+                  <div class="section-header">
+                    <div class="section-icon">🚛</div>
+                    <div class="section-content">
+                      <h2>Types de Véhicules (Valeurs agrégées de niveau 1)</h2>
+                      <p>Gérez les types de véhicules selon les règles de l'ADEME pour les calculs d'émissions</p>
+                    </div>
+                    <a href="{{ url_for('parametrage_vehicules') }}" class="btn-primary">Gérer les Types</a>
+                  </div>
+                  <div class="section-actions">
+                    <a href="{{ url_for('parametrage_vehicules') }}" class="action-link">
+                      <span class="action-icon">📋</span>
+                      <span class="action-text">Liste des Types</span>
+                    </a>
+                    <a href="{{ url_for('parametrage_vehicules') }}" class="action-link">
+                      <span class="action-icon">➕</span>
+                      <span class="action-text">Ajouter un Type</span>
+                    </a>
+                    <a href="{{ url_for('parametrage_vehicules') }}" class="action-link">
+                      <span class="action-icon">⚙️</span>
+                      <span class="action-text">Configuration</span>
+                    </a>
+                  </div>
+                </div>
+
+    <!-- Section Impact -->
+    <div class="admin-section">
+      <div class="section-header">
+        <div class="section-icon">🌍</div>
+        <div class="section-content">
+          <h2>Configuration de l'Impact</h2>
+          <p>Paramétrez les facteurs d'impact environnemental</p>
+        </div>
+        <a href="{{ url_for('parametrage_impact') }}" class="btn-primary">Configurer l'Impact</a>
+      </div>
+      <div class="section-actions">
+        <a href="{{ url_for('parametrage_impact') }}" class="action-link">
+          <span class="action-icon">⚙️</span>
+          <span class="action-text">Paramètres</span>
+        </a>
+        <a href="{{ url_for('parametrage_impact') }}" class="action-link">
+          <span class="action-icon">📊</span>
+          <span class="action-text">Métriques</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Section Système -->
+    <div class="admin-section">
+      <div class="section-header">
+        <div class="section-icon">🔧</div>
+        <div class="section-content">
+          <h2>Paramètres Système</h2>
+          <p>Configuration générale et maintenance de l'application</p>
+        </div>
+        <a href="#" class="btn-primary">Paramètres</a>
+      </div>
+      <div class="section-actions">
+        <a href="#" class="action-link">
+          <span class="action-icon">👤</span>
+          <span class="action-text">Gestion des Utilisateurs</span>
+        </a>
+        <a href="#" class="action-link">
+          <span class="action-icon">📥</span>
+          <span class="action-text">Import/Export</span>
+        </a>
+        <a href="#" class="action-link">
+          <span class="action-icon">📊</span>
+          <span class="action-text">Logs Système</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Styles CSS pour l'Administration -->
+<style>
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.admin-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.header-content h1 {
+  margin: 0 0 10px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.header-subtitle {
+  margin: 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Sections */
+.admin-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 25px;
+}
+
+.admin-section {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e1e8ed;
+  transition: all 0.3s ease;
+}
+
+.admin-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+.section-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.section-content {
+  flex: 1;
+}
+
+.section-content h2 {
+  margin: 0 0 5px 0;
+  color: #2d3748;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.section-content p {
+  margin: 0;
+  color: #718096;
+  font-size: 0.95rem;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  color: white;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Actions */
+.section-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.action-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: #f7fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.action-link:hover {
+  background: #edf2f7;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.action-icon {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.action-text {
+  font-size: 0.9rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-container {
+    padding: 15px;
+  }
+  
+  .admin-sections {
+    grid-template-columns: 1fr;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .section-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .header-content h1 {
+    font-size: 2rem;
+  }
+}
+</style>
+{% endblock %}

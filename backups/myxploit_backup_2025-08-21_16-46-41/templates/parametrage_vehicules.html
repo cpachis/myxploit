@@ -1,0 +1,861 @@
+{% extends "base.html" %}
+{% block title %}Gestion des Types de Véhicules — GreenXploit{% endblock %}
+
+{% block content %}
+<div class="vehicules-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>🚛 Types de Véhicules (Standards ADEME)</h1>
+      <p class="header-subtitle">Gérez les types de véhicules selon les règles de l'ADEME pour les calculs d'émissions</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" onclick="showAddVehiculeModal()">
+        <span class="btn-icon">➕</span>
+        Ajouter un Type de Véhicule
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input type="text" id="search-vehicules" placeholder="Rechercher un type de véhicule..." onkeyup="filterVehicules()">
+      <span class="search-icon">🔍</span>
+    </div>
+    <div class="filter-options">
+      <select id="filter-type" onchange="filterVehicules()">
+        <option value="">Tous les types</option>
+        <option value="PORTEUR">Porteur</option>
+        <option value="TRACTEUR">Tracteur</option>
+        <option value="REMORQUE">Remorque</option>
+        <option value="CAMION_BENNE">Camion benne</option>
+        <option value="CAMION_FRIGO">Camion frigorifique</option>
+        <option value="CAMION_CITERNE">Camion citerne</option>
+        <option value="CAMION_PLATEAU">Camion plateau</option>
+        <option value="CAMION_GRUE">Camion grue</option>
+        <option value="CAMION_4X4">Camion 4x4</option>
+        <option value="CAMION_ELECTRIQUE">Camion électrique</option>
+        <option value="CAMION_HYBRIDE">Camion hybride</option>
+        <option value="CAMION_GAZ">Camion gaz</option>
+      </select>
+      <select id="filter-energie" onchange="filterVehicules()">
+        <option value="">Toutes les énergies</option>
+        <option value="GAZOLE">Gazole</option>
+        <option value="ELECTRICITE">Électricité</option>
+        <option value="HYBRIDE">Hybride</option>
+        <option value="GAZ">Gaz</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Liste des types de véhicules -->
+  <div class="vehicules-list" id="vehicules-list">
+    <!-- Les types de véhicules seront chargés dynamiquement -->
+  </div>
+
+  <!-- Modal d'ajout/modification de type de véhicule -->
+  <div id="vehicule-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="vehicule-modal-title">Ajouter un Type de Véhicule</h2>
+        <button class="close-btn" onclick="closeVehiculeModal()">&times;</button>
+      </div>
+      
+      <form id="vehicule-form" class="vehicule-form">
+                 <div class="form-row">
+           <div class="form-group">
+             <label for="vehicule-nom">Nom du type de véhicule *</label>
+             <input type="text" id="vehicule-nom" name="nom" required placeholder="Ex: Porteur 3.5 tonnes">
+           </div>
+          <div class="form-group">
+            <label for="vehicule-energie">Énergie principale *</label>
+            <select id="vehicule-energie" name="energie" required>
+              <option value="">Sélectionner l'énergie</option>
+              <!-- Les énergies seront chargées dynamiquement -->
+            </select>
+          </div>
+        </div>
+
+                 <div class="form-row">
+           <div class="form-group">
+             <label for="vehicule-capacite">Capacité de charge (tonnes) *</label>
+                           <input type="number" id="vehicule-capacite" name="capacite" required step="0.001" min="0" placeholder="Ex: 3.5">
+             <small class="form-help">Poids maximum transportable selon les standards ADEME</small>
+           </div>
+         </div>
+
+                 <div class="form-row">
+           <div class="form-group">
+             <label for="vehicule-consommation">Taux de consommation (L/100km) *</label>
+             <input type="number" id="vehicule-consommation" name="consommation" required step="0.1" min="0" placeholder="Ex: 12.5">
+             <small class="form-help">Consommation moyenne selon les standards ADEME</small>
+           </div>
+           <div class="form-group">
+             <label for="vehicule-emissions">Émissions CO₂e par unité transportée et par km (g CO₂e/t.km) *</label>
+             <input type="number" id="vehicule-emissions" name="emissions" required step="0.001" min="0" placeholder="Ex: 125.0">
+             <small class="form-help">Facteur d'émission ADEME standardisé</small>
+           </div>
+         </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="vehicule-description">Description technique</label>
+            <textarea id="vehicule-description" name="description" rows="3" placeholder="Caractéristiques techniques, standards ADEME, particularités..."></textarea>
+          </div>
+        </div>
+
+
+
+        
+
+        <div class="form-actions">
+          <button type="submit" class="btn-save">💾 Sauvegarder</button>
+          <button type="button" class="btn-cancel" onclick="closeVehiculeModal()">❌ Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts JavaScript -->
+<script>
+let vehicules = [];
+let currentEditId = null;
+
+// Charger les types de véhicules au démarrage
+document.addEventListener('DOMContentLoaded', function() {
+  loadVehicules();
+  loadEnergies();
+});
+
+// Fonction pour nettoyer et formater les IDs des véhicules
+function formatVehiculeId(id) {
+  if (!id) return 'ID non défini';
+  
+  // Remplacer les underscores par des espaces
+  let formatted = id.replace(/_/g, ' ');
+  
+  // Remplacer les caractères spéciaux
+  formatted = formatted.replace(/__/g, ' - ');
+  formatted = formatted.replace(/\(/g, ' (');
+  formatted = formatted.replace(/\)/g, ') ');
+  
+  // Restaurer les caractères accentués manquants
+  formatted = formatted
+    .replace(/\bV\s+HICULE\b/g, 'VÉHICULE')
+    .replace(/\bL\s+GER\b/g, 'LÉGER')
+    .replace(/\bTONNES\b/g, 'TONNES')
+    .replace(/\bEXPRESS\b/g, 'EXPRESS')
+    .replace(/\bPLIS\b/g, 'PLIS')
+    .replace(/\bCOURSES\b/g, 'COURSES')
+    .replace(/\bGAZOLE\b/g, 'GAZOLE')
+    .replace(/\bROUTIER\b/g, 'ROUTIER')
+    .replace(/\bPORTEUR\b/g, 'PORTEUR')
+    .replace(/\bCOLIS\b/g, 'COLIS');
+  
+  // Nettoyer les espaces multiples
+  formatted = formatted.replace(/\s+/g, ' ').trim();
+  
+  // Capitaliser la première lettre de chaque mot et appliquer la casse appropriée
+  formatted = formatted.split(' ').map(word => {
+    if (word.length > 0) {
+      // Mots spéciaux qui doivent rester en majuscules
+      const specialWords = ['VÉHICULE', 'LÉGER', 'TONNES', 'EXPRESS', 'PLIS', 'COURSES', 'GAZOLE', 'ROUTIER', 'PORTEUR', 'COLIS', 'PTAC'];
+      if (specialWords.includes(word.toUpperCase())) {
+        return word.toUpperCase();
+      }
+      // Pour les autres mots, capitaliser la première lettre
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }
+    return word;
+  }).join(' ');
+  
+  return formatted;
+}
+
+// Charger la liste des types de véhicules
+function loadVehicules() {
+  fetch('/api/vehicules')
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        vehicules = result.vehicules;
+        displayVehicules(vehicules);
+      } else {
+        console.error('Erreur lors du chargement des types de véhicules:', result.error);
+        showNotification('Erreur lors du chargement des types de véhicules', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement des types de véhicules:', error);
+      showNotification('Erreur lors du chargement des types de véhicules', 'error');
+    });
+}
+
+// Charger les énergies pour le formulaire
+function loadEnergies() {
+  fetch('/api/energies')
+    .then(response => response.json())
+    .then(energies => {
+      const energieSelect = document.getElementById('vehicule-energie');
+      energieSelect.innerHTML = '<option value="">Sélectionner l\'énergie</option>';
+      
+      Object.entries(energies).forEach(([energieId, energieData]) => {
+        const option = document.createElement('option');
+        option.value = energieId;
+        option.textContent = `${energieId} - ${energieData.nom}`;
+        energieSelect.appendChild(option);
+      });
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement des énergies:', error);
+    });
+}
+
+// Afficher la liste des types de véhicules
+function displayVehicules(vehiculesToShow) {
+  const container = document.getElementById('vehicules-list');
+  
+  if (vehiculesToShow.length === 0) {
+    container.innerHTML = '<div class="no-vehicules">Aucun type de véhicule trouvé</div>';
+    return;
+  }
+  
+  container.innerHTML = vehiculesToShow.map(vehicule => `
+    <div class="vehicule-card" data-id="${vehicule.id}">
+      <div class="vehicule-header">
+        <div class="vehicule-info">
+          <h3>${vehicule.nom}</h3>
+          <span class="vehicule-id" title="${vehicule.id}">${formatVehiculeId(vehicule.id)}</span>
+        </div>
+      </div>
+      
+      <div class="vehicule-details">
+        <div class="detail-row">
+          <span class="detail-label">Énergie:</span>
+          <span class="detail-value">${vehicule.energie || 'Non définie'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Capacité:</span>
+          <span class="detail-value">${vehicule.capacite || 0} tonnes</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Consommation:</span>
+          <span class="detail-value">${vehicule.consommation || 0} L/100km</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Émissions CO₂e:</span>
+          <span class="detail-value">${vehicule.emissions || 0} g CO₂e/t.km</span>
+        </div>
+        ${vehicule.description ? `
+        <div class="detail-row description-row">
+          <span class="detail-label">Description:</span>
+          <span class="detail-value description-text">${vehicule.description}</span>
+        </div>
+        ` : ''}
+      </div>
+      
+      <div class="vehicule-actions">
+        <button class="btn-edit" onclick="editVehicule('${vehicule.id}')">
+          <span class="btn-icon">✏️</span>
+          Modifier
+        </button>
+        <button class="btn-delete" onclick="deleteVehicule('${vehicule.id}')">
+          <span class="btn-icon">🗑️</span>
+          Supprimer
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Filtrer les types de véhicules
+function filterVehicules() {
+  const searchTerm = document.getElementById('search-vehicules').value.toLowerCase();
+  const typeFilter = document.getElementById('filter-type').value;
+  const energieFilter = document.getElementById('filter-energie').value;
+  
+  const filtered = vehicules.filter(vehicule => {
+    const matchesSearch = vehicule.nom.toLowerCase().includes(searchTerm) || 
+                         vehicule.id.toLowerCase().includes(searchTerm) ||
+                         formatVehiculeId(vehicule.id).toLowerCase().includes(searchTerm);
+    const matchesType = !typeFilter || vehicule.type === typeFilter;
+    const matchesEnergie = !energieFilter || vehicule.energie === energieFilter;
+    
+    return matchesSearch && matchesType && matchesEnergie;
+  });
+  
+  displayVehicules(filtered);
+}
+
+// Afficher le modal d'ajout
+function showAddVehiculeModal() {
+  currentEditId = null;
+  document.getElementById('vehicule-modal-title').textContent = 'Ajouter un Type de Véhicule';
+  document.getElementById('vehicule-form').reset();
+  document.getElementById('vehicule-modal').style.display = 'block';
+}
+
+// Afficher le modal de modification
+function editVehicule(vehiculeId) {
+  const vehicule = vehicules.find(v => v.id === vehiculeId);
+  if (!vehicule) return;
+  
+  currentEditId = vehiculeId;
+  document.getElementById('vehicule-modal-title').textContent = `Modifier le Type de Véhicule ${vehiculeId}`;
+  
+  // Remplir le formulaire
+  document.getElementById('vehicule-nom').value = vehicule.nom || '';
+  document.getElementById('vehicule-energie').value = vehicule.energie || '';
+  document.getElementById('vehicule-capacite').value = vehicule.capacite || '';
+  document.getElementById('vehicule-consommation').value = vehicule.consommation || '';
+  document.getElementById('vehicule-emissions').value = vehicule.emissions || '';
+  document.getElementById('vehicule-description').value = vehicule.description || '';
+  
+  document.getElementById('vehicule-modal').style.display = 'block';
+}
+
+// Fermer le modal
+function closeVehiculeModal() {
+  document.getElementById('vehicule-modal').style.display = 'none';
+  currentEditId = null;
+}
+
+// Supprimer un type de véhicule
+function deleteVehicule(vehiculeId) {
+  if (confirm(`Êtes-vous sûr de vouloir supprimer le type de véhicule ${vehiculeId} ?`)) {
+    fetch(`/api/vehicules/${vehiculeId}`, {
+      method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        showNotification('Type de véhicule supprimé avec succès', 'success');
+        loadVehicules();
+      } else {
+        showNotification(`Erreur: ${result.error}`, 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors de la suppression:', error);
+      showNotification('Erreur lors de la suppression', 'error');
+    });
+  }
+}
+
+// Gestionnaire de soumission du formulaire
+document.getElementById('vehicule-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  
+  // Générer un ID unique basé sur le nom et la capacité
+  let vehiculeId;
+  if (currentEditId) {
+    vehiculeId = currentEditId;
+  } else {
+    const nom = formData.get('nom').replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+    const capacite = formData.get('capacite');
+    vehiculeId = `${nom}_${capacite}T`;
+  }
+  
+  const vehiculeData = {
+    id: vehiculeId,
+    nom: formData.get('nom'),
+    energie: formData.get('energie'),
+    capacite: parseFloat(formData.get('capacite')) || 0,
+    consommation: parseFloat(formData.get('consommation')) || 0,
+    emissions: parseFloat(formData.get('emissions')) || 0,
+    description: formData.get('description')
+  };
+  
+  const method = currentEditId ? 'PUT' : 'POST';
+  const url = currentEditId ? `/api/vehicules/${currentEditId}` : '/api/vehicules';
+  
+  fetch(url, {
+    method: method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(vehiculeData)
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      showNotification(result.message, 'success');
+      closeVehiculeModal();
+      loadVehicules();
+    } else {
+      showNotification(`Erreur: ${result.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur lors de la sauvegarde:', error);
+    showNotification('Erreur lors de la sauvegarde', 'error');
+  });
+});
+
+
+
+// Fonction de notification
+function showNotification(message, type) {
+  // Implémentation simple de notification
+  alert(`${type.toUpperCase()}: ${message}`);
+}
+
+
+
+
+</script>
+
+<!-- Styles CSS -->
+<style>
+.vehicules-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  color: white;
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.header-subtitle {
+  margin: 5px 0 0 0;
+  opacity: 0.9;
+}
+
+.btn-primary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.filters-section {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+}
+
+.filter-options {
+  display: flex;
+  gap: 15px;
+}
+
+.filter-options select {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+}
+
+.vehicules-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.vehicule-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.vehicule-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.vehicule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.vehicule-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.2rem;
+  color: #1f2937;
+}
+
+.vehicule-id {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-family: monospace;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.vehicule-id:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.vehicule-type-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.type-porteur { background: #dbeafe; color: #1e40af; }
+.type-tracteur { background: #fef3c7; color: #92400e; }
+.type-remorque { background: #d1fae5; color: #065f46; }
+.type-camion_benne { background: #f3e8ff; color: #7c3aed; }
+.type-camion_frigo { background: #e0f2fe; color: #0c4a6e; }
+.type-camion_citerne { background: #fef2f2; color: #991b1b; }
+.type-camion_plateau { background: #f0fdf4; color: #166534; }
+.type-camion_grue { background: #fefce8; color: #a16207; }
+.type-camion_4x4 { background: #fdf2f8; color: #be185d; }
+.type-camion_electrique { background: #ecfdf5; color: #047857; }
+.type-camion_hybride { background: #f0f9ff; color: #0369a1; }
+.type-camion_gaz { background: #fef7ee; color: #c2410c; }
+
+.vehicule-details {
+  margin-bottom: 20px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.detail-value {
+  color: #1f2937;
+}
+
+.description-row {
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.description-text {
+  font-style: italic;
+  color: #4b5563;
+  line-height: 1.5;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.vehicule-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-edit, .btn-delete {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-edit {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.btn-delete {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 0;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px 15px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.vehicule-form {
+  padding: 30px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-row.full-width {
+  grid-template-columns: 1fr;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input[readonly] {
+  background-color: #f7fafc;
+  color: #4a5568;
+  cursor: not-allowed;
+}
+
+.form-help {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-save, .btn-cancel {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+}
+
+.btn-cancel {
+  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3);
+}
+
+.btn-cancel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 101, 101, 0.4);
+}
+
+.no-vehicules {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+  font-style: italic;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 2px dashed #d1d5db;
+  grid-column: 1 / -1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .filters-section {
+    flex-direction: column;
+  }
+  
+  .vehicules-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    width: 95%;
+    margin: 2% auto;
+  }
+  
+  .vehicule-form {
+    padding: 20px;
+  }
+}
+
+
+</style>
+{% endblock %}

@@ -1,0 +1,58 @@
+{
+    "seuils": [
+        {
+            "couleur": "#dcfce7",
+            "description": "Énergies très peu polluantes",
+            "emoji": "🟢",
+            "max": 0.1,
+            "min": 0,
+            "nom": "Très faible",
+            "texte": "#166534"
+        },
+        {
+            "couleur": "#bbf7d0",
+            "description": "Énergies peu polluantes",
+            "emoji": "🟡",
+            "max": 0.5,
+            "min": 0.1,
+            "nom": "Faible",
+            "texte": "#15803d"
+        },
+        {
+            "couleur": "#fef3c7",
+            "description": "Énergies moyennement polluantes",
+            "emoji": "🟠",
+            "max": 1,
+            "min": 0.5,
+            "nom": "Moyen",
+            "texte": "#92400e"
+        },
+        {
+            "couleur": "#fed7aa",
+            "description": "Énergies polluantes",
+            "emoji": "🔴",
+            "max": 2,
+            "min": 1,
+            "nom": "Élevé",
+            "texte": "#c2410c"
+        },
+        {
+            "couleur": "#fecaca",
+            "description": "Énergies très polluantes",
+            "emoji": "⚫",
+            "max": 999,
+            "min": 2,
+            "nom": "Très élevé",
+            "texte": "#991b1b"
+        }
+    ]
+}
+
+
+
+
+
+
+
+
+

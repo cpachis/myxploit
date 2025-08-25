@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Type de Transport - Direct/Indirect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .feature-section {
+            background: #e6f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+            margin: 20px 0;
+        }
+        .feature-section h3 {
+            color: #007acc;
+            margin-top: 0;
+        }
+        .type-example {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .type-direct {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+        }
+        .type-indirect {
+            background: linear-gradient(90deg, #ed8936, #dd6b20);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+        }
+        .form-preview {
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin: 20px 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+        .btn {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #005a9e;
+        }
+        .table-preview {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .table-preview th {
+            background: #f7fafc;
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .table-preview td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #2d3748;
+        }
+        .type-cell {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚛 Test Type de Transport - Direct/Indirect</h1>
+    
+    <div class="container">
+        <h2>📋 Nouvelle Fonctionnalité Ajoutée</h2>
+        
+        <div class="feature-section">
+            <h3>✅ Champ Type de Transport</h3>
+            <p>Un nouveau champ a été ajouté dans la création et la modification des transports pour caractériser le type de transport :</p>
+            <ul>
+                <li><strong>🚛 Direct :</strong> Transport direct du point A au point B</li>
+                <li><strong>🔄 Indirect :</strong> Transport avec étapes intermédiaires</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>🧮 Formulaire de Création</h2>
+        
+        <div class="form-preview">
+            <h3>📋 Informations de base</h3>
+            
+            <div class="form-group">
+                <label for="ref">Référence du transport *</label>
+                <input type="text" id="ref" placeholder="Ex: T0001" value="T0001">
+            </div>
+            
+            <div class="form-group">
+                <label for="client">Client *</label>
+                <select id="client">
+                    <option value="">Sélectionnez un client</option>
+                    <option value="CL001">CL001 - Client Test</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="type_transport">Type de transport *</label>
+                <select id="type_transport" onchange="updateTypePreview()">
+                    <option value="">Sélectionnez le type</option>
+                    <option value="direct">🚛 Direct - Transport direct du point A au point B</option>
+                    <option value="indirect">🔄 Indirect - Transport avec étapes intermédiaires</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="date">Date du transport *</label>
+                <input type="date" id="date" value="2025-01-20">
+            </div>
+            
+            <button class="btn" onclick="testTypeSelection()">Tester la Sélection</button>
+        </div>
+        
+        <div id="type-preview" style="display: none;">
+            <h3>👀 Aperçu du Type Sélectionné</h3>
+            <div id="preview-content"></div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>📊 Affichage dans la Liste</h2>
+        
+        <div class="feature-section">
+            <h3>🎨 Styles Visuels</h3>
+            <p>Les types de transport sont affichés avec des badges colorés distinctifs :</p>
+            <ul>
+                <li><span class="type-direct">🚛 Direct</span> - Badge vert pour les transports directs</li>
+                <li><span class="type-indirect">🔄 Indirect</span> - Badge orange pour les transports indirects</li>
+            </ul>
+        </div>
+        
+        <h3>📋 Tableau des Transports</h3>
+        <table class="table-preview">
+            <thead>
+                <tr>
+                    <th>Référence</th>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Type</th>
+                    <th>Départ → Arrivée</th>
+                    <th>Distance (km)</th>
+                    <th>Poids (t)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>T0001</strong></td>
+                    <td>20/01/2025</td>
+                    <td>CL001 - Client Test</td>
+                    <td class="type-cell"><span class="type-direct">🚛 Direct</span></td>
+                    <td>Paris → Lyon</td>
+                    <td>465.2</td>
+                    <td>12.5</td>
+                    <td><button class="btn">Détail</button></td>
+                </tr>
+                <tr>
+                    <td><strong>T0002</strong></td>
+                    <td>21/01/2025</td>
+                    <td>CL002 - Client Test 2</td>
+                    <td class="type-cell"><span class="type-indirect">🔄 Indirect</span></td>
+                    <td>Marseille → Nice</td>
+                    <td>198.7</td>
+                    <td>8.3</td>
+                    <td><button class="btn">Détail</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="container">
+        <h2>🔍 Filtres et Recherche</h2>
+        
+        <div class="feature-section">
+            <h3>✅ Filtre par Type</h3>
+            <p>Un nouveau filtre a été ajouté pour filtrer les transports par type :</p>
+            <ul>
+                <li>Filtre par type de transport (Direct/Indirect)</li>
+                <li>Combinaison avec les filtres existants (client, énergie, date)</li>
+                <li>Tri et ordonnancement maintenus</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>💾 Stockage des Données</h2>
+        
+        <div class="feature-section">
+            <h3>📊 Structure JSON</h3>
+            <p>Le type de transport est maintenant stocké dans le fichier <code>transports.json</code> :</p>
+            <div class="type-example">
+{
+  "T0001": {
+    "ref": "T0001",
+    "client": "CL001",
+    "type_transport": "direct",
+    "date": "2025-01-20",
+    "ville_depart": "Paris",
+    "ville_arrivee": "Lyon",
+    "distance_km": 465.2,
+    "poids_tonnes": 12.5,
+    "energie": "DIESEL",
+    "emis_kg": 58.15,
+    "emis_tkm": 0.125
+  }
+}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTypePreview() {
+            const select = document.getElementById('type_transport');
+            const preview = document.getElementById('type-preview');
+            const content = document.getElementById('preview-content');
+            
+            if (select.value) {
+                let typeDisplay = '';
+                if (select.value === 'direct') {
+                    typeDisplay = '<span class="type-direct">🚛 Direct</span>';
+                } else if (select.value === 'indirect') {
+                    typeDisplay = '<span class="type-indirect">🔄 Indirect</span>';
+                }
+                
+                content.innerHTML = `
+                    <p><strong>Type sélectionné :</strong> ${typeDisplay}</p>
+                    <p><strong>Valeur stockée :</strong> <code>${select.value}</code></p>
+                    <p><strong>Description :</strong> ${select.options[select.selectedIndex].text.split(' - ')[1]}</p>
+                `;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+        
+        function testTypeSelection() {
+            const select = document.getElementById('type_transport');
+            if (select.value) {
+                alert(`✅ Type de transport sélectionné : ${select.value}\n\nCette valeur sera sauvegardée dans la base de données et affichée dans la liste des transports.`);
+            } else {
+                alert('❌ Veuillez sélectionner un type de transport.');
+            }
+        }
+        
+        // Test automatique au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Page de test du type de transport chargée !');
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+

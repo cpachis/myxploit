@@ -1,0 +1,113 @@
+{# templates/login.html #}
+{% extends "base.html" %}
+
+{% block title %}Connexion — GreenXploit{% endblock %}
+
+{% block content %}
+  <div class="login-container">
+    <form method="post" class="login-form">
+      <h2>GreenXploit</h2>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <ul class="flashes">
+            {% for category, msg in messages %}
+              <li class="flash {{ category }}">{{ msg }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+
+      <div class="form-group">
+        <label for="username">Nom d’utilisateur</label>
+        <input type="text" id="username" name="username" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+
+      <div class="form-group checkbox">
+        <input type="checkbox" id="remember" name="remember">
+        <label for="remember">Rester connecté</label>
+      </div>
+
+      <button type="submit" class="btn primary">Se connecter</button>
+    </form>
+  </div>
+
+  <style>
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 80vh;
+    }
+    .login-form {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 320px;
+    }
+    .login-form h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+    .form-group {
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .form-group label {
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+    }
+    .form-group input[type="text"],
+    .form-group input[type="password"] {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    .form-group.checkbox {
+      flex-direction: row;
+      align-items: center;
+    }
+    .form-group.checkbox label {
+      margin: 0 0 0 0.5rem;
+      font-size: 0.9rem;
+    }
+    .btn.primary {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    .flashes {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1rem 0;
+    }
+    .flash {
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .flash.danger {
+      background: #f8d7da;
+      color: #842029;
+      margin-bottom: 1rem;
+    }
+  </style>
+{% endblock %}

@@ -1,0 +1,502 @@
+{% extends "base.html" %}
+{% block title %}Configuration Impact Environnemental - Green Calc{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Configuration Impact Environnemental</h1>
+    <p class="subtitle">Personnalisez les seuils et couleurs de classification des énergies</p>
+  </div>
+
+  <div class="dashboard-content">
+    <div class="config-section">
+      <div class="section-header">
+        <h3>Seuils d'impact environnemental</h3>
+        <div class="header-actions">
+          <button class="btn-primary" onclick="saveConfig()">💾 Sauvegarder</button>
+          <button class="btn-secondary" onclick="resetToDefault()">🔄 Réinitialiser</button>
+        </div>
+      </div>
+      
+      <div class="config-form">
+        <div id="seuils-container">
+          <!-- Les seuils seront générés dynamiquement par JavaScript -->
+        </div>
+      </div>
+    </div>
+    
+    <div class="preview-section">
+      <div class="section-header">
+        <h3>Aperçu de la classification</h3>
+      </div>
+      
+      <div class="preview-grid">
+        <div class="preview-item">
+          <h4>Exemples d'énergies</h4>
+          <div class="example-energies">
+            <div class="example-energy">
+              <span class="energy-name">Électricité</span>
+              <span class="energy-value">0.1 kgCO₂e/kWh</span>
+              <span class="impact-badge" id="preview-elec">🟢 Très faible</span>
+            </div>
+            <div class="example-energy">
+              <span class="energy-name">HVO</span>
+              <span class="energy-value">0.54 kgCO₂e/L</span>
+              <span class="impact-badge" id="preview-hvo">🟠 Moyen</span>
+            </div>
+            <div class="example-energy">
+              <span class="energy-name">Essence</span>
+              <span class="energy-value">2.31 kgCO₂e/L</span>
+              <span class="impact-badge" id="preview-essence">🔴 Élevé</span>
+            </div>
+            <div class="example-energy">
+              <span class="energy-name">Gazole</span>
+              <span class="energy-value">2.64 kgCO₂e/L</span>
+              <span class="impact-badge" id="preview-gazole">⚫ Très élevé</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="preview-item">
+          <h4>Légende actuelle</h4>
+          <div id="preview-legend" class="preview-legend">
+            <!-- La légende sera générée dynamiquement -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+}
+
+.dashboard-header {
+  margin-bottom: 3rem;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  color: #2a7de1;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.dashboard-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.section-header h3 {
+  font-size: 1.25rem;
+  color: #2a7de1;
+  margin: 0;
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.config-section, .preview-section {
+  padding: 2rem;
+}
+
+.config-form {
+  margin-top: 1rem;
+}
+
+.seuil-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.seuil-item h4 {
+  margin: 0;
+  color: #374151;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.seuil-item input, .seuil-item select {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.color-picker {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.color-input {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.emoji-select {
+  width: 60px;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.preview-item {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.preview-item h4 {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.example-energies {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.example-energy {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.energy-name {
+  font-weight: 500;
+  color: #374151;
+}
+
+.energy-value {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.impact-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.preview-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.legend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2a7de1, #4fd1c5);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1e5bb8, #38b2ac);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+  
+  .seuil-item {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .preview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<script>
+let impactConfig = {{ impact_config|tojson|safe }};
+
+function renderSeuils() {
+  const container = document.getElementById('seuils-container');
+  container.innerHTML = '';
+  
+  impactConfig.seuils.forEach((seuil, index) => {
+    const seuilDiv = document.createElement('div');
+    seuilDiv.className = 'seuil-item';
+    seuilDiv.innerHTML = `
+      <h4>${seuil.nom}</h4>
+      <div>
+        <label>Min:</label>
+        <input type="number" step="0.01" value="${seuil.min}" onchange="updateSeuil(${index}, 'min', this.value)">
+      </div>
+      <div>
+        <label>Max:</label>
+        <input type="number" step="0.01" value="${seuil.max}" onchange="updateSeuil(${index}, 'max', this.value)">
+      </div>
+      <div class="color-picker">
+        <label>Couleur:</label>
+        <input type="color" class="color-input" value="${seuil.couleur}" onchange="updateSeuil(${index}, 'couleur', this.value)">
+      </div>
+      <div>
+        <label>Emoji:</label>
+        <select class="emoji-select" onchange="updateSeuil(${index}, 'emoji', this.value)">
+          <option value="🟢" ${seuil.emoji === '🟢' ? 'selected' : ''}>🟢</option>
+          <option value="🟡" ${seuil.emoji === '🟡' ? 'selected' : ''}>🟡</option>
+          <option value="🟠" ${seuil.emoji === '🟠' ? 'selected' : ''}>🟠</option>
+          <option value="🔴" ${seuil.emoji === '🔴' ? 'selected' : ''}>🔴</option>
+          <option value="⚫" ${seuil.emoji === '⚫' ? 'selected' : ''}>⚫</option>
+          <option value="🔵" ${seuil.emoji === '🔵' ? 'selected' : ''}>🔵</option>
+          <option value="🟣" ${seuil.emoji === '🟣' ? 'selected' : ''}>🟣</option>
+          <option value="⚪" ${seuil.emoji === '⚪' ? 'selected' : ''}>⚪</option>
+        </select>
+      </div>
+      <button class="btn-secondary" onclick="removeSeuil(${index})" title="Supprimer">🗑️</button>
+    `;
+    container.appendChild(seuilDiv);
+  });
+  
+  updatePreview();
+}
+
+function updateSeuil(index, field, value) {
+  impactConfig.seuils[index][field] = value;
+  updatePreview();
+}
+
+function addSeuil() {
+  const newSeuil = {
+    nom: "Nouveau",
+    min: 0.0,
+    max: 1.0,
+    couleur: "#e5e7eb",
+    texte: "#374151",
+    emoji: "🔵",
+    description: "Nouveau seuil"
+  };
+  
+  impactConfig.seuils.push(newSeuil);
+  renderSeuils();
+}
+
+function removeSeuil(index) {
+  if (impactConfig.seuils.length > 1) {
+    impactConfig.seuils.splice(index, 1);
+    renderSeuils();
+  }
+}
+
+function updatePreview() {
+  // Mettre à jour les exemples
+  updateEnergyPreview('elec', 0.1);
+  updateEnergyPreview('hvo', 0.54);
+  updateEnergyPreview('essence', 2.31);
+  updateEnergyPreview('gazole', 2.64);
+  
+  // Mettre à jour la légende
+  updateLegendPreview();
+}
+
+function updateEnergyPreview(type, value) {
+  const badge = document.getElementById(`preview-${type}`);
+  const seuil = getSeuilForValue(value);
+  
+  if (badge && seuil) {
+    badge.textContent = `${seuil.emoji} ${seuil.nom}`;
+    badge.style.background = seuil.couleur;
+    badge.style.color = seuil.texte;
+  }
+}
+
+function updateLegendPreview() {
+  const legend = document.getElementById('preview-legend');
+  legend.innerHTML = '';
+  
+  impactConfig.seuils.forEach(seuil => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `
+      <span class="impact-badge" style="background: ${seuil.couleur}; color: ${seuil.texte}">
+        ${seuil.emoji} ${seuil.nom}
+      </span>
+      <small>${seuil.min} - ${seuil.max === 999.0 ? '∞' : seuil.max} kgCO₂e/unité</small>
+    `;
+    legend.appendChild(item);
+  });
+}
+
+function getSeuilForValue(value) {
+  return impactConfig.seuils.find(seuil => 
+    value >= seuil.min && value < seuil.max
+  );
+}
+
+function saveConfig() {
+  fetch('/parametrage/impact', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(impactConfig)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Configuration sauvegardée avec succès !');
+    } else {
+      alert('Erreur lors de la sauvegarde : ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    alert('Erreur lors de la sauvegarde');
+  });
+}
+
+function resetToDefault() {
+  if (confirm('Êtes-vous sûr de vouloir réinitialiser à la configuration par défaut ?')) {
+    impactConfig = {
+      "seuils": [
+        {
+          "nom": "Très faible",
+          "min": 0.0,
+          "max": 0.1,
+          "couleur": "#dcfce7",
+          "texte": "#166534",
+          "emoji": "🟢",
+          "description": "Énergies très peu polluantes"
+        },
+        {
+          "nom": "Faible",
+          "min": 0.1,
+          "max": 0.5,
+          "couleur": "#bbf7d0",
+          "texte": "#15803d",
+          "emoji": "🟡",
+          "description": "Énergies peu polluantes"
+        },
+        {
+          "nom": "Moyen",
+          "min": 0.5,
+          "max": 1.0,
+          "couleur": "#fef3c7",
+          "texte": "#92400e",
+          "emoji": "🟠",
+          "description": "Énergies moyennement polluantes"
+        },
+        {
+          "nom": "Élevé",
+          "min": 1.0,
+          "max": 2.0,
+          "couleur": "#fed7aa",
+          "texte": "#c2410c",
+          "emoji": "🔴",
+          "description": "Énergies polluantes"
+        },
+        {
+          "nom": "Très élevé",
+          "min": 2.0,
+          "max": 999.0,
+          "couleur": "#fecaca",
+          "texte": "#991b1b",
+          "emoji": "⚫",
+          "description": "Énergies très polluantes"
+        }
+      ]
+    };
+    renderSeuils();
+  }
+}
+
+// Initialiser l'affichage
+document.addEventListener('DOMContentLoaded', function() {
+  renderSeuils();
+});
+</script>
+{% endblock %}
+
+
+
+
+
+
+

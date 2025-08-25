@@ -1,0 +1,320 @@
+{# templates/dashboard.html #}
+{% extends "base.html" %}
+{% block title %}Dashboard — GreenXploit{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Header du Dashboard -->
+<div class="dashboard-header">
+    <div class="header-content">
+      <h1>📊 Dashboard Opérationnel</h1>
+      <p class="header-subtitle">Indicateurs clés de performance et métriques d'activité</p>
+      <div class="header-actions">
+        <span class="last-update">Dernière mise à jour : {{ moment().format('DD/MM/YYYY à HH:mm') }}</span>
+      </div>
+  </div>
+</div>
+
+  <!-- KPIs Principaux -->
+  <div class="kpis-section">
+    <div class="kpi-grid">
+      <!-- KPI Transports -->
+      <div class="kpi-card transport-kpi">
+        <div class="kpi-icon">🚚</div>
+        <div class="kpi-content">
+          <div class="kpi-value">{{ total_transports }}</div>
+          <div class="kpi-label">Total Transports</div>
+          <div class="kpi-details">
+            <span class="detail-item">Transports enregistrés</span>
+          </div>
+        </div>
+        <div class="kpi-trend positive">
+          <span class="trend-arrow">↗</span>
+          <span class="trend-value">Actif</span>
+      </div>
+    </div>
+    
+      <!-- KPI Clients -->
+      <div class="kpi-card client-kpi">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-content">
+          <div class="kpi-value">{{ total_clients }}</div>
+          <div class="kpi-label">Clients Actifs</div>
+          <div class="kpi-details">
+            <span class="detail-item">Clients enregistrés</span>
+          </div>
+        </div>
+        <div class="kpi-trend positive">
+          <span class="trend-arrow">↗</span>
+          <span class="trend-value">Actif</span>
+      </div>
+    </div>
+    
+      <!-- KPI Performance -->
+      <div class="kpi-card performance-kpi">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-content">
+          <div class="kpi-value">
+            <span class="unit">100</span><span class="unit">%</span>
+          </div>
+          <div class="kpi-label">Système Opérationnel</div>
+          <div class="kpi-details">
+            <span class="detail-item">Application fonctionnelle</span>
+          </div>
+        </div>
+        <div class="kpi-trend">
+          <span class="trend-arrow">📈</span>
+          <span class="trend-value">En ligne</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions Rapides -->
+  <div class="actions-section">
+    <h2>🚀 Actions Rapides</h2>
+    <div class="actions-grid">
+      <a href="{{ url_for('transport') }}" class="action-card">
+        <div class="action-icon">➕</div>
+        <div class="action-content">
+          <div class="action-title">Nouveau Transport</div>
+          <div class="action-desc">Créer un nouveau transport</div>
+        </div>
+      </a>
+      <a href="{{ url_for('transports') }}" class="action-card">
+        <div class="action-icon">📋</div>
+        <div class="action-content">
+          <div class="action-title">Liste Transports</div>
+          <div class="action-desc">Voir tous les transports</div>
+        </div>
+      </a>
+      <a href="{{ url_for('parametrage_clients') }}" class="action-card">
+        <div class="action-icon">⚙️</div>
+        <div class="action-content">
+          <div class="action-title">Paramétrage</div>
+          <div class="action-desc">Gérer les données</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Styles CSS pour le Dashboard -->
+<style>
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.dashboard-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.header-content h1 {
+  margin: 0 0 10px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.header-subtitle {
+  margin: 0 0 20px 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.last-update {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* KPIs */
+.kpis-section {
+  margin-bottom: 30px;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.kpi-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e1e8ed;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.kpi-icon {
+  font-size: 2.5rem;
+  margin-right: 20px;
+  opacity: 0.8;
+}
+
+.kpi-content {
+  flex: 1;
+}
+
+.kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.kpi-label {
+  font-size: 1rem;
+  color: #7f8c8d;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.kpi-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.detail-item {
+  font-size: 0.85rem;
+  color: #95a5a6;
+  padding: 2px 8px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.kpi-trend {
+  text-align: right;
+  margin-left: 20px;
+}
+
+.trend-arrow {
+  font-size: 1.2rem;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.trend-value {
+  font-size: 0.9rem;
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.trend-value.positive {
+  color: #27ae60;
+}
+
+.trend-value.negative {
+  color: #e74c3c;
+}
+
+/* Actions */
+.actions-section {
+  margin-top: 40px;
+}
+
+.actions-section h2 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.action-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e1e8ed;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+  text-decoration: none;
+  color: inherit;
+}
+
+.action-icon {
+  font-size: 2rem;
+  margin-right: 20px;
+  opacity: 0.8;
+}
+
+.action-content {
+  flex: 1;
+}
+
+.action-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.action-desc {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 15px;
+  }
+  
+  .header-content h1 {
+    font-size: 2rem;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Fiche client {{ client_id }}{% endblock %}
+
+{% block content %}
+  <p><a href="{{ url_for('parametrage_clients') }}">← Retour à la liste des clients</a></p>
+  <h1>Client {{ client_id }}</h1>
+  <ul>
+    <li><strong>Nom :</strong> {{ client.nom }}</li>
+    <li><strong>Adresse :</strong> {{ client.adresse }}</li>
+    <li><strong>Email :</strong> {{ client.email }}</li>
+  </ul>
+
+  <h2>Transports effectués</h2>
+  {% if transports %}
+    <table>
+      <thead>
+        <tr><th>Réf.</th><th>Date</th><th>CO₂e (kg)</th><th>CO₂e/t.km</th></tr>
+      </thead>
+      <tbody>
+        {% for t in transports %}
+        <tr>
+          <td>{{ t.ref }}</td>
+          <td>{{ t.date }}</td>
+          <td>{{ "%.2f"|format(t.emis_kg) }}</td>
+          <td>{{ "%.3f"|format(t.emis_tkm) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Aucun transport pour ce client.</p>
+  {% endif %}
+{% endblock %}

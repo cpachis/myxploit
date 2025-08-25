@@ -1,0 +1,731 @@
+{# templates/dashboard.html #}
+{% extends "base.html" %}
+{% block title %}Dashboard — GreenXploit{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Header du Dashboard -->
+<div class="dashboard-header">
+    <div class="header-content">
+      <h1>📊 Dashboard Opérationnel</h1>
+      <p class="header-subtitle">Indicateurs clés de performance et métriques d'activité</p>
+      <div class="header-actions">
+        <span class="last-update">Dernière mise à jour : {{ now.strftime('%d/%m/%Y à %H:%M') }}</span>
+      </div>
+  </div>
+</div>
+
+  <!-- KPIs Principaux -->
+  <div class="kpis-section">
+    <div class="kpi-grid">
+      <!-- KPI Transports -->
+      <div class="kpi-card transport-kpi">
+        <div class="kpi-icon">🚚</div>
+        <div class="kpi-content">
+          <div class="kpi-value">{{ transports_en_cours|length + transports_termines|length }}</div>
+          <div class="kpi-label">Total Transports</div>
+          <div class="kpi-details">
+            <span class="detail-item active">{{ transports_en_cours|length }} en cours</span>
+            <span class="detail-item completed">{{ transports_termines|length }} terminés</span>
+          </div>
+        </div>
+        <div class="kpi-trend positive">
+          <span class="trend-arrow">↗</span>
+          <span class="trend-value">+{{ transports_ce_mois|length }}</span>
+      </div>
+    </div>
+    
+      <!-- KPI Émissions -->
+      <div class="kpi-card emission-kpi">
+        <div class="kpi-icon">🌱</div>
+        <div class="kpi-content">
+          <div class="kpi-value">
+        {% if sum_kg >= 1000 %}
+              {{ '%.1f'|format(sum_kg/1000) }}<span class="unit">t</span>
+        {% else %}
+              {{ '%.0f'|format(sum_kg) }}<span class="unit">kg</span>
+        {% endif %}
+      </div>
+          <div class="kpi-label">CO₂e Total</div>
+          <div class="kpi-details">
+            <span class="detail-item">{{ '%.1f'|format(emissions_ce_mois/1000) }}t ce mois</span>
+            <span class="detail-item">{{ '%.1f'|format(emissions_cette_semaine/1000) }}t cette semaine</span>
+          </div>
+        </div>
+        <div class="kpi-trend">
+          <span class="trend-arrow">📊</span>
+          <span class="trend-value">{{ '%.1f'|format(sum_tkm) }} t.km</span>
+      </div>
+    </div>
+    
+      <!-- KPI Clients -->
+      <div class="kpi-card client-kpi">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-content">
+          <div class="kpi-value">{{ clients|length }}</div>
+          <div class="kpi-label">Clients Actifs</div>
+          <div class="kpi-details">
+            <span class="detail-item">{{ transports_ce_mois|length }} transports ce mois</span>
+            <span class="detail-item">{{ transports_cette_semaine|length }} cette semaine</span>
+          </div>
+        </div>
+        <div class="kpi-trend positive">
+          <span class="trend-arrow">↗</span>
+          <span class="trend-value">+{{ transports_cette_semaine|length }}</span>
+      </div>
+    </div>
+    
+      <!-- KPI Performance -->
+      <div class="kpi-card performance-kpi">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-content">
+          <div class="kpi-value">
+            {% if transports|length > 0 %}
+              {{ '%.1f'|format((transports_termines|length / transports|length) * 100) }}<span class="unit">%</span>
+            {% else %}
+              0<span class="unit">%</span>
+            {% endif %}
+          </div>
+          <div class="kpi-label">Taux de Réalisation</div>
+          <div class="kpi-details">
+            <span class="detail-item">{{ transports_termines|length }} terminés</span>
+            <span class="detail-item">{{ transports_en_cours|length }} en cours</span>
+          </div>
+        </div>
+        <div class="kpi-trend">
+          <span class="trend-arrow">📈</span>
+          <span class="trend-value">Efficacité</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphiques et Visualisations -->
+  <div class="charts-section">
+    <div class="chart-grid">
+      <!-- Graphique Émissions par Période -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>📈 Émissions CO₂e par Période</h3>
+          <div class="chart-legend">
+            <span class="legend-item"><span class="legend-color total"></span>Total</span>
+            <span class="legend-item"><span class="legend-color monthly"></span>Ce mois</span>
+            <span class="legend-item"><span class="legend-color weekly"></span>Cette semaine</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="emissionsChart" width="400" height="200"></canvas>
+        </div>
+  </div>
+
+      <!-- Graphique Répartition par Client -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>🏢 Top 5 Clients par Émissions</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="clientsChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Graphique Activité Temporelle -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>📅 Activité des 7 Derniers Jours</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="activityChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Indicateur de Performance -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>🎯 Indicateurs de Performance</h3>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <div class="metric-icon">📦</div>
+            <div class="metric-content">
+              <div class="metric-value">
+                {% set total_poids = 0 %}
+                {% for t in transports.values() %}
+                  {% set total_poids = total_poids + (t.get('poids', 0) or 0) %}
+                {% endfor %}
+                {{ '%.1f'|format(total_poids) }}
+              </div>
+              <div class="metric-label">Tonnes Transportées</div>
+            </div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-content">
+              <div class="metric-value">
+                {% if transports|length > 0 %}
+                  {{ '%.1f'|format(sum_tkm / transports|length) }}
+                {% else %}
+                  0
+                {% endif %}
+              </div>
+              <div class="metric-label">T.km Moyen/Transport</div>
+            </div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-icon">🌍</div>
+            <div class="metric-content">
+              <div class="metric-value">
+                {% if sum_tkm > 0 %}
+                  {{ '%.3f'|format(sum_kg / sum_tkm) }}
+                {% else %}
+                  0
+                {% endif %}
+              </div>
+              <div class="metric-label">kg CO₂e/t.km</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableaux de Données -->
+  <div class="tables-section">
+    <div class="tables-grid">
+      
+    
+      <!-- Top Clients -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3>🏢 Top Clients Actifs</h3>
+          <button class="btn-view-all" onclick="window.location.href='{{ url_for('parametrage_clients') }}'">Voir tous</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+        <thead>
+              <tr>
+                <th>Client</th>
+                <th>Transports</th>
+                <th>CO₂e (kg)</th>
+                <th>Dernière Activité</th>
+              </tr>
+        </thead>
+        <tbody>
+          {% set client_stats_list = [] %}
+          {% for cid, stats in stats_clients.items() %}
+            {% if stats.transports > 0 %}
+              {% set _ = client_stats_list.append({
+                'cid': cid, 
+                'nom': clients[cid].nom if cid in clients else cid,
+                'transports': stats.transports,
+                'emissions': stats.emissions_kg,
+                'derniere': stats.derniere_activite
+              }) %}
+            {% endif %}
+          {% endfor %}
+          {% set top_clients = client_stats_list|sort(attribute='transports', reverse=True) %}
+          {% for stat in top_clients[:5] %}
+          <tr class="clickable-row" onclick="window.location.href='{{ url_for('client_detail', client_id=stat.cid) }}'">
+                <td>
+                  <div class="client-info">
+                    <strong>{{ stat.cid }}</strong>
+                    <small>{{ stat.nom }}</small>
+                  </div>
+                </td>
+                <td><span class="badge">{{ stat.transports }}</span></td>
+            <td>{{ '%.1f'|format(stat.emissions) }}</td>
+            <td>
+              {% if stat.derniere %}
+                {{ stat.derniere.strftime('%d/%m/%Y') }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+        </div>
+      </div>
+    </div>
+    
+  <!-- Actions Rapides -->
+  <div class="quick-actions">
+    <div class="actions-header">
+      <h3>⚡ Actions Rapides</h3>
+          </div>
+    <div class="actions-grid">
+      <a href="{{ url_for('transport') }}" class="action-card">
+        <div class="action-icon">➕</div>
+        <div class="action-content">
+          <div class="action-title">Nouveau Transport</div>
+          <div class="action-desc">Créer un nouveau transport</div>
+        </div>
+      </a>
+      <a href="{{ url_for('liste_transports') }}" class="action-card">
+        <div class="action-icon">📋</div>
+        <div class="action-content">
+          <div class="action-title">Liste Transports</div>
+          <div class="action-desc">Voir tous les transports</div>
+        </div>
+      </a>
+      <a href="{{ url_for('import_csv') }}" class="action-card">
+        <div class="action-icon">📥</div>
+        <div class="action-content">
+          <div class="action-title">Import CSV</div>
+          <div class="action-desc">Importer des transports</div>
+        </div>
+      </a>
+      <a href="{{ url_for('parametrage_clients') }}" class="action-card">
+        <div class="action-icon">⚙️</div>
+        <div class="action-content">
+          <div class="action-title">Paramétrage</div>
+          <div class="action-desc">Gérer les données</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Styles CSS pour le Dashboard -->
+<style>
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.dashboard-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.header-content h1 {
+  margin: 0 0 10px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.header-subtitle {
+  margin: 0 0 20px 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.last-update {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* KPIs */
+.kpis-section {
+  margin-bottom: 30px;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.kpi-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e1e8ed;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.kpi-icon {
+  font-size: 2.5rem;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.kpi-content {
+  flex: 1;
+}
+
+.kpi-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: baseline;
+}
+
+.kpi-value .unit {
+  font-size: 1.2rem;
+  margin-left: 5px;
+  color: #718096;
+}
+
+.kpi-label {
+  font-size: 1rem;
+  color: #4a5568;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.kpi-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.detail-item {
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.detail-item.active {
+  color: #38a169;
+}
+
+.detail-item.completed {
+  color: #3182ce;
+}
+
+.kpi-trend {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 15px;
+}
+
+.trend-arrow {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.trend-value {
+  font-size: 0.9rem;
+  color: #718096;
+  font-weight: 600;
+}
+
+.kpi-trend.positive .trend-arrow {
+  color: #38a169;
+}
+
+/* Charts Section */
+.charts-section {
+  margin-bottom: 30px;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e1e8ed;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-header h3 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 5px;
+}
+
+.legend-color.total { background: #667eea; }
+.legend-color.monthly { background: #38a169; }
+.legend-color.weekly { background: #ed8936; }
+
+.chart-container {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background: #f7fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.metric-icon {
+  font-size: 1.5rem;
+  margin-right: 15px;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 5px;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+/* Tables Section */
+.tables-section {
+  margin-bottom: 30px;
+}
+
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 20px;
+}
+
+.table-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e1e8ed;
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  background: #f7fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-header h3 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.btn-view-all {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-view-all:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.table-container {
+  padding: 0;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  background: #f7fafc;
+  padding: 15px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #4a5568;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.data-table td {
+  padding: 15px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #2d3748;
+}
+
+.data-table tbody tr:hover {
+  background: #f7fafc;
+  cursor: pointer;
+}
+
+.vehicle-info, .client-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.vehicle-info strong, .client-info strong {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.vehicle-info small, .client-info small {
+  color: #718096;
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.badge {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Quick Actions */
+.quick-actions {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e1e8ed;
+}
+
+.actions-header h3 {
+  margin: 0 0 20px 0;
+  color: #2d3748;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.action-card {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background: #f7fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.action-card:hover {
+  background: #edf2f7;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.action-icon {
+  font-size: 1.8rem;
+  margin-right: 15px;
+}
+
+.action-title {
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 5px;
+}
+
+.action-desc {
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 15px;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tables-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-content h1 {
+    font-size: 2rem;
+  }
+}
+</style>
+
+<!-- Scripts pour les graphiques -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+<!-- Données cachées pour le JavaScript -->
+<div id="emissions-data" style="display: none;">{{ {'total': sum_kg, 'monthly': emissions_ce_mois, 'weekly': emissions_cette_semaine}|tojson }}</div>
+<div id="clients-data" style="display: none;">{{ {'labels': [stat.cid for stat in top_clients[:5]], 'values': [stat.emissions for stat in top_clients[:5]]}|tojson }}</div>
+{% endblock %}

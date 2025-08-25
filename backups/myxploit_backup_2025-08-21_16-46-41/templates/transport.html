@@ -1,0 +1,732 @@
+{# templates/transport.html #}
+{% extends "base.html" %}
+{% block title %}Nouveau Transport — GreenXploit{% endblock %}
+
+{% block content %}
+<div class="transport-container">
+  <!-- Header du formulaire -->
+  <div class="transport-header">
+    <div class="header-content">
+      <h1>🚛 {{ 'Modifier' if transport else 'Nouveau' }} Transport</h1>
+      <p class="header-subtitle">{{ 'Modifiez' if transport else 'Créez' }} un transport avec les informations essentielles</p>
+    </div>
+  </div>
+
+  <!-- Formulaire de transport -->
+  <div class="transport-form-container">
+    <form method="POST" class="transport-form">
+      <div class="form-grid">
+        <!-- Informations de base -->
+        <div class="form-section">
+          <h3>📋 Informations de base</h3>
+          
+          <div class="form-group">
+            <label for="ref">Référence du transport *</label>
+            <input type="text" id="ref" name="ref" required 
+                   placeholder="Ex: T0001" value="{{ transport.ref if transport else '' }}">
+          </div>
+          
+          <div class="form-group">
+            <label for="type_transport">Type de transport *</label>
+            <select id="type_transport" name="type_transport" required>
+              <option value="">Sélectionnez le type</option>
+              <option value="direct" {% if transport and transport.type_transport == 'direct' %}selected{% endif %}>
+                🚛 Direct - Transport direct du point A au point B
+              </option>
+              <option value="indirect" {% if transport and transport.type_transport == 'indirect' %}selected{% endif %}>
+                🔄 Indirect - Transport avec étapes intermédiaires
+              </option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="niveau_calcul">Niveau de calcul</label>
+            <select id="niveau_calcul" name="niveau_calcul">
+              <option value="">Sélectionnez le niveau</option>
+              <option value="agregees_niveau_1" {% if transport and transport.niveau_calcul == 'agregees_niveau_1' %}selected{% endif %}>
+                🔢 Agrégées niveau 1
+              </option>
+              <option value="agregees_niveau_2" {% if transport and transport.niveau_calcul == 'agregees_niveau_2' %}selected{% endif %}>
+                🔢 Agrégées niveau 2
+              </option>
+              <option value="agregees_niveau_3" {% if transport and transport.niveau_calcul == 'agregees_niveau_3' %}selected{% endif %}>
+                🔢 Agrégées niveau 3
+              </option>
+              <option value="agregees_niveau_4" {% if transport and transport.niveau_calcul == 'agregees_niveau_4' %}selected{% endif %}>
+                🔢 Agrégées niveau 4
+              </option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="date">Date du transport *</label>
+            <input type="date" id="date" name="date" required 
+                   value="{{ transport.date if transport else '' }}">
+          </div>
+          
+          <!-- Planning des dates (seulement pour les transports indirects) -->
+          <div id="planning-dates" style="display: none;">
+            <div class="form-group">
+              <label for="date_commande">Date de commande</label>
+              <input type="date" id="date_commande" name="date_commande" 
+                     value="{{ transport.date_commande if transport else '' }}">
+            </div>
+            
+            <div class="form-group">
+              <label for="date_collecte">Date de collecte</label>
+              <input type="date" id="date_collecte" name="date_collecte" 
+                     value="{{ transport.date_collecte if transport else '' }}">
+            </div>
+            
+            <div class="form-group">
+              <label for="date_livraison">Date de livraison</label>
+              <input type="date" id="date_livraison" name="date_livraison" 
+                     value="{{ transport.date_livraison if transport else '' }}">
+            </div>
+          </div>
+        </div>
+
+        <!-- Itinéraire -->
+        <div class="form-section">
+          <h3>🗺️ Itinéraire</h3>
+          
+          <div class="form-group">
+            <label for="ville_depart">Ville de départ *</label>
+            <input type="text" id="ville_depart" name="ville_depart" required 
+                   placeholder="Ex: Paris" value="{{ transport.ville_depart if transport else '' }}">
+          </div>
+          
+          <div class="form-group">
+            <label for="ville_arrivee">Ville d'arrivée *</label>
+            <input type="text" id="ville_arrivee" name="ville_arrivee" required 
+                   placeholder="Ex: Lyon" value="{{ transport.ville_arrivee if transport else '' }}">
+          </div>
+          
+          <div class="form-group">
+            <label for="distance_km">Distance (km) *</label>
+            <input type="number" id="distance_km" name="distance_km" required 
+                   step="0.1" min="0" placeholder="Ex: 465.2"
+                   value="{{ transport.distance_km if transport else '' }}">
+          </div>
+        </div>
+
+        <!-- Caractéristiques du transport -->
+        <div class="form-section">
+          <h3>⚖️ Caractéristiques</h3>
+          
+          <div class="form-group">
+            <label for="type_vehicule">Type de véhicule</label>
+            <select id="type_vehicule" name="type_vehicule">
+              <option value="">Sélectionnez un type de véhicule</option>
+              {% for vehicule_id, vehicule_data in vehicules.items() %}
+                <option value="{{ vehicule_id }}" 
+                        {% if transport and transport.type_vehicule == vehicule_id %}selected{% endif %}>
+                  {{ vehicule_data.nom }} ({{ vehicule_data.capacite }}t - {{ vehicule_data.consommation }}L/100km)
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="energie">Énergie utilisée *</label>
+            <select id="energie" name="energie" required>
+              <option value="">Sélectionnez une énergie</option>
+              {% for energie_id, energie_data in energies.items() %}
+                <option value="{{ energie_id }}" 
+                        {% if transport and transport.energie == energie_id %}selected{% endif %}>
+                  {{ energie_id }} - {{ energie_data.nom }} ({{ energie_data.facteur }} kg CO₂e/t.km)
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="charge_utile">
+              Charge utile (tonnes)
+              <span id="niveau1-indicator-charge" style="display: none; color: #2a7de1; font-size: 0.9em; font-weight: normal;">
+                (auto - niveaux 1 & 2)
+              </span>
+            </label>
+            <input type="number" id="charge_utile" name="charge_utile" 
+                   step="0.01" min="0" placeholder="Ex: 10.0"
+                   value="{{ transport.charge_utile if transport else '' }}">
+          </div>
+          
+          <div class="form-group">
+            <label for="poids_tonnes">Poids du transport (tonnes) *</label>
+            <input type="number" id="poids_tonnes" name="poids_tonnes" required 
+                   step="0.01" min="0" placeholder="Ex: 12.5"
+                   value="{{ transport.poids_tonnes if transport else '' }}">
+          </div>
+        </div>
+
+        <!-- Consommation du véhicule et Calcul des émissions -->
+        <div class="consumption-emissions-grid">
+          <!-- Consommation du véhicule -->
+          <div class="form-section">
+            <h3>⛽ Consommation du véhicule</h3>
+            
+            <div class="form-group">
+                          <label for="conso_vehicule">
+              Consommation (L/100km)
+              <span id="niveau1-indicator" style="display: none; color: #2a7de1; font-size: 0.9em; font-weight: normal;">
+                (auto - niveau 1)
+              </span>
+              <span id="niveau2-indicator" style="display: none; color: #ff8c00; font-size: 0.9em; font-weight: normal;">
+                (auto - niveau 2, modifiable)
+              </span>
+            </label>
+              <input type="number" id="conso_vehicule" name="conso_vehicule" 
+                     step="0.1" min="0" placeholder="Ex: 25.0"
+                     value="{{ transport.conso_vehicule if transport else '' }}">
+            </div>
+          </div>
+          
+          <!-- Calcul des émissions -->
+          <div class="form-section emissions-section">
+            <h3>🌱 Calcul des émissions CO₂</h3>
+            
+            <div class="emissions-calculator">
+              <div class="emission-row">
+                <div class="emission-item">
+                  <span class="emission-label">Total :</span>
+                  <span class="emission-value" id="emis-total">0 kg CO₂e</span>
+                </div>
+                <div class="emission-item">
+                  <span class="emission-label">Par t.km :</span>
+                  <span class="emission-value" id="emis-tkm">0 kg CO₂e/t.km</span>
+                </div>
+              </div>
+              <div class="emission-row">
+                <div class="emission-item">
+                  <span class="emission-label">Facteur :</span>
+                  <span class="emission-value" id="emis-factor">0 kg CO₂e/L</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- Actions du formulaire -->
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">
+          💾 {{ 'Modifier' if transport else 'Créer' }} le transport
+        </button>
+        <a href="{{ url_for('liste_transports') }}" class="btn-secondary">
+          ❌ Annuler
+        </a>
+        {% if transport %}
+        <a href="{{ url_for('liste_transports') }}" class="btn-secondary">
+          🔍 Voir la liste
+        </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Styles CSS pour le formulaire -->
+<style>
+.transport-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.transport-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.header-content h1 {
+  margin: 0 0 10px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.header-subtitle {
+  margin: 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Formulaire */
+.transport-form-container {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e1e8ed;
+}
+
+.transport-form {
+  width: 100%;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.form-section {
+  background: #f8fafc;
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Grille consommation et émissions */
+.consumption-emissions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+/* Styles pour le calculateur d'émissions */
+.emissions-section {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+}
+
+.emissions-calculator {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emission-row {
+  display: flex;
+  gap: 15px;
+}
+
+.emission-item {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.emission-item:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.emission-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9em;
+}
+
+.emission-value {
+  font-weight: 700;
+  color: #059669;
+  font-size: 1em;
+}
+
+.form-section h3 {
+  margin: 0 0 20px 0;
+  color: #2d3748;
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #a0aec0;
+}
+
+/* Aperçu des émissions */
+.emissions-preview {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 5px 20px rgba(72, 187, 120, 0.3);
+}
+
+.emissions-preview h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.emissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.emission-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.emission-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 5px;
+}
+
+.emission-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+/* Actions */
+.form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn-secondary:hover {
+  background: #cbd5e0;
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .transport-container {
+    padding: 15px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .consumption-emissions-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .emissions-calculator {
+    gap: 10px;
+  }
+  
+  .emission-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .form-section {
+    padding: 20px;
+  }
+  
+  .header-content h1 {
+    font-size: 2rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+
+<!-- Script JavaScript pour le calcul automatique des émissions -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const distanceInput = document.getElementById('distance_km');
+  const poidsInput = document.getElementById('poids_tonnes');
+  const energieSelect = document.getElementById('energie');
+  const emissionsPreview = document.getElementById('emissions-preview');
+  const emisTotal = document.getElementById('emis-total');
+  const emisTkm = document.getElementById('emis-tkm');
+  const emisFactor = document.getElementById('emis-factor');
+  
+  // Gestion du planning des dates selon le type de transport
+  const typeTransportSelect = document.getElementById('type_transport');
+  const planningDates = document.getElementById('planning-dates');
+  
+  // Gestion du niveau de calcul et de la consommation automatique
+  const niveauCalculSelect = document.getElementById('niveau_calcul');
+  const typeVehiculeSelect = document.getElementById('type_vehicule');
+  const consoVehiculeInput = document.getElementById('conso_vehicule');
+  const chargeUtileInput = document.getElementById('charge_utile');
+  const niveau1Indicator = document.getElementById('niveau1-indicator');
+  const niveau1IndicatorCharge = document.getElementById('niveau1-indicator-charge');
+  const niveau2Indicator = document.getElementById('niveau2-indicator');
+  
+  // Vérification que tous les éléments sont trouvés
+  console.log('Éléments trouvés:', {
+    niveauCalculSelect: !!niveauCalculSelect,
+    typeVehiculeSelect: !!typeVehiculeSelect,
+    consoVehiculeInput: !!consoVehiculeInput,
+    chargeUtileInput: !!chargeUtileInput,
+    niveau1Indicator: !!niveau1Indicator,
+    niveau1IndicatorCharge: !!niveau1IndicatorCharge,
+    emisTotal: !!emisTotal,
+    emisTkm: !!emisTkm,
+    emisFactor: !!emisFactor
+  });
+  
+  if (!niveauCalculSelect || !typeVehiculeSelect || !consoVehiculeInput || !chargeUtileInput) {
+    console.error('ERREUR: Certains éléments requis ne sont pas trouvés!');
+    return;
+  }
+  
+  if (!emisTotal || !emisTkm || !emisFactor) {
+    console.error('ERREUR: Certains éléments d\'émissions ne sont pas trouvés!');
+  }
+  
+  function togglePlanningDates() {
+    const typeTransport = typeTransportSelect.value;
+    if (typeTransport === 'indirect') {
+      planningDates.style.display = 'block';
+    } else {
+      planningDates.style.display = 'none';
+    }
+  }
+  
+  // Fonction pour gérer la consommation automatique selon le niveau de calcul
+  function gererConsommationAutomatique() {
+    const niveauCalcul = niveauCalculSelect.value;
+    const typeVehicule = typeVehiculeSelect.value;
+    
+    console.log('gererConsommationAutomatique appelée:', { niveauCalcul, typeVehicule });
+    
+    if ((niveauCalcul === 'agregees_niveau_1' || niveauCalcul === 'agregees_niveau_2') && typeVehicule) {
+      console.log(`Niveau ${niveauCalcul === 'agregees_niveau_1' ? '1' : '2'} détecté, traitement automatique...`);
+      
+      // Récupérer la consommation du véhicule sélectionné
+      const vehiculeOption = typeVehiculeSelect.options[typeVehiculeSelect.selectedIndex];
+      const vehiculeText = vehiculeOption.text;
+      
+      console.log('Texte du véhicule:', vehiculeText);
+      
+      // Extraire la capacité et la consommation du texte (format: "Nom (X.Xt - YY L/100km)")
+      console.log('Regex test sur:', vehiculeText);
+      
+      // Regex plus flexible pour capturer les valeurs
+      let match = vehiculeText.match(/\(([\d.]+)t\s*-\s*([\d.]+)\s*L\/100km\)/);
+      console.log('Match regex flexible:', match);
+      
+      // Si ça ne marche pas, essayons un regex encore plus simple
+      if (!match) {
+        match = vehiculeText.match(/\(([\d.]+)t.*?([\d.]+)L/);
+        console.log('Match regex simple:', match);
+      }
+      if (match) {
+        const capacite = match[1];
+        const consommation = match[2];
+        
+        console.log('Valeurs extraites:', { capacite, consommation });
+        
+        // Remplir automatiquement la charge utile avec la capacité du véhicule (niveaux 1 et 2)
+        chargeUtileInput.value = capacite;
+        chargeUtileInput.readOnly = true;
+        chargeUtileInput.disabled = true; // Forcer la désactivation
+        chargeUtileInput.style.backgroundColor = '#f0f0f0';
+        chargeUtileInput.title = `Charge utile automatiquement récupérée du type de véhicule (${niveauCalcul === 'agregees_niveau_1' ? 'niveau 1' : 'niveau 2'})`;
+        
+        if (niveauCalcul === 'agregees_niveau_1') {
+          // Niveau 1 : consommation automatique et en lecture seule
+          consoVehiculeInput.value = consommation;
+          consoVehiculeInput.readOnly = true;
+          consoVehiculeInput.disabled = true; // Forcer la désactivation
+          consoVehiculeInput.style.backgroundColor = '#f0f0f0';
+          consoVehiculeInput.title = 'Consommation automatiquement récupérée du type de véhicule (niveau 1)';
+          
+          niveau1Indicator.style.display = 'inline';
+          niveau1IndicatorCharge.style.display = 'inline';
+        } else {
+          // Niveau 2 : consommation modifiable mais pré-remplie
+          consoVehiculeInput.value = consommation;
+          consoVehiculeInput.readOnly = false;
+          consoVehiculeInput.disabled = false; // Permettre la modification
+          consoVehiculeInput.style.backgroundColor = '#fff3cd'; // Couleur jaune clair pour indiquer que c'est modifiable
+          consoVehiculeInput.title = 'Consommation pré-remplie mais modifiable (niveau 2)';
+          
+          niveau1Indicator.style.display = 'none';
+          niveau2Indicator.style.display = 'inline'; // Afficher l'indicateur niveau 2
+          niveau1IndicatorCharge.style.display = 'inline'; // Garder l'indicateur pour la charge utile
+        }
+        
+        console.log('Champs remplis automatiquement');
+        console.log('Charge utile readonly:', chargeUtileInput.readOnly, 'disabled:', chargeUtileInput.disabled);
+        console.log('Consommation readonly:', consoVehiculeInput.readOnly, 'disabled:', consoVehiculeInput.disabled);
+      } else {
+        console.log('Regex ne correspond pas au format attendu');
+      }
+    } else {
+      console.log('Niveau non-1/2 ou pas de véhicule sélectionné, réactivation des champs');
+      
+      // Réactiver tous les champs pour les autres niveaux
+      chargeUtileInput.readOnly = false;
+      chargeUtileInput.disabled = false; // Réactiver
+      chargeUtileInput.style.backgroundColor = '';
+      chargeUtileInput.title = '';
+      
+      consoVehiculeInput.readOnly = false;
+      consoVehiculeInput.disabled = false; // Réactiver
+      consoVehiculeInput.style.backgroundColor = '';
+      consoVehiculeInput.title = '';
+      
+      niveau1Indicator.style.display = 'none';
+      niveau2Indicator.style.display = 'none';
+      niveau1IndicatorCharge.style.display = 'none';
+    }
+  }
+  
+  // Écouter les changements sur le type de transport
+  typeTransportSelect.addEventListener('change', togglePlanningDates);
+  
+  // Écouter les changements sur le niveau de calcul et le type de véhicule
+  niveauCalculSelect.addEventListener('change', gererConsommationAutomatique);
+  typeVehiculeSelect.addEventListener('change', gererConsommationAutomatique);
+  
+  // Appliquer au chargement de la page
+  togglePlanningDates();
+  gererConsommationAutomatique();
+  
+  // Appel initial pour configurer les champs selon les valeurs déjà présentes
+  setTimeout(() => {
+    console.log('Appel initial après chargement...');
+    gererConsommationAutomatique();
+  }, 100);
+
+  function calculerEmissions() {
+    const distance = parseFloat(distanceInput.value) || 0;
+    const poids = parseFloat(poidsInput.value) || 0;
+    const energie = energieSelect.value;
+    const conso = parseFloat(consoVehiculeInput.value) || 0;
+    
+    if (distance > 0 && poids > 0 && energie && conso > 0) {
+      // Récupérer le facteur d'émission de l'énergie sélectionnée
+      const energieOptions = energieSelect.options;
+      const selectedOption = energieOptions[energieSelect.selectedIndex];
+      const energieText = selectedOption.text;
+      
+      // Extraire le facteur d'émission du texte (format: "CODE - Nom (X.XXX kg CO₂e/t.km)")
+      const match = energieText.match(/\(([\d.]+) kg CO₂e\/t\.km\)/);
+      if (match) {
+        const facteur = parseFloat(match[1]);
+        
+        // Calcul selon la formule: (kilométrage / 100 × consommation) × facteur d'énergie
+        const emissionsTotal = (distance / 100 * conso) * facteur;
+        const emissionsTkm = facteur;
+        const facteurParLitre = facteur; // kg CO₂e par litre
+        
+        console.log('Calcul des émissions:', {
+          distance,
+          conso,
+          facteur,
+          calcul: `(${distance} / 100 × ${conso}) × ${facteur}`,
+          resultat: emissionsTotal
+        });
+        
+        emisTotal.textContent = `${emissionsTotal.toFixed(2)} kg CO₂e`;
+        emisTkm.textContent = `${emissionsTkm.toFixed(3)} kg CO₂e/t.km`;
+        emisFactor.textContent = `${facteurParLitre.toFixed(3)} kg CO₂e/L`;
+      }
+    } else {
+      // Réinitialiser les valeurs si les données sont incomplètes
+      emisTotal.textContent = '0 kg CO₂e';
+      emisTkm.textContent = '0 kg CO₂e/t.km';
+      emisFactor.textContent = '0 kg CO₂e/L';
+    }
+  }
+
+  // Écouter les changements sur les champs
+  distanceInput.addEventListener('input', calculerEmissions);
+  poidsInput.addEventListener('input', calculerEmissions);
+  energieSelect.addEventListener('change', calculerEmissions);
+  consoVehiculeInput.addEventListener('input', calculerEmissions);
+  
+  // Calcul initial si des valeurs sont déjà présentes
+  calculerEmissions();
+});
+</script>
+{% endblock %}
+

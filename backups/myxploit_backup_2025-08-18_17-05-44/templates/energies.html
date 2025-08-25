@@ -1,0 +1,503 @@
+{% extends "base.html" %}
+{% block title %}Gestion des Énergies - Green Calc{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="header">
+    <h1>Gestion des Énergies</h1>
+    <p class="subtitle">Modifiez les facteurs d'émission et les unités des énergies</p>
+  </div>
+
+  <div class="energies-grid" id="energies-container">
+    <!-- Les énergies seront chargées dynamiquement ici -->
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" onclick="reloadEnergies()">🔄 Recharger les énergies</button>
+    <button class="btn-secondary" onclick="window.location.reload()">🔄 Recharger la page</button>
+  </div>
+</div>
+
+<style>
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.header h1 {
+  color: #2a7de1;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.energies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.energie-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.energie-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.energie-card.editing {
+  border-color: #2a7de1;
+  background: #f8fafc;
+}
+
+.energie-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.energie-id {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1.1rem;
+  background: #f3f4f6;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.energie-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btn-edit, .btn-save, .btn-cancel {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: auto;
+  height: auto;
+}
+
+.btn-edit {
+  background: #2a7de1;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #1e5bb8;
+  transform: translateY(-1px);
+}
+
+.btn-save {
+  background: #10b981;
+  color: white;
+}
+
+.btn-save:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btn-cancel {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-cancel:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+.energie-field {
+  margin-bottom: 1rem;
+}
+
+.energie-field label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.energie-field input, .energie-field select, .energie-field textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.energie-field textarea {
+  min-height: 80px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.energie-field input:focus, .energie-field select:focus, .energie-field textarea:focus {
+  outline: none;
+  border-color: #2a7de1;
+  box-shadow: 0 0 0 3px rgba(42, 125, 225, 0.1);
+}
+
+.energie-field input:not([readonly]), .energie-field select:not([readonly]), .energie-field textarea:not([readonly]) {
+  background: white;
+  color: #374151;
+  cursor: text;
+  border-color: #2a7de1;
+}
+
+.energie-field input:not([readonly]):hover, .energie-field select:not([readonly]):hover, .energie-field textarea:not([readonly]):hover {
+  border-color: #1e5bb8;
+}
+
+.energie-field input[type="url"] {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+.energie-field.readonly input, .energie-field.readonly select {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+.actions {
+  text-align: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2a7de1, #4fd1c5);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1e5bb8, #38b2ac);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.error {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border: 1px solid #fecaca;
+}
+
+.success {
+  background: #dcfce7;
+  color: #16a34a;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border: 1px solid #bbf7d0;
+}
+</style>
+
+<script>
+// Charger les énergies au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+  loadEnergies();
+});
+
+// Charger les énergies depuis l'API
+function loadEnergies() {
+  const container = document.getElementById('energies-container');
+  container.innerHTML = '<div class="loading">Chargement des énergies...</div>';
+  
+  fetch('/api/energies')
+    .then(response => response.json())
+    .then(energies => {
+      displayEnergies(energies);
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement des énergies:', error);
+      container.innerHTML = '<div class="error">Erreur lors du chargement des énergies</div>';
+    });
+}
+
+// Afficher les énergies dans l'interface
+function displayEnergies(energies) {
+  const container = document.getElementById('energies-container');
+  
+  console.log('Affichage des énergies:', energies);
+  
+  if (!energies || Object.keys(energies).length === 0) {
+    container.innerHTML = '<div class="loading">Aucune énergie trouvée</div>';
+    return;
+  }
+  
+  let html = '';
+  for (const [energieId, energieData] of Object.entries(energies)) {
+    console.log('Traitement de l\'énergie:', energieId, energieData);
+    
+    const nom = energieData.nom || energieId;
+    const facteur = energieData.facteur || '0';
+    const unite = energieData.unite || energieData.unit || '';
+    const explication = energieData.explication || '';
+    const lien_source = energieData.lien_source || '';
+    
+    html += `
+      <div class="energie-card" data-energie-id="${energieId}">
+        <div class="energie-header">
+          <div class="energie-id">${energieId}</div>
+          <div class="energie-actions">
+            <button class="btn-edit" onclick="editEnergie('${energieId}')">✏️ Modifier</button>
+          </div>
+        </div>
+        
+        <div class="energie-field readonly">
+          <label>Nom</label>
+          <input type="text" value="${nom}" readonly>
+        </div>
+        
+        <div class="energie-field readonly">
+          <label>Facteur d'émission</label>
+          <input type="number" step="0.001" value="${facteur}" readonly>
+        </div>
+        
+        <div class="energie-field readonly">
+          <label>Unité</label>
+          <input type="text" value="${unite}" readonly>
+        </div>
+        
+        <div class="energie-field readonly">
+          <label>Explication</label>
+          <textarea readonly>${explication}</textarea>
+        </div>
+        
+        <div class="energie-field readonly">
+          <label>Lien source</label>
+          <input type="url" value="${lien_source}" readonly>
+        </div>
+      </div>
+    `;
+  }
+  
+  container.innerHTML = html;
+  console.log('HTML généré et affiché');
+}
+
+// Modifier une énergie
+function editEnergie(energieId) {
+  const card = document.querySelector(`[data-energie-id="${energieId}"]`);
+  
+  if (!card) {
+    console.error('Carte de l\'énergie non trouvée:', energieId);
+    return;
+  }
+  
+  card.classList.add('editing');
+  
+  const actions = card.querySelector('.energie-actions');
+  actions.innerHTML = `
+    <button class="btn-save" onclick="saveEnergie('${energieId}')">💾 Sauvegarder</button>
+    <button class="btn-cancel" onclick="cancelEdit('${energieId}')">❌ Annuler</button>
+  `;
+  
+  // Rendre les champs éditables
+  const fields = card.querySelectorAll('.energie-field');
+  fields.forEach(field => {
+    field.classList.remove('readonly');
+    const input = field.querySelector('input');
+    if (input) {
+      input.readOnly = false;
+      input.style.background = 'white';
+      input.style.color = '#374151';
+      input.style.cursor = 'text';
+    }
+  });
+  
+  console.log('Mode édition activé pour:', energieId);
+}
+
+// Sauvegarder une énergie
+function saveEnergie(energieId) {
+  const card = document.querySelector(`[data-energie-id="${energieId}"]`);
+  
+  if (!card) {
+    console.error('Carte de l\'énergie non trouvée pour la sauvegarde:', energieId);
+    return;
+  }
+  
+  const inputs = card.querySelectorAll('input');
+  const textareas = card.querySelectorAll('textarea');
+  
+  if (inputs.length < 4) { // Maintenant 4 inputs : nom, facteur, unite, lien_source
+    console.error('Nombre insuffisant de champs trouvés');
+    return;
+  }
+  
+  const energieData = {
+    nom: inputs[0].value.trim(),
+    facteur: parseFloat(inputs[1].value) || 0,
+    unite: inputs[2].value.trim(),
+    explication: textareas[0] ? textareas[0].value.trim() : '',
+    lien_source: inputs[3].value.trim()
+  };
+  
+  console.log('Données à sauvegarder:', energieData);
+  
+  // Sauvegarder via l'API
+  fetch('/api/energies', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      id: energieId,
+      data: energieData
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.success) {
+      showMessage('Énergie mise à jour avec succès !', 'success');
+      // Recharger les énergies pour avoir les données fraîches
+      loadEnergies();
+    } else {
+      showMessage('Erreur lors de la sauvegarde : ' + (data.error || 'Erreur inconnue'), 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur lors de la sauvegarde:', error);
+    showMessage('Erreur lors de la sauvegarde : ' + error.message, 'error');
+  });
+}
+
+// Annuler l'édition
+function cancelEdit(energieId) {
+  const card = document.querySelector(`[data-energie-id="${energieId}"]`);
+  
+  if (!card) {
+    console.error('Carte de l\'énergie non trouvée pour l\'annulation:', energieId);
+    return;
+  }
+  
+  card.classList.remove('editing');
+  
+  // Restaurer l'état initial
+  loadEnergies();
+}
+
+// Obtenir les données d'une énergie
+function getEnergieData(energieId) {
+  // Cette fonction récupère les données depuis l'API
+  return new Promise((resolve, reject) => {
+    fetch('/api/energies')
+      .then(response => response.json())
+      .then(energies => {
+        if (energies[energieId]) {
+          resolve(energies[energieId]);
+        } else {
+          reject(new Error('Énergie non trouvée'));
+        }
+      })
+      .catch(reject);
+  });
+}
+
+// Recharger les énergies
+function reloadEnergies() {
+  fetch('/api/energies/reload')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showMessage('Énergies rechargées avec succès !', 'success');
+        loadEnergies();
+      } else {
+        showMessage('Erreur lors du rechargement : ' + data.error, 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors du rechargement:', error);
+      showMessage('Erreur lors du rechargement', 'error');
+    });
+}
+
+// Afficher un message
+function showMessage(message, type) {
+  const container = document.getElementById('energies-container');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = type;
+  messageDiv.textContent = message;
+  
+  container.insertBefore(messageDiv, container.firstChild);
+  
+  // Supprimer le message après 5 secondes
+  setTimeout(() => {
+    if (messageDiv.parentNode) {
+      messageDiv.parentNode.removeChild(messageDiv);
+    }
+  }, 5000);
+}
+</script>
+{% endblock %}

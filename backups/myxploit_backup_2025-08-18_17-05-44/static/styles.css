@@ -1,0 +1,262 @@
+/* static/styles.css */
+
+/* Reset basique */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Corps de page */
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #f7f9fc;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* --- En-tête principal --- */
+.main-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo a {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2a7de1;
+  text-decoration: none;
+}
+
+/* Navigation */
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.top-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  justify-content: center;
+}
+
+.top-nav ul li {
+  position: relative;
+  margin-right: 1.5rem;
+}
+
+.top-nav ul li:last-child { margin-right: 0; }
+
+.top-nav a {
+  color: #333;
+  text-decoration: none;
+  padding: 0.5rem;
+  display: inline-block;
+  transition: background 0.2s;
+}
+
+.top-nav a:hover {
+  background: #e3eaff;
+  border-radius: 4px;
+}
+
+/* Dropdown sous-menu */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  list-style: none;
+  min-width: 180px;
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 1001;
+  border: 1px solid #e1e8ed;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.dropdown:hover .dropdown-menu {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-menu li {
+  margin: 0;
+}
+
+.dropdown-menu li a {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: #333;
+  text-decoration: none;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.dropdown-menu li:last-child a {
+  border-bottom: none;
+}
+
+.dropdown-menu li a:hover {
+  background: #e3eaff;
+  color: #2a7de1;
+}
+
+/* Menu utilisateur */
+.user-menu .btn-logout {
+  background: #e74c3c;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.user-menu .btn-logout:hover {
+  background: #c0392b;
+}
+
+
+
+/* Contenu principal */
+.content {
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Titres et sections */
+h1, h2, h3 {
+  color: #2a7de1;
+  margin-bottom: 1rem;
+}
+
+section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border-left: 4px solid #2a7de1;
+  background: #f9fbff;
+  border-radius: 4px;
+}
+
+section h2 { margin-top: 0; }
+
+/* Statistiques page d'accueil */
+.stats-cards {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.card {
+  flex: 1;
+  max-width: 250px;
+  background: #ffffff;
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.card h2 {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  color: #2a7de1;
+}
+
+.card p {
+  font-size: 1.1rem;
+  color: #555;
+}
+
+/* Pied de page */
+.main-footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: #777;
+  border-top: 1px solid #ddd;
+  margin-top: 2rem;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+}
+
+thead tr {
+  background: #f0f4ff;
+}
+
+thead th, tbody td {
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  text-align: left;
+}
+
+tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+/* Lignes cliquables */
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-row:hover {
+  background-color: #e3eaff !important;
+}
+
+/* Formulaires */
+form label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+form input[type="text"], form input[type="number"], form select {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+form button {
+  background: #2a7de1;
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+form button:hover {
+  background: #1e5bb8;
+}

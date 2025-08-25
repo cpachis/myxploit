@@ -1,0 +1,27 @@
+{
+  "CL001": {
+    "nom": "Client 1",
+    "adresse": "1 rue de la Logistique, 7502 Paris",
+    "email": "client1.st001@myx.com"
+  },
+  "CL002": {
+    "nom": "Client 2",
+    "adresse": "2 rue de la Logistique, 7503 Paris",
+    "email": "client2.st002@myx.com"
+  },
+  "CL003": {
+    "nom": "Client 3",
+    "adresse": "3 rue de la Logistique, 7504 Paris",
+    "email": "client3.st003@myx.com"
+  },
+  "CL004": {
+    "nom": "Client 4",
+    "adresse": "4 rue de la Logistique, 7505 Paris",
+    "email": "client4.st004@myx.com"
+  },
+  "CL005": {
+    "nom": "Client 5",
+    "adresse": "5 rue de la Logistique, 7506 Paris",
+    "email": "client5.st005@myx.com"
+  }
+}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Accueil — GreenXploit{% endblock %}
+
+{% block content %}
+<section class="stats-cards">
+  <div class="card">
+    <h2>{{ num_transports }}</h2>
+    <p>Transports réalisés</p>
+  </div>
+  <div class="card">
+    <h2>{{ num_clients }}</h2>
+    <p>Clients</p>
+  </div>
+  <div class="card">
+    <h2>{{ total_km|int }}</h2>
+    <p>Kilomètres parcourus</p>
+  </div>
+</section>
+{% endblock %}

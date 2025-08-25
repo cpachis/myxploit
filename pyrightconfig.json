@@ -1,0 +1,14 @@
+{
+    "include": [
+        "."
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__"
+    ],
+    "venvPath": ".",
+    "venv": "venv",
+    "typeCheckingMode": "off",
+    "reportMissingImports": "none",
+    "pythonPath": "./venv/Scripts/python.exe"
+}

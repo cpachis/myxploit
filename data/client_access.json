@@ -1,0 +1,14 @@
+{
+  "clientA": {
+    "login": "utilisateurA",
+    "password_hash": "pbkdf2:sha256:150000$abc123$...haché..."
+  },
+  "clientB": {
+    "login": "utilisateurB",
+    "password_hash": "pbkdf2:sha256:150000$def456$...haché..."
+  },
+  "clientC": {
+    "login": "utilisateurC",
+    "password_hash": "pbkdf2:sha256:150000$ghi789$...haché..."
+  }
+}

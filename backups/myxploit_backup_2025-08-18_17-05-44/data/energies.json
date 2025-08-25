@@ -1,0 +1,133 @@
+{
+    "gazole": {
+        "nom": "Gazole",
+        "facteur": 3.17,
+        "unit": "L",
+        "phase_amont": 0.66,
+        "phase_fonctionnement": 2.51,
+        "total": 3.17,
+        "explication": "Gazole routier standard utilisé pour les véhicules diesel. Facteur d'émission basé sur la combustion complète du carburant.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf"
+    },
+    "BIOGNC": {
+        "nom": "Biométhane comprimé - Pour véhicule routier - Mix Moyen",
+        "facteur": 0.609,
+        "unite": "kg",
+        "phase_amont": 0.12,
+        "phase_fonctionnement": 0.489,
+        "total": 0.609,
+        "explication": "Biométhane produit à partir de déchets organiques. Facteur réduit grâce à la neutralité carbone de la biomasse.",
+        "lien_source": "https://www.objectifco2.fr/docs/upload/50/R%C3%A9f%C3%A9rentiel%20des%20facteurs.pdf"
+    },
+    "BIODIESEL": {
+        "id": "BIODIESEL",
+        "nom": "BIODIESEL",
+        "unite": "L",
+        "facteur": 20,
+        "explication": "Biodiesel produit à partir d'huiles végétales. Réduction des émissions par rapport au diesel fossile.",
+        "lien_source": "https://www.objectifco2.fr/docs/upload/50/R%C3%A9f%C3%A9rentiel%20des%20facteurs.pdf",
+        "phase_amont": 10,
+        "phase_fonctionnement": 10,
+        "total": 20
+    },
+    "BIOÉTHANOL - ED95": {
+        "nom": "Bioéthanol",
+        "unite": "litre",
+        "facteur": "0.851",
+        "phase_amont": 0.17,
+        "phase_fonctionnement": 0.681,
+        "total": 0.851,
+        "explication": "Bioéthanol produit à partir de matières premières agricoles. Carburant renouvelable avec émissions réduites.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf"
+    },
+    "GAZOLE": {
+        "nom": "B30",
+        "unite": "litre",
+        "facteur": "2.64",
+        "phase_amont": 0.53,
+        "phase_fonctionnement": 2.11,
+        "total": 2.64,
+        "explication": "Gazole contenant 30% de biodiesel. Mélange permettant de réduire les émissions tout en conservant la compatibilité moteur.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf"
+    },
+    "ELECTRICITÉ 2022": {
+        "id": "ELECTRICITÉ 2022",
+        "nom": "ELECTRICITÉ 2022",
+        "unite": "kwh",
+        "facteur": 0.05,
+        "explication": "Électricité du réseau français avec mix énergétique 2022. Facteur très faible grâce à la part importante du nucléaire et des renouvelables.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf",
+        "phase_amont": 0.01,
+        "phase_fonctionnement": 0.04,
+        "total": 0.05
+    },
+    "GAZOLE NON ROUTIER": {
+        "nom": "Gazole non routier",
+        "unite": "litre",
+        "facteur": "3.16",
+        "phase_amont": 0.66,
+        "phase_fonctionnement": 2.5,
+        "total": 3.16,
+        "explication": "Gazole utilisé pour les engins de chantier et machines agricoles. Légèrement différent du gazole routier.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf"
+    },
+    "GAZOLE ROUTIER - B100 ": {
+        "nom": "B 100",
+        "unite": "litre",
+        "facteur": "1.22",
+        "phase_amont": 0.24,
+        "phase_fonctionnement": 0.98,
+        "total": 1.22,
+        "explication": "Biodiesel pur (100%). Facteur très faible grâce à l'absence de composants fossiles.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf"
+    },
+    "GNC - GAZ NATUREL COMPRIMÉ POUR VÉHICULE ROUTIER": {
+        "nom": "GNC",
+        "unite": "kg",
+        "facteur": "2.95",
+        "phase_amont": 0.59,
+        "phase_fonctionnement": 2.36,
+        "total": 2.95,
+        "explication": "Gaz naturel comprimé pour véhicules routiers. Alternative au gazole avec émissions intermédiaires.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf"
+    },
+    "GNL - GAZ NATUREL LIQUÉFIÉ": {
+        "nom": "GNL",
+        "unite": "kwh",
+        "facteur": "3.27",
+        "phase_amont": 0.65,
+        "phase_fonctionnement": 2.62,
+        "total": 3.27,
+        "explication": "Gaz naturel liquéfié. Utilisé principalement pour le transport maritime et routier lourd.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf"
+    },
+    "HVO - HUILE VÉGÉTALE HYDROTRAITÉE ": {
+        "nom": "HVO",
+        "unite": "litre",
+        "facteur": "0.54",
+        "phase_amont": 0.11,
+        "phase_fonctionnement": 0.43,
+        "total": 0.54,
+        "explication": "Huile végétale hydrotraitée. Biocarburant avancé avec excellent bilan carbone.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf"
+    },
+    "c": {
+        "id": "c",
+        "nom": "ELECTRICITÉ 2022",
+        "unite": "kwh",
+        "facteur": 0.05,
+        "explication": "Électricité du réseau français avec mix énergétique 2022. Facteur très faible grâce à la part importante du nucléaire et des renouvelables.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf",
+        "phase_amont": 0,
+        "phase_fonctionnement": 0,
+        "total": 0
+    },
+    "ELECTRICITÉ": {
+        "id": "ELECTRICITÉ",
+        "nom": "ELECTRICITÉ",
+        "unite": "kwh",
+        "facteur": 0.05,
+        "explication": "Électricité du réseau français avec mix énergétique 2022. Facteur très faible grâce à la part importante du nucléaire et des renouvelables.",
+        "lien_source": "https://www.ademe.fr/sites/default/files/assets/documents/guide-facteurs-emission-v11.0.pdf"
+    }
+}

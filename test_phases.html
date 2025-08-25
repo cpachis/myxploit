@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Phases</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .btn { padding: 8px 16px; margin: 4px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; border: none; }
+        .btn-remove { background-color: #dc3545; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <h1>Test des Phases</h1>
+    
+    <form id="test-form">
+        <table id="phases-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Véhicule</th>
+                    <th>Conso</th>
+                    <th>Distance</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <select class="phase-type">
+                            <option value="collecte">collecte</option>
+                            <option value="traction">traction</option>
+                            <option value="distribution">distribution</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="phase-vehicule">
+                            <option value="CAM001">CAM001 - Camion 1</option>
+                            <option value="CAM002">CAM002 - Camion 2</option>
+                        </select>
+                    </td>
+                    <td><input type="number" class="phase-conso" value="25.5" step="0.1"></td>
+                    <td><input type="number" class="phase-distance" value="50.0" step="0.1"></td>
+                    <td><input type="date" class="phase-date" value="2024-01-15"></td>
+                    <td>
+                        <button type="button" class="btn-remove" onclick="removePhase(this.closest('tr'))">🗑️</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <button type="button" class="btn" onclick="addPhase()">+ Ajouter une phase</button>
+        <button type="submit" class="btn-primary">Enregistrer</button>
+    </form>
+    
+    <div id="output"></div>
+    
+    <script>
+        function addPhase() {
+            const tbody = document.querySelector('#phases-table tbody');
+            const tr = document.createElement('tr');
+            const today = new Date().toISOString().split('T')[0];
+            
+            tr.innerHTML = `
+                <td>
+                    <select class="phase-type">
+                        <option value="collecte">collecte</option>
+                        <option value="traction">traction</option>
+                        <option value="distribution">distribution</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="phase-vehicule">
+                        <option value="CAM001">CAM001 - Camion 1</option>
+                        <option value="CAM002">CAM002 - Camion 2</option>
+                    </select>
+                </td>
+                <td><input type="number" class="phase-conso" value="0.0" step="0.1"></td>
+                <td><input type="number" class="phase-distance" value="0.0" step="0.1"></td>
+                <td><input type="date" class="phase-date" value="${today}"></td>
+                <td>
+                    <button type="button" class="btn-remove" onclick="removePhase(this.closest('tr'))">🗑️</button>
+                </td>
+            `;
+            
+            tbody.appendChild(tr);
+            console.log('Phase ajoutée');
+        }
+        
+        function removePhase(tr) {
+            if (confirm('Supprimer cette phase ?')) {
+                tr.remove();
+                console.log('Phase supprimée');
+            }
+        }
+        
+        document.getElementById('test-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const rows = document.querySelectorAll('#phases-table tbody tr');
+            const phases = [];
+            
+            rows.forEach((tr, index) => {
+                const phase = {
+                    type: tr.querySelector('.phase-type').value,
+                    vehicule: tr.querySelector('.phase-vehicule').value,
+                    conso: tr.querySelector('.phase-conso').value,
+                    distance: tr.querySelector('.phase-distance').value,
+                    date: tr.querySelector('.phase-date').value
+                };
+                phases.push(phase);
+            });
+            
+            document.getElementById('output').innerHTML = '<h3>Phases à enregistrer :</h3><pre>' + JSON.stringify(phases, null, 2) + '</pre>';
+            console.log('Phases:', phases);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,165 @@
+{# templates/home.html #}
+{% extends "base.html" %}
+{% block title %}Accueil - Green Calc{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>🏠 Accueil</h1>
+    <p class="subtitle">Bienvenue sur Green Calc - Votre calculateur d'impact environnemental</p>
+  </div>
+
+  <div class="welcome-section">
+    <div class="welcome-card">
+      <h2>🎯 Qu'est-ce que Green Calc ?</h2>
+      <p>Green Calc est votre calculateur intelligent d'impact environnemental pour optimiser vos transports et réduire votre empreinte carbone.</p>
+    </div>
+  </div>
+
+  <div class="explanation-section">
+    <h2>📚 Comment ça fonctionne ?</h2>
+    
+    <div class="explanation-grid">
+      <div class="explanation-card">
+        <div class="explanation-icon">🚛</div>
+        <h3>1. Créez vos transports</h3>
+        <p>Définissez vos opérations de transport avec origine, destination, poids et type de véhicule.</p>
+      </div>
+      
+      <div class="explanation-card">
+        <div class="explanation-icon">⚡</div>
+        <h3>2. Configurez vos énergies</h3>
+        <p>Paramétrez les types d'énergies (essence, électricité, HVO...) avec leurs facteurs d'émission CO₂.</p>
+      </div>
+      
+      <div class="explanation-card">
+        <div class="explanation-icon">🧮</div>
+        <h3>3. Calcul automatique</h3>
+        <p>Le système calcule automatiquement les émissions CO₂ et l'impact environnemental de chaque transport.</p>
+      </div>
+      
+      <div class="explanation-card">
+        <div class="explanation-icon">📊</div>
+        <h3>4. Analyse et optimisation</h3>
+        <p>Consultez vos statistiques, identifiez les points d'amélioration et optimisez vos opérations.</p>
+      </div>
+    </div>
+  </div>
+
+<style>
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+}
+
+.dashboard-header {
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.dashboard-header h1 {
+  font-size: 3rem;
+  color: #2a7de1;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 1.3rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.welcome-section {
+  margin-bottom: 3rem;
+}
+
+.welcome-card {
+  background: linear-gradient(135deg, #2a7de1, #4fd1c5);
+  color: white;
+  padding: 2rem;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(42, 125, 225, 0.3);
+}
+
+.welcome-card h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.welcome-card p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.explanation-section {
+  margin-bottom: 3rem;
+}
+
+.explanation-section h2 {
+  font-size: 2rem;
+  color: #374151;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.explanation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.explanation-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s;
+  border: 2px solid transparent;
+}
+
+.explanation-card:hover {
+  transform: translateY(-2px);
+  border-color: #4fd1c5;
+}
+
+.explanation-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.explanation-card h3 {
+  color: #2a7de1;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.explanation-card p {
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 2rem;
+  }
+  
+  .explanation-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}

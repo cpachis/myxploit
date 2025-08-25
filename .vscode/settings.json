@@ -1,0 +1,21 @@
+{
+    "python.defaultInterpreterPath": "./venv/Scripts/python.exe",
+    "python.terminal.activateEnvironment": true,
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.diagnosticMode": "off",
+    "python.languageServer": "None",
+    "python.linting.enabled": false,
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.autoSearchPaths": false,
+    "python.analysis.extraPaths": ["./venv/Lib/site-packages"],
+    "python.analysis.include": [],
+    "python.analysis.exclude": ["**/*"],
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "none",
+        "reportMissingTypeStubs": "none",
+        "reportUnusedImport": "none",
+        "reportUnusedClass": "none",
+        "reportUnusedFunction": "none",
+        "reportUnusedVariable": "none"
+    }
+}

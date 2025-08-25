@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>{% block title %}Green Calc{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <header class="main-header">
+    <div class="logo">
+      <a href="{{ url_for('index') }}">Green Calc</a>
+    </div>
+    <nav class="top-nav">
+      <ul>
+        <li><a href="{{ url_for('index') }}">Accueil</a></li>
+        <li><a href="{{ url_for('transports') }}">Mes Transports</a></li>
+        <li><a href="{{ url_for('dashboard') }}">Mon Dashboard</a></li>
+        <li class="dropdown">
+          <a href="{{ url_for('administration') }}">Administration</a>
+          <ul class="dropdown-menu">
+            <li><a href="{{ url_for('parametrage_clients') }}">Clients</a></li>
+            <li><a href="{{ url_for('parametrage_energies') }}">Énergies</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+    <div class="user-menu">
+      <a href="{{ url_for('logout') }}" class="btn-logout">Déconnexion</a>
+    </div>
+  </header>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="main-footer">
+    <p>&copy; 2025 Green Calc</p>
+  </footer>
+
+</body>
+</html>

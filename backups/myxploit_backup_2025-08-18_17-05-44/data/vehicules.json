@@ -1,0 +1,29 @@
+{
+    "V_HICULE_UTILITAIRE_L_GER_3_5_TONNES_PTAC__EXPRESS__PLIS__COURSES____GAZOLE_ROUTIER_0.26T": {
+        "id": "V_HICULE_UTILITAIRE_L_GER_3_5_TONNES_PTAC__EXPRESS__PLIS__COURSES____GAZOLE_ROUTIER_0.26T",
+        "nom": "VUL3.5express",
+        "energie": "gazole",
+        "capacite": 0.26,
+        "consommation": 16,
+        "emissions": 1945,
+        "description": "Véhicule utilitaire léger 3,5 tonnes PTAC -Express (plis, courses) - Gazole routier"
+    },
+    "V_HICULE_UTILITAIRE_L_GER_3_5_TONNES_PTAC___EXPRESS__COLIS____GAZOLE_ROUTIER_0.46T": {
+        "id": "V_HICULE_UTILITAIRE_L_GER_3_5_TONNES_PTAC___EXPRESS__COLIS____GAZOLE_ROUTIER_0.46T",
+        "nom": "Véhicule utilitaire léger 3,5 tonnes PTAC - Express (colis) - Gazole routier",
+        "energie": "gazole",
+        "capacite": 0.46,
+        "consommation": 16,
+        "emissions": 1099,
+        "description": ""
+    },
+    "PORTEUR_19_TONNES_PTAC___EXPRESS___GAZOLE_ROUTIER_2.5T": {
+        "id": "PORTEUR_19_TONNES_PTAC___EXPRESS___GAZOLE_ROUTIER_2.5T",
+        "nom": "Porteur 19 tonnes PTAC - Express - Gazole routier",
+        "energie": "gazole",
+        "capacite": 2.5,
+        "consommation": 27,
+        "emissions": 341,
+        "description": ""
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "python.analysis.typeCheckingMode": "off",
+        "python.analysis.diagnosticMode": "off",
+        "python.languageServer": "None",
+        "python.linting.enabled": false,
+        "python.analysis.autoImportCompletions": false,
+        "python.analysis.autoSearchPaths": false,
+        "python.analysis.diagnosticSeverityOverrides": {
+            "reportMissingImports": "none",
+            "reportMissingTypeStubs": "none",
+            "reportUnusedImport": "none",
+            "reportUnusedClass": "none",
+            "reportUnusedFunction": "none",
+            "reportUnusedVariable": "none"
+        }
+    }
+}
+
+
+
+
+
+

@@ -1,0 +1,82 @@
+{
+  "ST001": {
+    "nom": "Sous-traitant 1",
+    "contact": "contact1@soustraitant.fr"
+  },
+  "ST002": {
+    "nom": "Sous-traitant 2",
+    "contact": "contact2@soustraitant.fr"
+  },
+  "ST003": {
+    "nom": "Sous-traitant 3",
+    "contact": "contact3@soustraitant.fr"
+  },
+  "ST004": {
+    "nom": "Sous-traitant 4",
+    "contact": "contact4@soustraitant.fr"
+  },
+  "ST005": {
+    "nom": "Sous-traitant 5",
+    "contact": "contact5@soustraitant.fr"
+  },
+  "ST006": {
+    "nom": "Sous-traitant 6",
+    "contact": "contact6@soustraitant.fr"
+  },
+  "ST007": {
+    "nom": "Sous-traitant 7",
+    "contact": "contact7@soustraitant.fr"
+  },
+  "ST008": {
+    "nom": "Sous-traitant 8",
+    "contact": "contact8@soustraitant.fr"
+  },
+  "ST009": {
+    "nom": "Sous-traitant 9",
+    "contact": "contact9@soustraitant.fr"
+  },
+  "ST010": {
+    "nom": "Sous-traitant 10",
+    "contact": "contact10@soustraitant.fr"
+  },
+  "ST011": {
+    "nom": "Sous-traitant 11",
+    "contact": "contact11@soustraitant.fr"
+  },
+  "ST012": {
+    "nom": "Sous-traitant 12",
+    "contact": "contact12@soustraitant.fr"
+  },
+  "ST013": {
+    "nom": "Sous-traitant 13",
+    "contact": "contact13@soustraitant.fr"
+  },
+  "ST014": {
+    "nom": "Sous-traitant 14",
+    "contact": "contact14@soustraitant.fr"
+  },
+  "ST015": {
+    "nom": "Sous-traitant 15",
+    "contact": "contact15@soustraitant.fr"
+  },
+  "ST016": {
+    "nom": "Sous-traitant 16",
+    "contact": "contact16@soustraitant.fr"
+  },
+  "ST017": {
+    "nom": "Sous-traitant 17",
+    "contact": "contact17@soustraitant.fr"
+  },
+  "ST018": {
+    "nom": "Sous-traitant 18",
+    "contact": "contact18@soustraitant.fr"
+  },
+  "ST019": {
+    "nom": "Sous-traitant 19",
+    "contact": "contact19@soustraitant.fr"
+  },
+  "ST020": {
+    "nom": "Sous-traitant 20",
+    "contact": "contact20@soustraitant.fr"
+  }
+}

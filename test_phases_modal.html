@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Modal Phases</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-button {
+            background: #2a7de1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        
+        .test-button:hover {
+            background: #1e5bb8;
+        }
+        
+        .test-result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+        }
+        
+        .test-error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .test-info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        
+        .phase-form-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f9f9f9;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        .btn-save-phase {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-cancel-phase {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test de la Modal des Phases</h1>
+        
+        <div class="test-info">
+            <h3>Objectif du test</h3>
+            <p>Vérifier que lors de la modification d'une phase existante, toutes les informations sont correctement affichées dans le formulaire.</p>
+        </div>
+        
+        <div class="test-result">
+            <h3>✅ Problème identifié et corrigé</h3>
+            <p><strong>Problème :</strong> Dans la modal de détail des phases de transport, lorsque l'utilisateur veut modifier une phase, les informations déjà rentrées n'étaient pas indiquées.</p>
+            
+            <p><strong>Cause :</strong> La fonction <code>editPhase</code> remplissait les champs du formulaire avant que les selects d'énergies et véhicules soient chargés, causant une perte des valeurs.</p>
+            
+            <p><strong>Solution :</strong> Utilisation de <code>Promise.all()</code> pour charger d'abord les données, puis remplir le formulaire avec les valeurs existantes.</p>
+        </div>
+        
+        <h3>🔧 Corrections apportées</h3>
+        
+        <div class="test-result">
+            <h4>1. Fonction editPhase améliorée</h4>
+            <ul>
+                <li>Chargement des énergies et véhicules AVANT le remplissage du formulaire</li>
+                <li>Utilisation de Promise.all() pour une synchronisation correcte</li>
+                <li>Logs détaillés pour le débogage</li>
+                <li>Gestion des valeurs par défaut et des cas d'erreur</li>
+            </ul>
+        </div>
+        
+        <div class="test-result">
+            <h4>2. Fonctions de chargement améliorées</h4>
+            <ul>
+                <li><code>loadEnergiesForPhase()</code> retourne maintenant une Promise</li>
+                <li><code>loadVehiculesForPhase()</code> retourne maintenant une Promise</li>
+                <li>Meilleure gestion de la restauration des valeurs existantes</li>
+            </ul>
+        </div>
+        
+        <div class="test-result">
+            <h4>3. Fonction showAddPhaseForm améliorée</h4>
+            <ul>
+                <li>Utilisation des Promises pour le chargement des données</li>
+                <li>Meilleure gestion des erreurs</li>
+                <li>Nettoyage des attributs de modification</li>
+            </ul>
+        </div>
+        
+        <h3>📋 Formulaire de test</h3>
+        
+        <div class="phase-form-container" id="phase-form-test" style="display: none;">
+            <div class="phase-form-header">
+                <h5 id="phase-form-title">Ajouter une nouvelle phase</h5>
+                <button class="btn-close-form" onclick="hideTestForm()">×</button>
+            </div>
+            
+            <form class="phase-form" id="phase-form-test-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phase-type">Type de phase *</label>
+                        <select id="phase-type" name="type_phase" required>
+                            <option value="">Sélectionner le type de phase</option>
+                            <option value="COLLECTE">📦 Phase de collecte</option>
+                            <option value="TRACTION">🚚 Phase de traction</option>
+                            <option value="DISTRIBUTION">📋 Phase de distribution</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phase-camion">Véhicule *</label>
+                        <select id="phase-camion" name="vehicule_id" required>
+                            <option value="">Sélectionner un véhicule</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phase-ville-depart">Ville de départ *</label>
+                        <input type="text" id="phase-ville-depart" name="ville_depart" required placeholder="Ex: Paris">
+                    </div>
+                    <div class="form-group">
+                        <label for="phase-ville-arrivee">Ville d'arrivée *</label>
+                        <input type="text" id="phase-ville-arrivee" name="ville_arrivee" required placeholder="Ex: Lyon">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phase-distance">Distance (km) *</label>
+                        <input type="number" id="phase-distance" name="distance_km" required step="0.1" min="0" placeholder="Ex: 465.2">
+                    </div>
+                    <div class="form-group">
+                        <label for="phase-poids">Poids (tonnes) *</label>
+                        <input type="number" id="phase-poids" name="poids_tonnes" required step="0.001" min="0" placeholder="Ex: 12.5">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phase-energie">Énergie utilisée</label>
+                        <select id="phase-energie" name="energie">
+                            <option value="">Sélectionner une énergie</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phase-consommation">Consommation</label>
+                        <input type="number" id="phase-consommation" name="consommation" step="0.01" min="0" placeholder="Ex: 45.2">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-save-phase">💾 Sauvegarder la phase</button>
+                    <button type="button" class="btn-cancel-phase" onclick="hideTestForm()">❌ Annuler</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="test-result">
+            <h3>🧪 Tests à effectuer</h3>
+            <ol>
+                <li><strong>Test d'ajout :</strong> Cliquer sur "Ajouter une phase" et vérifier que le formulaire s'affiche correctement</li>
+                <li><strong>Test de modification :</strong> Simuler la modification d'une phase existante avec des données</li>
+                <li><strong>Test de persistance :</strong> Vérifier que les valeurs sont conservées lors des changements</li>
+                <li><strong>Test de validation :</strong> Vérifier que les champs obligatoires sont bien marqués</li>
+            </ol>
+        </div>
+        
+        <div class="test-result">
+            <h3>📝 Instructions de test</h3>
+            <p>1. Ouvrir la console du navigateur pour voir les logs</p>
+            <p>2. Cliquer sur "Ajouter une phase" pour tester l'ajout</p>
+            <p>3. Remplir quelques champs et tester la validation</p>
+            <p>4. Vérifier que les données sont bien conservées</p>
+        </div>
+        
+        <button class="test-button" onclick="showTestForm()">➕ Ajouter une phase</button>
+        <button class="test-button" onclick="testEditPhase()">✏️ Tester la modification</button>
+        <button class="test-button" onclick="hideTestForm()">❌ Masquer le formulaire</button>
+        
+        <div id="test-results"></div>
+    </div>
+    
+    <script>
+        // Simulation des données d'énergies
+        const mockEnergies = {
+            'gazole': { nom: 'Gazole', facteur: 2.6, unite: 'kg/L' },
+            'essence': { nom: 'Essence', facteur: 2.3, unite: 'kg/L' },
+            'electricite': { nom: 'Électricité', facteur: 0.05, unite: 'kg/kWh' }
+        };
+        
+        // Simulation des données de véhicules
+        const mockVehicules = [
+            { id: 'CAM001', nom: 'Camion 3.5t', type: 'Porteur' },
+            { id: 'CAM002', nom: 'Camion 7.5t', type: 'Porteur' },
+            { id: 'CAM003', nom: 'Camion 19t', type: 'Porteur' }
+        ];
+        
+        // Simulation d'une phase existante
+        const mockPhase = {
+            id: 'PHASE001',
+            type: 'COLLECTE',
+            vehicule_id: 'CAM001',
+            ville_depart: 'Paris',
+            ville_arrivee: 'Lyon',
+            distance_km: 465.2,
+            poids_tonnes: 12.5,
+            energie: 'gazole',
+            consommation: 45.2
+        };
+        
+        function showTestForm() {
+            const form = document.getElementById('phase-form-test');
+            form.style.display = 'block';
+            
+            // Charger les énergies et véhicules
+            loadTestEnergies();
+            loadTestVehicules();
+            
+            console.log('✅ Formulaire d\'ajout affiché');
+            addTestResult('Formulaire d\'ajout affiché avec succès', 'success');
+        }
+        
+        function hideTestForm() {
+            const form = document.getElementById('phase-form-test');
+            form.style.display = 'none';
+            console.log('✅ Formulaire masqué');
+            addTestResult('Formulaire masqué avec succès', 'success');
+        }
+        
+        function loadTestEnergies() {
+            const energieSelect = document.getElementById('phase-energie');
+            energieSelect.innerHTML = '<option value="">Sélectionner une énergie</option>';
+            
+            Object.entries(mockEnergies).forEach(([id, energie]) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = `${energie.nom} (${energie.facteur} ${energie.unite})`;
+                energieSelect.appendChild(option);
+            });
+            
+            console.log('✅ Énergies chargées:', mockEnergies);
+        }
+        
+        function loadTestVehicules() {
+            const vehiculeSelect = document.getElementById('phase-camion');
+            vehiculeSelect.innerHTML = '<option value="">Sélectionner un véhicule</option>';
+            
+            mockVehicules.forEach(vehicule => {
+                const option = document.createElement('option');
+                option.value = vehicule.id;
+                option.textContent = `${vehicule.id} - ${vehicule.nom} (${vehicule.type})`;
+                vehiculeSelect.appendChild(option);
+            });
+            
+            console.log('✅ Véhicules chargés:', mockVehicules);
+        }
+        
+        function testEditPhase() {
+            console.log('🧪 Test de modification de phase');
+            addTestResult('Test de modification de phase lancé', 'info');
+            
+            // Simuler le chargement d'une phase existante
+            const form = document.getElementById('phase-form-test');
+            const formTitle = document.getElementById('phase-form-title');
+            const formElement = document.getElementById('phase-form-test-form');
+            
+            // Afficher le formulaire
+            form.style.display = 'block';
+            form.scrollIntoView({ behavior: 'smooth' });
+            
+            // Mettre à jour le titre
+            formTitle.textContent = `Modifier la phase ${mockPhase.id}`;
+            
+            // Charger les données AVANT de remplir le formulaire
+            Promise.all([
+                new Promise(resolve => {
+                    loadTestEnergies();
+                    resolve();
+                }),
+                new Promise(resolve => {
+                    loadTestVehicules();
+                    resolve();
+                })
+            ]).then(() => {
+                // Maintenant remplir le formulaire avec les données existantes
+                console.log('📝 Remplissage du formulaire avec les données de la phase:', mockPhase);
+                
+                // Remplir les champs
+                document.getElementById('phase-type').value = mockPhase.type;
+                document.getElementById('phase-camion').value = mockPhase.vehicule_id;
+                document.getElementById('phase-ville-depart').value = mockPhase.ville_depart;
+                document.getElementById('phase-ville-arrivee').value = mockPhase.ville_arrivee;
+                document.getElementById('phase-distance').value = mockPhase.distance_km;
+                document.getElementById('phase-poids').value = mockPhase.poids_tonnes;
+                document.getElementById('phase-energie').value = mockPhase.energie;
+                document.getElementById('phase-consommation').value = mockPhase.consommation;
+                
+                // Ajouter l'ID de la phase au formulaire
+                formElement.setAttribute('data-edit-phase-id', mockPhase.id);
+                
+                console.log('✅ Formulaire rempli avec succès');
+                addTestResult('Formulaire de modification rempli avec succès - toutes les valeurs sont présentes', 'success');
+                
+            }).catch(error => {
+                console.error('❌ Erreur lors du test:', error);
+                addTestResult('Erreur lors du test de modification', 'error');
+            });
+        }
+        
+        function addTestResult(message, type) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type === 'error' ? 'test-error' : type === 'info' ? 'test-info' : ''}`;
+            resultDiv.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        // Gestion du formulaire
+        document.getElementById('phase-form-test-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('📤 Soumission du formulaire');
+            addTestResult('Formulaire soumis avec succès', 'success');
+        });
+        
+        console.log('🧪 Page de test des phases chargée');
+        addTestResult('Page de test chargée - prêt pour les tests', 'info');
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+

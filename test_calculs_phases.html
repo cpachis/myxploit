@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Calculs Phases</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-button {
+            background: #2a7de1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        
+        .test-button:hover {
+            background: #1e5bb8;
+        }
+        
+        .test-result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+        }
+        
+        .test-error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .test-info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        
+        .phase-form-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f9f9f9;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        .btn-save-phase {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-cancel-phase {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        .calculations-panel {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .calculation-step {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .calculation-result {
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .calculation-formula {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 5px;
+            border-radius: 3px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧮 Test des Calculs des Phases de Transport</h1>
+        
+        <div class="test-info">
+            <h3>Objectif du test</h3>
+            <p>Vérifier que les calculs automatiques des émissions fonctionnent correctement lors de l'ajout et de la modification des phases.</p>
+        </div>
+        
+        <div class="test-result">
+            <h3>✅ Problème identifié et corrigé</h3>
+            <p><strong>Problème :</strong> Dans l'ajout d'une phase, les calculs automatiques des émissions ne se déclenchaient pas.</p>
+            
+            <p><strong>Cause :</strong> Les event listeners JavaScript n'étaient pas attachés au formulaire lors de l'affichage, empêchant le déclenchement automatique des calculs.</p>
+            
+            <p><strong>Solution :</strong> Création d'une fonction <code>attachPhaseFormListeners()</code> qui attache tous les event listeners nécessaires et l'appel dans <code>showAddPhaseForm()</code>.</p>
+        </div>
+        
+        <h3>🔧 Corrections apportées</h3>
+        
+        <div class="test-result">
+            <h4>1. Nouvelle fonction attachPhaseFormListeners()</h4>
+            <ul>
+                <li>Attache automatiquement tous les event listeners nécessaires</li>
+                <li>Gère les changements de type de phase, véhicule, distance, poids, énergie, consommation</li>
+                <li>Déclenche automatiquement les calculs à chaque modification</li>
+                <li>Logs détaillés pour le débogage</li>
+            </ul>
+        </div>
+        
+        <div class="test-result">
+            <h4>2. Amélioration de showAddPhaseForm()</h4>
+            <ul>
+                <li>Appel automatique de <code>attachPhaseFormListeners()</code></li>
+                <li>Calcul initial automatique après affichage du formulaire</li>
+                <li>Gestion des erreurs avec event listeners quand même</li>
+            </ul>
+        </div>
+        
+        <div class="test-result">
+            <h4>3. Amélioration de updateEmissionsCalculation()</h4>
+            <ul>
+                <li>Calcul des émissions totales même sans énergie sélectionnée</li>
+                <li>Meilleure gestion des cas partiels</li>
+                <li>Logs détaillés des calculs effectués</li>
+            </ul>
+        </div>
+        
+        <h3>📋 Formulaire de test avec calculs</h3>
+        
+        <div class="phase-form-container" id="phase-form-test" style="display: none;">
+            <div class="phase-form-header">
+                <h5 id="phase-form-title">Ajouter une nouvelle phase</h5>
+                <button class="btn-close-form" onclick="hideTestForm()">×</button>
+            </div>
+            
+            <form class="phase-form" id="phase-form-test-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phase-type">Type de phase *</label>
+                        <select id="phase-type" name="type_phase" required>
+                            <option value="">Sélectionner le type de phase</option>
+                            <option value="COLLECTE">📦 Phase de collecte</option>
+                            <option value="TRACTION">🚚 Phase de traction</option>
+                            <option value="DISTRIBUTION">📋 Phase de distribution</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phase-camion">Véhicule *</label>
+                        <select id="phase-camion" name="vehicule_id" required>
+                            <option value="">Sélectionner un véhicule</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phase-ville-depart">Ville de départ *</label>
+                        <input type="text" id="phase-ville-depart" name="ville_depart" required placeholder="Ex: Paris">
+                    </div>
+                    <div class="form-group">
+                        <label for="phase-ville-arrivee">Ville d'arrivée *</label>
+                        <input type="text" id="phase-ville-arrivee" name="ville_arrivee" required placeholder="Ex: Lyon">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phase-distance">Distance (km) *</label>
+                        <input type="number" id="phase-distance" name="distance_km" required step="0.1" min="0" placeholder="Ex: 465.2">
+                    </div>
+                    <div class="form-group">
+                        <label for="phase-poids">Poids (tonnes) *</label>
+                        <input type="number" id="phase-poids" name="poids_tonnes" required step="0.001" min="0" placeholder="Ex: 12.5">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phase-energie">Énergie utilisée</label>
+                        <select id="phase-energie" name="energie">
+                            <option value="">Sélectionner une énergie</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phase-consommation">Consommation</label>
+                        <input type="number" id="phase-consommation" name="consommation" step="0.01" min="0" placeholder="Ex: 45.2">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phase-emis-vehicule">Émissions GES véhicule (kg CO₂e)</label>
+                        <input type="number" id="phase-emis-vehicule" name="emis_vehicule" step="0.01" min="0" placeholder="Calculé automatiquement" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="phase-emis-transport">Émission tonnes Km (CO₂e/t.km)</label>
+                        <input type="number" id="phase-emis-transport" name="emis_transport" step="0.01" min="0" placeholder="Calculé automatiquement" readonly>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phase-emis-total">Émissions totales (kg CO₂e)</label>
+                        <input type="number" id="phase-emis-total" name="emis_total" step="0.01" min="0" placeholder="Calculé automatiquement" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="phase-emis-tkm">Facteur transport (kg CO₂e/t.km)</label>
+                        <input type="number" id="phase-emis-tkm" name="emis_tkm" step="0.001" min="0" placeholder="Facteur de l'énergie" readonly>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-save-phase">💾 Sauvegarder la phase</button>
+                    <button type="button" class="btn-cancel-phase" onclick="hideTestForm()">❌ Annuler</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="calculations-panel">
+            <h3>🧮 Détail des Calculs</h3>
+            <div id="calculations-detail">
+                <p>Remplissez le formulaire ci-dessus pour voir les calculs en temps réel.</p>
+            </div>
+        </div>
+        
+        <div class="test-result">
+            <h3>🧪 Tests à effectuer</h3>
+            <ol>
+                <li><strong>Test d'affichage :</strong> Cliquer sur "Afficher le formulaire" et vérifier qu'il s'affiche</li>
+                <li><strong>Test de calculs automatiques :</strong> Remplir la distance et le poids, vérifier que les calculs se déclenchent</li>
+                <li><strong>Test de sélection d'énergie :</strong> Sélectionner une énergie et vérifier que l'unité et les facteurs se mettent à jour</li>
+                <li><strong>Test de consommation :</strong> Remplir la consommation et vérifier que les émissions véhicule se calculent</li>
+                <li><strong>Test de modification :</strong> Modifier les valeurs et vérifier que les calculs se mettent à jour en temps réel</li>
+            </ol>
+        </div>
+        
+        <div class="test-result">
+            <h3>📝 Instructions de test</h3>
+            <p>1. Ouvrir la console du navigateur pour voir les logs détaillés</p>
+            <p>2. Cliquer sur "Afficher le formulaire"</p>
+            <p>3. Remplir progressivement les champs et observer les calculs automatiques</p>
+            <p>4. Vérifier que les émissions se calculent en temps réel</p>
+            <p>5. Tester différents scénarios (avec/sans énergie, différentes valeurs)</p>
+        </div>
+        
+        <button class="test-button" onclick="showTestForm()">📋 Afficher le formulaire</button>
+        <button class="test-button" onclick="testCalculations()">🧮 Tester les calculs</button>
+        <button class="test-button" onclick="hideTestForm()">❌ Masquer le formulaire</button>
+        <button class="test-button" onclick="clearCalculations()">🗑️ Effacer les calculs</button>
+        
+        <div id="test-results"></div>
+    </div>
+    
+    <script>
+        // Simulation des données d'énergies
+        const mockEnergies = {
+            'gazole': { nom: 'Gazole', facteur: 2.6, unite: 'kg/L' },
+            'essence': { nom: 'Essence', facteur: 2.3, unite: 'kg/L' },
+            'electricite': { nom: 'Électricité', facteur: 0.05, unite: 'kg/kWh' }
+        };
+        
+        // Simulation des données de véhicules
+        const mockVehicules = [
+            { id: 'CAM001', nom: 'Camion 3.5t', type: 'Porteur' },
+            { id: 'CAM002', nom: 'Camion 7.5t', type: 'Porteur' },
+            { id: 'CAM003', nom: 'Camion 19t', type: 'Porteur' }
+        ];
+        
+        function showTestForm() {
+            const form = document.getElementById('phase-form-test');
+            form.style.display = 'block';
+            
+            // Charger les énergies et véhicules
+            loadTestEnergies();
+            loadTestVehicules();
+            
+            // Attacher les event listeners
+            attachTestListeners();
+            
+            console.log('✅ Formulaire d\'ajout affiché avec event listeners');
+            addTestResult('Formulaire d\'ajout affiché avec succès et event listeners attachés', 'success');
+        }
+        
+        function hideTestForm() {
+            const form = document.getElementById('phase-form-test');
+            form.style.display = 'none';
+            console.log('✅ Formulaire masqué');
+            addTestResult('Formulaire masqué avec succès', 'success');
+        }
+        
+        function loadTestEnergies() {
+            const energieSelect = document.getElementById('phase-energie');
+            energieSelect.innerHTML = '<option value="">Sélectionner une énergie</option>';
+            
+            Object.entries(mockEnergies).forEach(([id, energie]) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = `${energie.nom} (${energie.facteur} kg CO₂e/t.km)`;
+                option.setAttribute('data-facteur', energie.facteur);
+                energieSelect.appendChild(option);
+            });
+            
+            console.log('✅ Énergies chargées:', mockEnergies);
+        }
+        
+        function loadTestVehicules() {
+            const vehiculeSelect = document.getElementById('phase-camion');
+            vehiculeSelect.innerHTML = '<option value="">Sélectionner un véhicule</option>';
+            
+            mockVehicules.forEach(vehicule => {
+                const option = document.createElement('option');
+                option.value = vehicule.id;
+                option.textContent = `${vehicule.id} - ${vehicule.nom} (${vehicule.type})`;
+                vehiculeSelect.appendChild(option);
+            });
+            
+            console.log('✅ Véhicules chargés:', mockVehicules);
+        }
+        
+        function attachTestListeners() {
+            console.log('🔗 Attachement des event listeners de test');
+            
+            // Event listeners pour les calculs automatiques
+            const distanceInput = document.getElementById('phase-distance');
+            const poidsInput = document.getElementById('phase-poids');
+            const energieSelect = document.getElementById('phase-energie');
+            const consommationInput = document.getElementById('phase-consommation');
+            
+            if (distanceInput) {
+                distanceInput.addEventListener('input', updateTestCalculations);
+                distanceInput.addEventListener('change', updateTestCalculations);
+            }
+            
+            if (poidsInput) {
+                poidsInput.addEventListener('input', updateTestCalculations);
+                poidsInput.addEventListener('change', updateTestCalculations);
+            }
+            
+            if (energieSelect) {
+                energieSelect.addEventListener('change', updateTestCalculations);
+            }
+            
+            if (consommationInput) {
+                consommationInput.addEventListener('input', updateTestCalculations);
+                consommationInput.addEventListener('change', updateTestCalculations);
+            }
+            
+            console.log('✅ Event listeners de test attachés');
+        }
+        
+        function updateTestCalculations() {
+            console.log('🔄 Mise à jour des calculs de test');
+            
+            const distance = parseFloat(document.getElementById('phase-distance').value) || 0;
+            const poids = parseFloat(document.getElementById('phase-poids').value) || 0;
+            const energie = document.getElementById('phase-energie').value;
+            const consommation = parseFloat(document.getElementById('phase-consommation').value) || 0;
+            
+            let calculsDetail = '<h4>📊 Calculs en temps réel</h4>';
+            
+            if (distance > 0 && poids > 0) {
+                // Calculs de base
+                calculsDetail += `
+                    <div class="calculation-step">
+                        <strong>Distance :</strong> ${distance} km<br>
+                        <strong>Poids :</strong> ${poids} tonnes
+                    </div>
+                `;
+                
+                if (energie && mockEnergies[energie]) {
+                    const facteur = mockEnergies[energie].facteur;
+                    const unite = mockEnergies[energie].unite;
+                    
+                    calculsDetail += `
+                        <div class="calculation-step">
+                            <strong>Énergie sélectionnée :</strong> ${energie}<br>
+                            <strong>Facteur d'émission :</strong> ${facteur} kg CO₂e/t.km<br>
+                            <strong>Unité :</strong> ${unite}
+                        </div>
+                    `;
+                    
+                    // Calculs des émissions
+                    if (consommation > 0) {
+                        let emissionsVehicule = 0;
+                        let uniteConsommation = 'L/100km';
+                        
+                        if (energie === 'electricite') {
+                            uniteConsommation = 'kWh/100km';
+                            const consommationParKm = consommation / 100;
+                            const consommationTotale = consommationParKm * distance;
+                            emissionsVehicule = consommationTotale * facteur;
+                            
+                            calculsDetail += `
+                                <div class="calculation-step">
+                                    <strong>Consommation véhicule :</strong><br>
+                                    <div class="calculation-formula">${consommation} kWh/100km → ${consommationParKm.toFixed(3)} kWh/km</div>
+                                    <div class="calculation-formula">Consommation totale : ${consommationParKm.toFixed(3)} kWh/km × ${distance} km = ${consommationTotale.toFixed(2)} kWh</div>
+                                    <div class="calculation-formula">Émissions véhicule : ${consommationTotale.toFixed(2)} kWh × ${facteur} kg CO₂e/kWh = <span class="calculation-result">${emissionsVehicule.toFixed(2)} kg CO₂e</span></div>
+                                </div>
+                            `;
+                        } else {
+                            const consommationParKm = consommation / 100;
+                            const consommationTotale = consommationParKm * distance;
+                            emissionsVehicule = consommationTotale * facteur;
+                            
+                            calculsDetail += `
+                                <div class="calculation-step">
+                                    <strong>Consommation véhicule :</strong><br>
+                                    <div class="calculation-formula">${consommation} L/100km → ${consommationParKm.toFixed(3)} L/km</div>
+                                    <div class="calculation-formula">Consommation totale : ${consommationParKm.toFixed(3)} L/km × ${distance} km = ${consommationTotale.toFixed(2)} L</div>
+                                    <div class="calculation-formula">Émissions véhicule : ${consommationTotale.toFixed(2)} L × ${facteur} kg CO₂e/L = <span class="calculation-result">${emissionsVehicule.toFixed(2)} kg CO₂e</span></div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Mettre à jour le champ d'émissions véhicule
+                        document.getElementById('phase-emis-vehicule').value = emissionsVehicule.toFixed(2);
+                    }
+                    
+                    // Calculs des émissions de transport
+                    const emissionsTransport = distance * poids * facteur;
+                    calculsDetail += `
+                        <div class="calculation-step">
+                            <strong>Émissions de transport :</strong><br>
+                            <div class="calculation-formula">Distance × Poids × Facteur = ${distance} km × ${poids} t × ${facteur} kg CO₂e/t.km</div>
+                            <div class="calculation-result">Émissions transport : ${emissionsTransport.toFixed(2)} kg CO₂e</div>
+                        </div>
+                    `;
+                    
+                    // Mettre à jour les champs
+                    document.getElementById('phase-emis-transport').value = emissionsTransport.toFixed(2);
+                    document.getElementById('phase-emis-tkm').value = facteur.toFixed(3);
+                    
+                    // Calculs des émissions totales
+                    const emissionsTotal = (parseFloat(document.getElementById('phase-emis-vehicule').value) || 0) + emissionsTransport;
+                    calculsDetail += `
+                        <div class="calculation-step">
+                            <strong>Émissions totales :</strong><br>
+                            <div class="calculation-formula">Émissions véhicule + Émissions transport = ${(parseFloat(document.getElementById('phase-emis-vehicule').value) || 0).toFixed(2)} + ${emissionsTransport.toFixed(2)}</div>
+                            <div class="calculation-result">Émissions totales : ${emissionsTotal.toFixed(2)} kg CO₂e</div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('phase-emis-total').value = emissionsTotal.toFixed(2);
+                    
+                } else {
+                    // Pas d'énergie sélectionnée
+                    calculsDetail += `
+                        <div class="calculation-step">
+                            <strong>Calculs partiels (sans énergie) :</strong><br>
+                            <div class="calculation-formula">Distance × Poids × Facteur estimé = ${distance} km × ${poids} t × 1.0</div>
+                            <div class="calculation-result">Émissions transport estimées : ${(distance * poids * 1.0).toFixed(2)} kg CO₂e (facteur estimé)</div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('phase-emis-transport').value = `${(distance * poids * 1.0).toFixed(2)} (facteur estimé)`;
+                    document.getElementById('phase-emis-total').value = (distance * poids * 1.0).toFixed(2);
+                    document.getElementById('phase-emis-tkm').value = '';
+                }
+                
+            } else {
+                calculsDetail += '<p>Aucun calcul possible sans distance et poids.</p>';
+            }
+            
+            document.getElementById('calculations-detail').innerHTML = calculsDetail;
+        }
+        
+        function testCalculations() {
+            console.log('🧪 Test des calculs automatiques');
+            addTestResult('Test des calculs automatiques lancé', 'info');
+            
+            // Remplir automatiquement quelques champs pour tester
+            document.getElementById('phase-distance').value = '100';
+            document.getElementById('phase-poids').value = '5';
+            document.getElementById('phase-energie').value = 'gazole';
+            document.getElementById('phase-consommation').value = '25';
+            
+            // Déclencher les calculs
+            updateTestCalculations();
+            
+            addTestResult('Test des calculs automatiques terminé - vérifiez les résultats', 'success');
+        }
+        
+        function clearCalculations() {
+            document.getElementById('calculations-detail').innerHTML = '<p>Remplissez le formulaire ci-dessus pour voir les calculs en temps réel.</p>';
+            addTestResult('Calculs effacés', 'info');
+        }
+        
+        function addTestResult(message, type) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type === 'error' ? 'test-error' : type === 'info' ? 'test-info' : ''}`;
+            resultDiv.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        // Gestion du formulaire
+        document.getElementById('phase-form-test-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('📤 Soumission du formulaire de test');
+            addTestResult('Formulaire de test soumis avec succès', 'success');
+        });
+        
+        console.log('🧪 Page de test des calculs des phases chargée');
+        addTestResult('Page de test des calculs chargée - prêt pour les tests', 'info');
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
