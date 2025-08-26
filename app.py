@@ -96,24 +96,22 @@ def index():
 def dashboard():
     """Dashboard principal"""
     try:
-        # S'assurer que nous sommes dans le bon contexte d'application Flask
-        with app.app_context():
-            # Récupérer les statistiques
-            total_transports = Transport.query.count()
-            total_clients = 0
-            if hasattr(Transport, 'client_id'):
-                try:
-                    result = db.session.query(db.func.count(db.distinct(Transport.client_id))).scalar()
-                    total_clients = result if result is not None else 0
-                except Exception:
-                    total_clients = 0
-            
-            logger.info(f"Affichage du dashboard - {total_transports} transports")
-            
-            return render_template('dashboard.html', 
-                                total_transports=total_transports,
-                                total_clients=total_clients)
-                            
+        # Récupérer les statistiques
+        total_transports = Transport.query.count()
+        total_clients = 0
+        if hasattr(Transport, 'client_id'):
+            try:
+                result = db.session.query(db.func.count(db.distinct(Transport.client_id))).scalar()
+                total_clients = result if result is not None else 0
+            except Exception:
+                total_clients = 0
+        
+        logger.info(f"Affichage du dashboard - {total_transports} transports")
+        
+        return render_template('dashboard.html', 
+                            total_transports=total_transports,
+                            total_clients=total_clients)
+                        
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage du dashboard: {str(e)}")
         return render_template('error.html', error=str(e)), 500
@@ -122,22 +120,20 @@ def dashboard():
 def transports():
     """Liste des transports"""
     try:
-        # S'assurer que nous sommes dans le bon contexte d'application Flask
-        with app.app_context():
-            # Récupérer tous les transports
-            transports = Transport.query.all()
-            
-            # Récupérer les véhicules et énergies pour l'affichage
-            vehicules = {v.id: v for v in Vehicule.query.all()}
-            energies = {e.id: e for e in Energie.query.all()}
-            
-            logger.info(f"Affichage de {len(transports)} transports")
-            
-            return render_template('liste_transports.html', 
-                                transports=transports,
-                                vehicules=vehicules,
-                                energies=energies)
-                            
+        # Récupérer tous les transports
+        transports = Transport.query.all()
+        
+        # Récupérer les véhicules et énergies pour l'affichage
+        vehicules = {v.id: v for v in Vehicule.query.all()}
+        energies = {e.id: e for e in Energie.query.all()}
+        
+        logger.info(f"Affichage de {len(transports)} transports")
+        
+        return render_template('liste_transports.html', 
+                            transports=transports,
+                            vehicules=vehicules,
+                            energies=energies)
+                        
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage des transports: {str(e)}")
         return render_template('error.html', error=str(e)), 500
@@ -146,26 +142,24 @@ def transports():
 def api_vehicules():
     """API pour récupérer les véhicules"""
     try:
-        # S'assurer que nous sommes dans le bon contexte d'application Flask
-        with app.app_context():
-            vehicules = Vehicule.query.all()
-            vehicules_data = []
-            
-            for v in vehicules:
-                vehicules_data.append({
-                    'id': v.id,
-                    'nom': v.nom,
-                    'type': v.type,
-                    'consommation': v.consommation,
-                    'emissions': v.emissions,
-                    'charge_utile': v.charge_utile
-                })
-            
-            return jsonify({
-                'success': True,
-                'vehicules': vehicules_data
+        vehicules = Vehicule.query.all()
+        vehicules_data = []
+        
+        for v in vehicules:
+            vehicules_data.append({
+                'id': v.id,
+                'nom': v.nom,
+                'type': v.type,
+                'consommation': v.consommation,
+                'emissions': v.emissions,
+                'charge_utile': v.charge_utile
             })
         
+        return jsonify({
+            'success': True,
+            'vehicules': vehicules_data
+        })
+    
     except Exception as e:
         logger.error(f"Erreur API véhicules: {str(e)}")
         return jsonify({
@@ -177,25 +171,23 @@ def api_vehicules():
 def api_energies():
     """API pour récupérer les énergies"""
     try:
-        # S'assurer que nous sommes dans le bon contexte d'application Flask
-        with app.app_context():
-            energies = Energie.query.all()
-            energies_data = []
-            
-            for e in energies:
-                energies_data.append({
-                    'id': e.id,
-                    'nom': e.nom,
-                    'identifiant': e.identifiant,
-                    'facteur': e.facteur,
-                    'description': e.description
-                })
-            
-            return jsonify({
-                'success': True,
-                'energies': energies_data
+        energies = Energie.query.all()
+        energies_data = []
+        
+        for e in energies:
+            energies_data.append({
+                'id': e.id,
+                'nom': e.nom,
+                'identifiant': e.identifiant,
+                'facteur': e.facteur,
+                'description': e.description
             })
         
+        return jsonify({
+            'success': True,
+            'energies': energies_data
+        })
+    
     except Exception as e:
         logger.error(f"Erreur API énergies: {str(e)}")
         return jsonify({
@@ -300,9 +292,8 @@ if __name__ == '__main__':
     
     try:
         # Créer les tables si elles n'existent pas
-        with app.app_context():
-            db.create_all()
-            logger.info("✅ Base de données initialisée")
+        db.create_all()
+        logger.info("✅ Base de données initialisée")
         
         # Démarrer le serveur
         app.run(
