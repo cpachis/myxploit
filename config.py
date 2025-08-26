@@ -28,8 +28,14 @@ class ProductionConfig(Config):
     DEBUG = False
     
     # Base de données PostgreSQL en production
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        os.environ.get('SQLALCHEMY_DATABASE_URI')
+    # Render fournit DATABASE_URL, mais Flask-SQLAlchemy cherche SQLALCHEMY_DATABASE_URI
+    database_url = os.environ.get('DATABASE_URL') or os.environ.get('SQLALCHEMY_DATABASE_URI')
+    
+    # Correction pour Render (ajout de sslmode=require si nécessaire)
+    if database_url and database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    
+    SQLALCHEMY_DATABASE_URI = database_url
     
     # Configuration serveur
     HOST = os.environ.get('HOST', '0.0.0.0')
