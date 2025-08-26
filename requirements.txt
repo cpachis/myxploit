@@ -7,5 +7,5 @@ Werkzeug==2.3.7
 SQLAlchemy==2.0.43
 python-dotenv==1.0.0
 gunicorn==21.2.0
-# psycopg2-binary==2.9.7  # Commenté car nécessite PostgreSQL
+psycopg2==2.9.7  # Alternative plus compatible avec Windows
 alembic==1.12.0
