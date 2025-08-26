@@ -154,7 +154,7 @@ def transports():
                             transports=transports,
                             vehicules=vehicules,
                             energies=energies,
-                            clients=[])
+                            clients={})
                         
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage des transports: {str(e)}")
