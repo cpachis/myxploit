@@ -101,6 +101,7 @@ with app.app_context():
     try:
         db.create_all()
         logger.info("✅ Base de données initialisée avec succès")
+        
     except Exception as e:
         logger.error(f"❌ Erreur lors de l'initialisation de la base: {str(e)}")
         # Ne pas lever l'erreur pour permettre le démarrage
