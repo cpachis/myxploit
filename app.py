@@ -42,6 +42,18 @@ CORS(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
 
+@login_manager.user_loader
+def load_user(user_id):
+    """Charge un utilisateur depuis la base de données"""
+    # Pour l'instant, retourner None (pas d'authentification)
+    return None
+
+@login_manager.request_loader
+def load_user_from_request(request):
+    """Charge un utilisateur depuis la requête"""
+    # Pour l'instant, retourner None (pas d'authentification)
+    return None
+
 # Définition des modèles directement dans app.py
 class Transport(db.Model):
     """Modèle pour les transports"""
