@@ -254,6 +254,15 @@ def parametrage_vehicules():
         logger.error(f"Erreur lors de l'affichage des véhicules: {str(e)}")
         return render_template('error.html', error=str(e)), 500
 
+@app.route('/parametrage_impact')
+def parametrage_impact():
+    """Page de paramétrage des impacts environnementaux"""
+    try:
+        return render_template('parametrage_impact.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des impacts: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
 @app.route('/import_csv')
 def import_csv():
     """Page d'import CSV"""
