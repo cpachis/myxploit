@@ -42,6 +42,28 @@ from models import Transport, Vehicule, Energie
 # Enregistrement du Blueprint des transports
 app.register_blueprint(transport_api)
 
+# Initialisation de la base de données
+def init_database():
+    """Initialise la base de données avec gestion d'erreur"""
+    try:
+        with app.app_context():
+            # Vérifier la connexion à la base de données
+            db.engine.execute('SELECT 1')
+            logger.info("✅ Connexion à la base de données réussie")
+            
+            # Créer les tables si elles n'existent pas
+            db.create_all()
+            logger.info("✅ Tables de base de données créées/vérifiées")
+            
+    except Exception as e:
+        logger.error(f"❌ Erreur d'initialisation de la base de données: {str(e)}")
+        # En production, on peut vouloir continuer même si la DB échoue
+        if app.config.get('DEBUG', False):
+            raise
+
+# Appeler l'initialisation au démarrage
+init_database()
+
 @app.route('/')
 def index():
     """Page d'accueil"""
@@ -255,11 +277,6 @@ if __name__ == '__main__':
     logger.info("🚀 Démarrage de l'application Myxploit...")
     
     try:
-        # Créer les tables si elles n'existent pas
-        with app.app_context():
-            db.create_all()
-            logger.info("✅ Base de données initialisée")
-        
         # Démarrer le serveur
         app.run(
             host=app.config['HOST'],
