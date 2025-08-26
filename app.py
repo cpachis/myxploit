@@ -245,6 +245,15 @@ def parametrage_energies():
         logger.error(f"Erreur lors de l'affichage des énergies: {str(e)}")
         return render_template('error.html', error=str(e)), 500
 
+@app.route('/parametrage_vehicules')
+def parametrage_vehicules():
+    """Page de paramétrage des véhicules"""
+    try:
+        return render_template('parametrage_vehicules.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des véhicules: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
 @app.route('/import_csv')
 def import_csv():
     """Page d'import CSV"""
