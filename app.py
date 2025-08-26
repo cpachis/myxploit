@@ -38,6 +38,15 @@ migrate.init_app(app, db)
 login_manager.init_app(app)
 CORS(app)
 
+# Initialiser la base de données au démarrage
+with app.app_context():
+    try:
+        db.create_all()
+        logger.info("✅ Base de données initialisée avec succès")
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de l'initialisation de la base: {str(e)}")
+        # Ne pas lever l'erreur pour permettre le démarrage
+
 # Configuration du login manager
 login_manager.login_view = 'login'
 login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
