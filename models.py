@@ -1,7 +1,6 @@
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
-db = SQLAlchemy()
+# db sera importé depuis app.py pour éviter les conflits SQLAlchemy
 
 class Transport(db.Model):
     """Modèle pour les transports"""
