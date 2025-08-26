@@ -240,10 +240,104 @@ def parametrage_clients():
 def parametrage_energies():
     """Page de paramétrage des énergies"""
     try:
-        return render_template('parametrage_energies.html')
+        # Récupérer toutes les énergies pour l'affichage
+        energies = Energie.query.all()
+        return render_template('parametrage_energies.html', energies=energies)
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage des énergies: {str(e)}")
         return render_template('error.html', error=str(e)), 500
+
+@app.route('/api/energies', methods=['POST'])
+def creer_energie():
+    """Créer une nouvelle énergie"""
+    try:
+        data = request.get_json()
+        
+        # Validation des données
+        if not data.get('nom') or not data.get('identifiant') or data.get('facteur') is None:
+            return jsonify({'success': False, 'error': 'Nom, identifiant et facteur requis'}), 400
+        
+        # Vérifier si l'identifiant existe déjà
+        if Energie.query.filter_by(identifiant=data['identifiant']).first():
+            return jsonify({'success': False, 'error': 'Cet identifiant existe déjà'}), 400
+        
+        # Créer la nouvelle énergie
+        nouvelle_energie = Energie(
+            nom=data['nom'],
+            identifiant=data['identifiant'],
+            facteur=float(data['facteur']),
+            description=data.get('description', '')
+        )
+        
+        db.session.add(nouvelle_energie)
+        db.session.commit()
+        
+        logger.info(f"✅ Nouvelle énergie créée: {nouvelle_energie.nom}")
+        return jsonify({'success': True, 'message': 'Énergie créée avec succès'})
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de la création de l'énergie: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/energies/<int:energie_id>', methods=['PUT'])
+def modifier_energie(energie_id):
+    """Modifier une énergie existante"""
+    try:
+        energie = Energie.query.get_or_404(energie_id)
+        data = request.get_json()
+        
+        # Validation des données
+        if not data.get('nom') or data.get('facteur') is None:
+            return jsonify({'success': False, 'error': 'Nom et facteur requis'}), 400
+        
+        # Vérifier si l'identifiant existe déjà (sauf pour cette énergie)
+        if data.get('identifiant') and data['identifiant'] != energie.identifiant:
+            if Energie.query.filter_by(identifiant=data['identifiant']).first():
+                return jsonify({'success': False, 'error': 'Cet identifiant existe déjà'}), 400
+        
+        # Mettre à jour l'énergie
+        energie.nom = data['nom']
+        if data.get('identifiant'):
+            energie.identifiant = data['identifiant']
+        energie.facteur = float(data['facteur'])
+        energie.description = data.get('description', '')
+        
+        db.session.commit()
+        
+        logger.info(f"✅ Énergie modifiée: {energie.nom}")
+        return jsonify({'success': True, 'message': 'Énergie modifiée avec succès'})
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de la modification de l'énergie: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/energies/<int:energie_id>', methods=['DELETE'])
+def supprimer_energie(energie_id):
+    """Supprimer une énergie"""
+    try:
+        energie = Energie.query.get_or_404(energie_id)
+        
+        # Vérifier si l'énergie est utilisée dans des transports
+        transports_utilisant_energie = Transport.query.filter_by(energie=str(energie_id)).count()
+        if transports_utilisant_energie > 0:
+            return jsonify({
+                'success': False, 
+                'error': f'Cette énergie est utilisée par {transports_utilisant_energie} transport(s). Impossible de la supprimer.'
+            }), 400
+        
+        nom_energie = energie.nom
+        db.session.delete(energie)
+        db.session.commit()
+        
+        logger.info(f"✅ Énergie supprimée: {nom_energie}")
+        return jsonify({'success': True, 'message': 'Énergie supprimée avec succès'})
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de la suppression de l'énergie: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/parametrage_vehicules')
 def parametrage_vehicules():
