@@ -298,14 +298,23 @@ def internal_error(error):
     logger.error(f"Erreur interne: {str(error)}")
     return render_template('error.html', error='Erreur interne du serveur'), 500
 
+def init_database():
+    """Initialise la base de données et crée les tables"""
+    try:
+        with app.app_context():
+            db.create_all()
+            logger.info("✅ Base de données initialisée avec succès")
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de l'initialisation de la base: {str(e)}")
+        raise
+
 if __name__ == '__main__':
     # Démarrage de l'application
     logger.info("🚀 Démarrage de l'application Myxploit...")
     
     try:
-        # Créer les tables si elles n'existent pas
-        db.create_all()
-        logger.info("✅ Base de données initialisée")
+        # Initialiser la base de données
+        init_database()
         
         # Démarrer le serveur
         app.run(
