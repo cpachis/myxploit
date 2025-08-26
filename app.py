@@ -38,15 +38,6 @@ migrate.init_app(app, db)
 login_manager.init_app(app)
 CORS(app)
 
-# Initialiser la base de données au démarrage
-with app.app_context():
-    try:
-        db.create_all()
-        logger.info("✅ Base de données initialisée avec succès")
-    except Exception as e:
-        logger.error(f"❌ Erreur lors de l'initialisation de la base: {str(e)}")
-        # Ne pas lever l'erreur pour permettre le démarrage
-
 # Configuration du login manager
 login_manager.login_view = 'login'
 login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
@@ -104,6 +95,15 @@ class Energie(db.Model):
     facteur = db.Column(db.Float)       # kg CO2e/L
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Initialiser la base de données APRÈS la définition des modèles
+with app.app_context():
+    try:
+        db.create_all()
+        logger.info("✅ Base de données initialisée avec succès")
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de l'initialisation de la base: {str(e)}")
+        # Ne pas lever l'erreur pour permettre le démarrage
 
 # Les modèles sont maintenant définis directement dans app.py
 # Plus besoin d'importer transport_api
