@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
+from sqlalchemy import text
 import logging
 import os
 
@@ -48,7 +49,8 @@ def init_database():
     try:
         with app.app_context():
             # Vérifier la connexion à la base de données
-            db.engine.execute('SELECT 1')
+            with db.engine.connect() as conn:
+                conn.execute(text('SELECT 1'))
             logger.info("✅ Connexion à la base de données réussie")
             
             # Créer les tables si elles n'existent pas
@@ -248,7 +250,6 @@ def health_check():
     """Point de contrôle de santé pour le déploiement"""
     try:
         # Vérifier la base de données
-        from sqlalchemy import text
         db.session.execute(text('SELECT 1'))
         db_status = 'OK'
     except Exception as e:
@@ -277,6 +278,11 @@ if __name__ == '__main__':
     logger.info("🚀 Démarrage de l'application Myxploit...")
     
     try:
+        # Créer les tables si elles n'existent pas
+        with app.app_context():
+            db.create_all()
+            logger.info("✅ Base de données initialisée")
+        
         # Démarrer le serveur
         app.run(
             host=app.config['HOST'],
