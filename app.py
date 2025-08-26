@@ -153,7 +153,8 @@ def transports():
         return render_template('liste_transports.html', 
                             transports=transports,
                             vehicules=vehicules,
-                            energies=energies)
+                            energies=energies,
+                            clients=[])
                         
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage des transports: {str(e)}")
