@@ -4,8 +4,8 @@ services:
     env: python
     plan: free
     branch: main
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    buildCommand: pip install -r requirements-render.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.7
@@ -17,6 +17,14 @@ services:
         fromDatabase:
           name: myxploit-db
           property: connectionString
+      - key: SQLALCHEMY_DATABASE_URI
+        fromDatabase:
+          name: myxploit-db
+          property: connectionString
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_FILE
+        value: /tmp/emissions.log
 
 databases:
   - name: myxploit-db
