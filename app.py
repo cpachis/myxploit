@@ -1,64 +1,91 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import text
-import logging
 import os
-
-# Import de la configuration
+import logging
+from datetime import datetime
 from config import get_config
 
-# Configuration de l'application
+# Configuration du logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('emissions.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Initialisation de Flask
 app = Flask(__name__)
-app.config.from_object(get_config())
+
+# Configuration
+config = get_config()
+app.config.from_object(config)
 
 # Initialisation des extensions
 db = SQLAlchemy()
 migrate = Migrate()
-CORS(app)
+login_manager = LoginManager()
 
-# Initialiser les extensions avec l'app
+# Configuration des extensions
 db.init_app(app)
 migrate.init_app(app, db)
+login_manager.init_app(app)
+CORS(app)
 
-# Configuration du logging
-logging.basicConfig(
-    level=getattr(logging, app.config['LOG_LEVEL']),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(app.config['LOG_FILE']),
-        logging.StreamHandler()
-    ]
-)
+# Configuration du login manager
+login_manager.login_view = 'login'
+login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
 
-logger = logging.getLogger(__name__)
+# Définition des modèles directement dans app.py
+class Transport(db.Model):
+    """Modèle pour les transports"""
+    __tablename__ = 'transports'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    ref = db.Column(db.String(50), unique=True, nullable=False)
+    type_transport = db.Column(db.String(50))
+    niveau_calcul = db.Column(db.String(50))
+    type_vehicule = db.Column(db.String(50))
+    energie = db.Column(db.String(50))
+    conso_vehicule = db.Column(db.Float)
+    poids_tonnes = db.Column(db.Float)
+    distance_km = db.Column(db.Float)
+    emis_kg = db.Column(db.Float, default=0.0)
+    emis_tkm = db.Column(db.Float, default=0.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-# Import des modèles (après l'initialisation de db)
-from models import Transport, Vehicule, Energie
+class Vehicule(db.Model):
+    """Modèle pour les véhicules"""
+    __tablename__ = 'vehicules'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), nullable=False)
+    type = db.Column(db.String(50))
+    consommation = db.Column(db.Float)  # L/100km
+    emissions = db.Column(db.Float)     # g CO2e/km
+    charge_utile = db.Column(db.Float)  # tonnes
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# Initialisation de la base de données
-def init_database():
-    """Initialise la base de données avec gestion d'erreur"""
-    try:
-        with app.app_context():
-            # Vérifier la connexion à la base de données
-            with db.engine.connect() as conn:
-                conn.execute(text('SELECT 1'))
-            logger.info("✅ Connexion à la base de données réussie")
-            
-            # Créer les tables si elles n'existent pas
-            db.create_all()
-            logger.info("✅ Tables de base de données créées/vérifiées")
-            
-    except Exception as e:
-        logger.error(f"❌ Erreur d'initialisation de la base de données: {str(e)}")
-        # En production, on peut vouloir continuer même si la DB échoue
-        if app.config.get('DEBUG', False):
-            raise
+class Energie(db.Model):
+    """Modèle pour les énergies"""
+    __tablename__ = 'energies'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), nullable=False)
+    identifiant = db.Column(db.String(50), unique=True)
+    facteur = db.Column(db.Float)       # kg CO2e/L
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# Appeler l'initialisation au démarrage
-init_database()
+# Les modèles sont maintenant définis directement dans app.py
+# Plus besoin d'importer transport_api
 
 @app.route('/')
 def index():
@@ -69,22 +96,24 @@ def index():
 def dashboard():
     """Dashboard principal"""
     try:
-        # Récupérer les statistiques
-        total_transports = Transport.query.count()
-        total_clients = 0
-        if hasattr(Transport, 'client_id'):
-            try:
-                result = db.session.query(db.func.count(db.distinct(Transport.client_id))).scalar()
-                total_clients = result if result is not None else 0
-            except Exception:
-                total_clients = 0
-        
-        logger.info(f"Affichage du dashboard - {total_transports} transports")
-        
-        return render_template('dashboard.html', 
-                            total_transports=total_transports,
-                            total_clients=total_clients)
-                        
+        # S'assurer que nous sommes dans le bon contexte d'application Flask
+        with app.app_context():
+            # Récupérer les statistiques
+            total_transports = Transport.query.count()
+            total_clients = 0
+            if hasattr(Transport, 'client_id'):
+                try:
+                    result = db.session.query(db.func.count(db.distinct(Transport.client_id))).scalar()
+                    total_clients = result if result is not None else 0
+                except Exception:
+                    total_clients = 0
+            
+            logger.info(f"Affichage du dashboard - {total_transports} transports")
+            
+            return render_template('dashboard.html', 
+                                total_transports=total_transports,
+                                total_clients=total_clients)
+                            
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage du dashboard: {str(e)}")
         return render_template('error.html', error=str(e)), 500
@@ -93,20 +122,22 @@ def dashboard():
 def transports():
     """Liste des transports"""
     try:
-        # Récupérer tous les transports
-        transports = Transport.query.all()
-        
-        # Récupérer les véhicules et énergies pour l'affichage
-        vehicules = {v.id: v for v in Vehicule.query.all()}
-        energies = {e.id: e for e in Energie.query.all()}
-        
-        logger.info(f"Affichage de {len(transports)} transports")
-        
-        return render_template('liste_transports.html', 
-                            transports=transports,
-                            vehicules=vehicules,
-                            energies=energies)
-                        
+        # S'assurer que nous sommes dans le bon contexte d'application Flask
+        with app.app_context():
+            # Récupérer tous les transports
+            transports = Transport.query.all()
+            
+            # Récupérer les véhicules et énergies pour l'affichage
+            vehicules = {v.id: v for v in Vehicule.query.all()}
+            energies = {e.id: e for e in Energie.query.all()}
+            
+            logger.info(f"Affichage de {len(transports)} transports")
+            
+            return render_template('liste_transports.html', 
+                                transports=transports,
+                                vehicules=vehicules,
+                                energies=energies)
+                            
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage des transports: {str(e)}")
         return render_template('error.html', error=str(e)), 500
@@ -115,24 +146,26 @@ def transports():
 def api_vehicules():
     """API pour récupérer les véhicules"""
     try:
-        vehicules = Vehicule.query.all()
-        vehicules_data = []
-        
-        for v in vehicules:
-            vehicules_data.append({
-                'id': v.id,
-                'nom': v.nom,
-                'type': v.type,
-                'consommation': v.consommation,
-                'emissions': v.emissions,
-                'charge_utile': v.charge_utile
+        # S'assurer que nous sommes dans le bon contexte d'application Flask
+        with app.app_context():
+            vehicules = Vehicule.query.all()
+            vehicules_data = []
+            
+            for v in vehicules:
+                vehicules_data.append({
+                    'id': v.id,
+                    'nom': v.nom,
+                    'type': v.type,
+                    'consommation': v.consommation,
+                    'emissions': v.emissions,
+                    'charge_utile': v.charge_utile
+                })
+            
+            return jsonify({
+                'success': True,
+                'vehicules': vehicules_data
             })
         
-        return jsonify({
-            'success': True,
-            'vehicules': vehicules_data
-        })
-    
     except Exception as e:
         logger.error(f"Erreur API véhicules: {str(e)}")
         return jsonify({
@@ -144,23 +177,25 @@ def api_vehicules():
 def api_energies():
     """API pour récupérer les énergies"""
     try:
-        energies = Energie.query.all()
-        energies_data = []
-        
-        for e in energies:
-            energies_data.append({
-                'id': e.id,
-                'nom': e.nom,
-                'identifiant': e.identifiant,
-                'facteur': e.facteur,
-                'description': e.description
+        # S'assurer que nous sommes dans le bon contexte d'application Flask
+        with app.app_context():
+            energies = Energie.query.all()
+            energies_data = []
+            
+            for e in energies:
+                energies_data.append({
+                    'id': e.id,
+                    'nom': e.nom,
+                    'identifiant': e.identifiant,
+                    'facteur': e.facteur,
+                    'description': e.description
+                })
+            
+            return jsonify({
+                'success': True,
+                'energies': energies_data
             })
         
-        return jsonify({
-            'success': True,
-            'energies': energies_data
-        })
-    
     except Exception as e:
         logger.error(f"Erreur API énergies: {str(e)}")
         return jsonify({
@@ -221,7 +256,7 @@ def transport(transport_id=None):
                             transport=transport,
                             vehicules=vehicules,
                             energies=energies)
-                        
+                            
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage du transport: {str(e)}")
         return render_template('error.html', error=str(e)), 500
