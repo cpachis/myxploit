@@ -42,3 +42,5 @@ class Energie(db.Model):
     facteur = db.Column(db.Float)       # kg CO2e/L
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+#
