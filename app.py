@@ -366,6 +366,15 @@ def import_csv():
         logger.error(f"Erreur lors de l'affichage de l'import CSV: {str(e)}")
         return render_template('error.html', error=str(e)), 500
 
+@app.route('/nouveau_transport')
+def nouveau_transport():
+    """Page de sélection du mode de création de transport"""
+    try:
+        return render_template('nouveau_transport.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage du choix de création: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
 @app.route('/transport')
 @app.route('/transport/<int:transport_id>')
 def transport(transport_id=None):
@@ -387,6 +396,87 @@ def transport(transport_id=None):
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage du transport: {str(e)}")
         return render_template('error.html', error=str(e)), 500
+
+@app.route('/import_transports_csv', methods=['POST'])
+def import_transports_csv():
+    """Import de transports depuis un fichier CSV"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'Aucun fichier sélectionné'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'Aucun fichier sélectionné'}), 400
+        
+        if not file.filename.endswith('.csv'):
+            return jsonify({'success': False, 'error': 'Le fichier doit être au format CSV'}), 400
+        
+        # Lire le fichier CSV
+        import csv
+        from io import StringIO
+        
+        # Décoder le contenu du fichier
+        content = file.read().decode('utf-8')
+        csv_reader = csv.DictReader(StringIO(content))
+        
+        transports_crees = 0
+        erreurs = 0
+        resultats = []
+        
+        for row in csv_reader:
+            try:
+                # Validation des données obligatoires
+                if not row.get('ref') or not row.get('type_transport') or not row.get('niveau_calcul'):
+                    erreurs += 1
+                    resultats.append({'ref': row.get('ref', 'N/A'), 'error': 'Données obligatoires manquantes'})
+                    continue
+                
+                # Vérifier si la référence existe déjà
+                if Transport.query.filter_by(ref=row['ref']).first():
+                    erreurs += 1
+                    resultats.append({'ref': row['ref'], 'error': 'Référence déjà existante'})
+                    continue
+                
+                # Créer le transport
+                nouveau_transport = Transport(
+                    ref=row['ref'],
+                    type_transport=row['type_transport'],
+                    niveau_calcul=row['niveau_calcul'],
+                    type_vehicule=row.get('type_vehicule'),
+                    energie=row.get('energie'),
+                    conso_vehicule=float(row['conso_vehicule']) if row.get('conso_vehicule') else None,
+                    poids_tonnes=float(row['poids_tonnes']) if row.get('poids_tonnes') else None,
+                    distance_km=float(row['distance_km']) if row.get('distance_km') else None
+                )
+                
+                db.session.add(nouveau_transport)
+                transports_crees += 1
+                resultats.append({'ref': row['ref'], 'success': True})
+                
+            except Exception as e:
+                erreurs += 1
+                resultats.append({'ref': row.get('ref', 'N/A'), 'error': str(e)})
+        
+        # Sauvegarder tous les transports créés
+        try:
+            db.session.commit()
+            logger.info(f"✅ Import CSV terminé: {transports_crees} créés, {erreurs} erreurs")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"❌ Erreur lors de la sauvegarde: {str(e)}")
+            return jsonify({'success': False, 'error': f'Erreur lors de la sauvegarde: {str(e)}'}), 500
+        
+        return jsonify({
+            'success': True,
+            'message': f'Import terminé: {transports_crees} transports créés, {erreurs} erreurs',
+            'transports_crees': transports_crees,
+            'erreurs': erreurs,
+            'resultats': resultats
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de l'import CSV: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/logout')
 def logout():

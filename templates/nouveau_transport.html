@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouveau Transport - MyXploit</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .modal-choice {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #e9ecef;
+        }
+        .modal-choice:hover {
+            border-color: #0d6efd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+        }
+        .modal-choice.selected {
+            border-color: #0d6efd;
+            background-color: #f8f9ff;
+        }
+        .icon-large {
+            font-size: 3rem;
+            color: #6c757d;
+        }
+        .choice-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        .choice-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9ff;
+        }
+        .upload-area.dragover {
+            border-color: #0d6efd;
+            background-color: #e7f1ff;
+        }
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+        }
+        .result-item {
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        .result-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+        .result-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c2c7;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row bg-white shadow-sm py-3 mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="h3 mb-0 text-primary">
+                        <i class="fas fa-truck me-2"></i>Nouveau Transport
+                    </h1>
+                    <a href="{{ url_for('transports') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Retour aux transports
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de sélection -->
+        <div class="modal fade" id="choiceModal" tabindex="-1" aria-labelledby="choiceModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="choiceModalLabel">
+                            <i class="fas fa-plus-circle me-2"></i>Comment créer votre transport ?
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-4">
+                            <!-- Option 1: Saisie manuelle -->
+                            <div class="col-md-6">
+                                <div class="modal-choice p-4 text-center rounded h-100" onclick="selectChoice('manual')">
+                                    <div class="icon-large mb-3">
+                                        <i class="fas fa-edit"></i>
+                                    </div>
+                                    <div class="choice-title mb-2">Entrer un transport</div>
+                                    <div class="choice-description">
+                                        Saisie manuelle avec formulaire détaillé
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Option 2: Import CSV -->
+                            <div class="col-md-6">
+                                <div class="modal-choice p-4 text-center rounded h-100" onclick="selectChoice('csv')">
+                                    <div class="icon-large mb-3">
+                                        <i class="fas fa-file-csv"></i>
+                                    </div>
+                                    <div class="choice-title mb-2">Téléverser un fichier CSV</div>
+                                    <div class="choice-description">
+                                        Import en lot depuis un fichier Excel/CSV
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Import CSV (cachée par défaut) -->
+        <div id="csvSection" class="row" style="display: none;">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-upload me-2"></i>Import de transports depuis CSV
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Zone de téléversement -->
+                        <div class="upload-area mb-4" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h5>Glissez votre fichier CSV ici</h5>
+                            <p class="text-muted">ou cliquez pour sélectionner un fichier</p>
+                            <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                            <button class="btn btn-primary" onclick="document.getElementById('csvFile').click()">
+                                <i class="fas fa-folder-open me-2"></i>Sélectionner un fichier
+                            </button>
+                        </div>
+
+                        <!-- Informations sur le format -->
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Format CSV attendu :</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Colonnes obligatoires :</strong>
+                                    <ul class="mb-0">
+                                        <li><code>ref</code> - Référence unique</li>
+                                        <li><code>type_transport</code> - Type de transport</li>
+                                        <li><code>niveau_calcul</code> - Niveau de calcul</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Colonnes optionnelles :</strong>
+                                    <ul class="mb-0">
+                                        <li><code>type_vehicule</code> - ID du véhicule</li>
+                                        <li><code>energie</code> - ID de l'énergie</li>
+                                        <li><code>conso_vehicule</code> - Consommation (L/100km)</li>
+                                        <li><code>poids_tonnes</code> - Poids en tonnes</li>
+                                        <li><code>distance_km</code> - Distance en km</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bouton d'import -->
+                        <div class="text-center">
+                            <button class="btn btn-success btn-lg" id="importBtn" onclick="importCSV()" disabled>
+                                <i class="fas fa-upload me-2"></i>Importer les transports
+                            </button>
+                        </div>
+
+                        <!-- Barre de progression -->
+                        <div class="progress mt-3" id="progressBar" style="display: none;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+
+                        <!-- Résultats -->
+                        <div id="results" class="mt-4" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton pour ouvrir le modal -->
+        <div class="row">
+            <div class="col-12 text-center">
+                <button class="btn btn-primary btn-lg" onclick="openChoiceModal()">
+                    <i class="fas fa-plus me-2"></i>Nouveau Transport
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Bootstrap et JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let selectedChoice = null;
+        let csvFile = null;
+
+        // Ouvrir le modal de sélection
+        function openChoiceModal() {
+            const modal = new bootstrap.Modal(document.getElementById('choiceModal'));
+            modal.show();
+        }
+
+        // Sélectionner une option
+        function selectChoice(choice) {
+            selectedChoice = choice;
+            
+            // Mettre à jour l'apparence des choix
+            document.querySelectorAll('.modal-choice').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Fermer le modal après un délai
+            setTimeout(() => {
+                bootstrap.Modal.getInstance(document.getElementById('choiceModal')).hide();
+                processChoice();
+            }, 300);
+        }
+
+        // Traiter le choix sélectionné
+        function processChoice() {
+            if (selectedChoice === 'manual') {
+                // Rediriger vers le formulaire de saisie
+                window.location.href = "{{ url_for('transport') }}";
+            } else if (selectedChoice === 'csv') {
+                // Afficher la section CSV
+                document.getElementById('csvSection').style.display = 'block';
+                document.getElementById('choiceModal').style.display = 'none';
+            }
+        }
+
+        // Gestion du drag & drop
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        // Gestion de la sélection de fichier
+        document.getElementById('csvFile').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (!file.name.endsWith('.csv')) {
+                alert('Veuillez sélectionner un fichier CSV');
+                return;
+            }
+            
+            csvFile = file;
+            document.getElementById('importBtn').disabled = false;
+            
+            // Mettre à jour l'interface
+            uploadArea.innerHTML = `
+                <i class="fas fa-file-csv fa-3x text-success mb-3"></i>
+                <h5 class="text-success">Fichier sélectionné</h5>
+                <p class="text-muted">${file.name}</p>
+                <button class="btn btn-outline-secondary" onclick="resetFile()">
+                    <i class="fas fa-times me-2"></i>Changer de fichier
+                </button>
+            `;
+        }
+
+        function resetFile() {
+            csvFile = null;
+            document.getElementById('importBtn').disabled = true;
+            document.getElementById('csvFile').value = '';
+            uploadArea.innerHTML = `
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <h5>Glissez votre fichier CSV ici</h5>
+                <p class="text-muted">ou cliquez pour sélectionner un fichier</p>
+                <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                <button class="btn btn-primary" onclick="document.getElementById('csvFile').click()">
+                    <i class="fas fa-folder-open me-2"></i>Sélectionner un fichier
+                </button>
+            `;
+        }
+
+        // Import CSV
+        function importCSV() {
+            if (!csvFile) {
+                alert('Veuillez sélectionner un fichier CSV');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', csvFile);
+
+            // Afficher la barre de progression
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('importBtn').disabled = true;
+
+            // Simuler la progression
+            let progress = 0;
+            const progressBar = document.querySelector('.progress-bar');
+            const progressInterval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 100);
+
+            // Envoyer le fichier
+            fetch("{{ url_for('import_transports_csv') }}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                
+                setTimeout(() => {
+                    document.getElementById('progressBar').style.display = 'none';
+                    showResults(data);
+                }, 500);
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                document.getElementById('progressBar').style.display = 'none';
+                document.getElementById('importBtn').disabled = false;
+                alert('Erreur lors de l\'import: ' + error.message);
+            });
+        }
+
+        // Afficher les résultats
+        function showResults(data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            
+            let html = `
+                <div class="alert alert-${data.success ? 'success' : 'danger'}">
+                    <h6><i class="fas fa-${data.success ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${data.message}</h6>
+                </div>
+            `;
+            
+            if (data.resultats && data.resultats.length > 0) {
+                html += '<h6>Détail des résultats :</h6>';
+                data.resultats.forEach(result => {
+                    const cssClass = result.success ? 'result-success' : 'result-error';
+                    const icon = result.success ? 'check-circle' : 'exclamation-triangle';
+                    html += `
+                        <div class="result-item ${cssClass}">
+                            <i class="fas fa-${icon} me-2"></i>
+                            <strong>${result.ref}</strong>: ${result.success ? 'Créé avec succès' : result.error}
+                        </div>
+                    `;
+                });
+            }
+            
+            resultsDiv.innerHTML = html;
+            document.getElementById('importBtn').disabled = false;
+        }
+
+        // Ouvrir automatiquement le modal au chargement
+        window.addEventListener('load', () => {
+            openChoiceModal();
+        });
+    </script>
+</body>
+</html>
