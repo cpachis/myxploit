@@ -258,8 +258,8 @@ def creer_energie():
         data = request.get_json()
         
         # Validation des données
-        if not data.get('nom') or not data.get('identifiant') or data.get('facteur') is None:
-            return jsonify({'success': False, 'error': 'Nom, identifiant et facteur requis'}), 400
+        if not data.get('nom') or not data.get('identifiant'):
+            return jsonify({'success': False, 'error': 'Nom et identifiant requis'}), 400
         
         # Vérifier si l'identifiant existe déjà
         if Energie.query.filter_by(identifiant=data['identifiant']).first():
@@ -270,7 +270,7 @@ def creer_energie():
             nom=data['nom'],
             identifiant=data['identifiant'],
             unite=data.get('unite', 'L'),
-            facteur=float(data['facteur']),
+            facteur=float(data.get('facteur', 0)) if data.get('facteur') else None,
             description=data.get('description', '')
         )
         

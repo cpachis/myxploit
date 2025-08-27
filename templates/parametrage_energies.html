@@ -61,9 +61,9 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="energie-facteur">Facteur d'émission global (kg éq. CO₂/unité) *</label>
-            <input type="number" id="energie-facteur" name="facteur" required step="0.001" min="0" placeholder="0.000">
-            <small class="form-help">Entrez une valeur ou configurez les facteurs détaillés ci-dessous</small>
+            <label for="energie-facteur">Facteur d'émission global (kg éq. CO₂/unité)</label>
+            <input type="number" id="energie-facteur" name="facteur" step="0.001" min="0" placeholder="0.000">
+            <small class="form-help">Optionnel - Entrez une valeur ou configurez les facteurs détaillés ci-dessous</small>
           </div>
         </div>
 
@@ -241,6 +241,41 @@ function calculateTotalFacteur() {
   const facteurGlobalField = document.getElementById('energie-facteur');
   if (facteurGlobalField) {
     facteurGlobalField.value = total.toFixed(3);
+  }
+}
+
+// Mettre à jour le facteur global d'une énergie après sauvegarde des facteurs
+function updateEnergieFacteur(energieId, nouveauFacteur) {
+  const energie = energies.find(e => e.id === energieId);
+  if (energie) {
+    energie.facteur = nouveauFacteur;
+    
+    // Mettre à jour via l'API
+    fetch(`/api/energies/${energieId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nom: energie.nom,
+        identifiant: energie.identifiant,
+        unite: energie.unite,
+        facteur: nouveauFacteur,
+        description: energie.description
+      })
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        console.log('Facteur global mis à jour avec succès');
+        loadEnergies(); // Recharger la liste
+      } else {
+        console.error('Erreur lors de la mise à jour du facteur global:', result.error);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors de la mise à jour du facteur global:', error);
+    });
   }
 }
 
