@@ -60,11 +60,11 @@
               <option value="kwh">Kilowatt-heure (kWh)</option>
             </select>
           </div>
-                     <div class="form-group">
-             <label for="energie-facteur">Facteur d'émission global (kg CO₂e/unité) *</label>
-             <input type="number" id="energie-facteur" name="facteur" required step="0.001" min="0" placeholder="Calculé automatiquement" readonly>
-             <small class="form-help">Calculé automatiquement à partir des facteurs détaillés (phase amont + phase fonctionnement)</small>
-           </div>
+          <div class="form-group">
+            <label for="energie-facteur">Facteur d'émission global (kg éq. CO₂/unité) *</label>
+            <input type="number" id="energie-facteur" name="facteur" required step="0.001" min="0" placeholder="0.000">
+            <small class="form-help">Entrez une valeur ou configurez les facteurs détaillés ci-dessous</small>
+          </div>
         </div>
 
         <div class="form-row">
@@ -87,7 +87,7 @@
                <span class="btn-icon">📊</span>
                Configurer les Facteurs d'Émission
              </button>
-             <small class="form-help">Configurez les émissions détaillées (phase amont, phase fonctionnement)</small>
+             <small class="form-help">Configurez les émissions détaillées (phase amont, phase fonctionnement) - Optionnel pour la création</small>
            </div>
          </div>
  
@@ -408,9 +408,18 @@ function showFacteursModalFromEnergieForm() {
   
   // Si c'est une nouvelle énergie, utiliser les données du formulaire
   if (!currentEditId) {
-    // Pour une nouvelle énergie, on doit d'abord la créer avant de configurer les facteurs
-    alert('Veuillez d\'abord sauvegarder l\'énergie avant de configurer ses facteurs d\'émission');
-    return;
+    // Pour une nouvelle énergie, on peut configurer les facteurs mais on utilise un ID temporaire
+    currentEnergieForFacteurs = 'new'; // Marqueur pour nouvelle énergie
+    document.getElementById('energie-nom-facteurs').textContent = energieNom;
+    document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energieUnite}`;
+    
+    // Vider les champs des facteurs pour une nouvelle énergie
+    document.getElementById('facteur-phase-amont').value = '';
+    document.getElementById('facteur-phase-fonctionnement').value = '';
+    document.getElementById('facteur-total').value = '';
+    
+    // Vider la liste des valeurs supplémentaires pour une nouvelle énergie
+    displayEnergieValues({});
   } else {
     // Si c'est une modification, utiliser les données existantes
     const energie = energies.find(e => e.id === energieId || e.identifiant === energieId);
@@ -706,8 +715,20 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
   
   const formData = new FormData(e.target);
   
-  // Vérifier que currentEnergieForFacteurs est un ID numérique
-  if (!currentEnergieForFacteurs || isNaN(parseInt(currentEnergieForFacteurs))) {
+  // Vérifier que currentEnergieForFacteurs est valide
+  if (!currentEnergieForFacteurs) {
+    showNotification('Erreur: Aucune énergie sélectionnée.', 'error');
+    return;
+  }
+  
+  // Si c'est une nouvelle énergie, on ne peut pas sauvegarder les facteurs encore
+  if (currentEnergieForFacteurs === 'new') {
+    showNotification('Veuillez d\'abord sauvegarder l\'énergie avant de configurer ses facteurs.', 'info');
+    return;
+  }
+  
+  // Vérifier que c'est un ID numérique
+  if (isNaN(parseInt(currentEnergieForFacteurs))) {
     showNotification('Erreur: ID d\'énergie invalide. Veuillez d\'abord sauvegarder l\'énergie.', 'error');
     return;
   }
