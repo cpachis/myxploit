@@ -378,14 +378,15 @@ function showFacteursModal(energieId) {
   const energie = energies.find(e => e.id === energieId);
   if (!energie) return;
   
-  currentEnergieForFacteurs = energieId;
+  // S'assurer que l'ID est numérique
+  currentEnergieForFacteurs = parseInt(energieId);
   document.getElementById('energie-nom-facteurs').textContent = energie.nom;
-  document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || energie.unit || 'N/A'}`;
+  document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'N/A'}`;
   
   // Remplir le formulaire des facteurs
   document.getElementById('facteur-phase-amont').value = energie.phase_amont || '';
   document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || '';
-  document.getElementById('facteur-total').value = energie.total || '';
+  document.getElementById('facteur-total').value = energie.total || energie.facteur || '';
   
   // Charger et afficher les valeurs supplémentaires
   loadEnergieValues(energieId);
@@ -407,38 +408,30 @@ function showFacteursModalFromEnergieForm() {
   
   // Si c'est une nouvelle énergie, utiliser les données du formulaire
   if (!currentEditId) {
-    currentEnergieForFacteurs = energieId;
-    document.getElementById('energie-nom-facteurs').textContent = energieNom;
-    document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energieUnite}`;
-    
-    // Vider les champs des facteurs pour une nouvelle énergie
-    document.getElementById('facteur-phase-amont').value = '';
-    document.getElementById('facteur-phase-fonctionnement').value = '';
-    document.getElementById('facteur-total').value = '';
-    
-    // Réinitialiser le facteur global
-    document.getElementById('energie-facteur').value = '';
-    
-    // Vider la liste des valeurs supplémentaires pour une nouvelle énergie
-    displayEnergieValues({});
+    // Pour une nouvelle énergie, on doit d'abord la créer avant de configurer les facteurs
+    alert('Veuillez d\'abord sauvegarder l\'énergie avant de configurer ses facteurs d\'émission');
+    return;
   } else {
     // Si c'est une modification, utiliser les données existantes
-    const energie = energies.find(e => e.id === energieId);
+    const energie = energies.find(e => e.id === energieId || e.identifiant === energieId);
     if (energie) {
-      currentEnergieForFacteurs = energieId;
+      currentEnergieForFacteurs = energie.id; // Utiliser l'ID numérique de la base
       document.getElementById('energie-nom-facteurs').textContent = energie.nom;
-      document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || energie.unit || 'N/A'}`;
+      document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'N/A'}`;
       
       // Remplir avec les valeurs existantes
       document.getElementById('facteur-phase-amont').value = energie.phase_amont || '';
       document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || '';
-      document.getElementById('facteur-total').value = energie.total || '';
+      document.getElementById('facteur-total').value = energie.total || energie.facteur || '';
       
       // Mettre à jour le facteur global avec la valeur existante
       document.getElementById('energie-facteur').value = energie.facteur || '';
       
       // Charger les valeurs supplémentaires existantes
-      loadEnergieValues(energieId);
+      loadEnergieValues(energie.id);
+    } else {
+      alert('Énergie non trouvée. Veuillez d\'abord sauvegarder l\'énergie.');
+      return;
     }
   }
   
@@ -713,8 +706,14 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
   
   const formData = new FormData(e.target);
   
+  // Vérifier que currentEnergieForFacteurs est un ID numérique
+  if (!currentEnergieForFacteurs || isNaN(parseInt(currentEnergieForFacteurs))) {
+    showNotification('Erreur: ID d\'énergie invalide. Veuillez d\'abord sauvegarder l\'énergie.', 'error');
+    return;
+  }
+  
   // Récupérer l'énergie actuelle pour ses données supplémentaires
-  const energie = energies.find(e => e.id === currentEnergieForFacteurs);
+  const energie = energies.find(e => e.id === parseInt(currentEnergieForFacteurs));
   const donnees_supplementaires = energie ? (energie.donnees_supplementaires || {}) : {};
   
   const facteursData = {
@@ -724,7 +723,7 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
     donnees_supplementaires: donnees_supplementaires
   };
   
-  console.log('Sauvegarde des facteurs pour:', currentEnergieForFacteurs);
+  console.log('Sauvegarde des facteurs pour l\'énergie ID:', currentEnergieForFacteurs);
   console.log('Données à sauvegarder:', facteursData);
   
   // Sauvegarder via l'API
@@ -737,6 +736,9 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
   })
   .then(response => {
     console.log('Réponse API:', response);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
     return response.json();
   })
   .then(result => {
@@ -756,7 +758,7 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
   })
   .catch(error => {
     console.error('Erreur lors de la sauvegarde:', error);
-    showNotification('Erreur lors de la sauvegarde', 'error');
+    showNotification(`Erreur lors de la sauvegarde: ${error.message}`, 'error');
   });
 });
 
