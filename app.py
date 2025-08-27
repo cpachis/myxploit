@@ -92,8 +92,11 @@ class Energie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
     identifiant = db.Column(db.String(50), unique=True)
-    facteur = db.Column(db.Float)       # kg CO2e/L
+    facteur = db.Column(db.Float)       # kg CO2e/L (total)
+    phase_amont = db.Column(db.Float, default=0.0)      # kg CO2e/L (phase amont)
+    phase_fonctionnement = db.Column(db.Float, default=0.0)  # kg CO2e/L (phase fonctionnement)
     description = db.Column(db.Text)
+    donnees_supplementaires = db.Column(db.JSON, default={})  # Données supplémentaires en JSON
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Initialiser la base de données APRÈS la définition des modèles
@@ -336,6 +339,113 @@ def supprimer_energie(energie_id):
         
     except Exception as e:
         logger.error(f"❌ Erreur lors de la suppression de l'énergie: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/energies/<int:energie_id>/facteurs', methods=['PUT'])
+def modifier_facteurs_energie(energie_id):
+    """Modifier les facteurs d'émission d'une énergie"""
+    try:
+        energie = Energie.query.get_or_404(energie_id)
+        data = request.get_json()
+        
+        # Validation des données
+        if not data:
+            return jsonify({'success': False, 'error': 'Données manquantes'}), 400
+        
+        # Mettre à jour les facteurs
+        if 'phase_amont' in data:
+            energie.phase_amont = float(data['phase_amont'])
+        if 'phase_fonctionnement' in data:
+            energie.phase_fonctionnement = float(data['phase_fonctionnement'])
+        if 'total' in data:
+            energie.facteur = float(data['total'])
+        
+        # Mettre à jour les données supplémentaires
+        if 'donnees_supplementaires' in data:
+            energie.donnees_supplementaires = data['donnees_supplementaires']
+        
+        db.session.commit()
+        
+        logger.info(f"✅ Facteurs mis à jour pour l'énergie {energie.nom}")
+        return jsonify({
+            'success': True, 
+            'message': 'Facteurs mis à jour avec succès',
+            'energie': {
+                'id': energie.id,
+                'nom': energie.nom,
+                'phase_amont': getattr(energie, 'phase_amont', 0),
+                'phase_fonctionnement': getattr(energie, 'phase_fonctionnement', 0),
+                'total': energie.facteur,
+                'donnees_supplementaires': getattr(energie, 'donnees_supplementaires', {})
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de la mise à jour des facteurs: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/energies/<int:energie_id>/donnees', methods=['POST'])
+def ajouter_donnee_energie(energie_id):
+    """Ajouter une nouvelle donnée à une énergie"""
+    try:
+        energie = Energie.query.get_or_404(energie_id)
+        data = request.get_json()
+        
+        # Validation des données
+        if not data.get('nom') or data.get('valeur') is None:
+            return jsonify({'success': False, 'error': 'Nom et valeur requis'}), 400
+        
+        # Récupérer ou créer les données supplémentaires
+        donnees_supp = getattr(energie, 'donnees_supplementaires', {}) or {}
+        
+        # Ajouter la nouvelle donnée
+        donnees_supp[data['nom']] = {
+            'valeur': float(data['valeur']),
+            'unite': data.get('unite', 'kg éq. CO₂'),
+            'description': data.get('description', ''),
+            'date_ajout': datetime.utcnow().isoformat()
+        }
+        
+        # Mettre à jour l'énergie
+        energie.donnees_supplementaires = donnees_supp
+        db.session.commit()
+        
+        logger.info(f"✅ Donnée ajoutée à l'énergie {energie.nom}: {data['nom']}")
+        return jsonify({
+            'success': True,
+            'message': 'Donnée ajoutée avec succès',
+            'donnee': donnees_supp[data['nom']]
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de l'ajout de la donnée: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/energies/<int:energie_id>/donnees/<nom_donnee>', methods=['DELETE'])
+def supprimer_donnee_energie(energie_id, nom_donnee):
+    """Supprimer une donnée d'une énergie"""
+    try:
+        energie = Energie.query.get_or_404(energie_id)
+        
+        # Récupérer les données supplémentaires
+        donnees_supp = getattr(energie, 'donnees_supplementaires', {}) or {}
+        
+        if nom_donnee not in donnees_supp:
+            return jsonify({'success': False, 'error': 'Donnée non trouvée'}), 404
+        
+        # Supprimer la donnée
+        del donnees_supp[nom_donnee]
+        energie.donnees_supplementaires = donnees_supp
+        db.session.commit()
+        
+        logger.info(f"✅ Donnée supprimée de l'énergie {energie.nom}: {nom_donnee}")
+        return jsonify({'success': True, 'message': 'Donnée supprimée avec succès'})
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de la suppression de la donnée: {str(e)}")
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
