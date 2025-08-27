@@ -222,8 +222,17 @@ document.addEventListener('DOMContentLoaded', function() {
   loadEnergies();
   
   // Ajouter les écouteurs d'événements pour le calcul automatique du total
-document.getElementById('facteur-phase-amont').addEventListener('input', calculateTotalFacteur);
-document.getElementById('facteur-phase-fonctionnement').addEventListener('input', calculateTotalFacteur);
+  document.getElementById('facteur-phase-amont').addEventListener('input', calculateTotalFacteur);
+  document.getElementById('facteur-phase-fonctionnement').addEventListener('input', calculateTotalFacteur);
+  
+  // Ajouter des événements pour le débogage
+  document.getElementById('facteur-phase-amont').addEventListener('change', function() {
+    console.log('📝 Phase amont modifiée:', this.value);
+  });
+  
+  document.getElementById('facteur-phase-fonctionnement').addEventListener('change', function() {
+    console.log('📝 Phase fonctionnement modifiée:', this.value);
+  });
 
 // Ajouter la validation personnalisée pour éviter les alertes du navigateur
 document.getElementById('facteur-phase-amont').addEventListener('invalid', function(e) {
@@ -450,23 +459,44 @@ function editEnergie(energieId) {
 
 // Afficher le modal des facteurs d'émission
 function showFacteursModal(energieId) {
+  console.log('=== OUVERTURE MODAL FACTEURS ===');
+  console.log('Ouverture du modal des facteurs pour l\'énergie:', energieId);
+  
   const energie = energies.find(e => e.id === energieId);
-  if (!energie) return;
+  if (!energie) {
+    console.error('❌ Énergie non trouvée pour l\'ouverture du modal des facteurs');
+    showNotification('Énergie non trouvée', 'error');
+    return;
+  }
+  
+  console.log('✅ Énergie trouvée pour le modal:', energie);
   
   // S'assurer que l'ID est numérique
   currentEnergieForFacteurs = parseInt(energieId);
   document.getElementById('energie-nom-facteurs').textContent = energie.nom;
-  document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'N/A'}`;
+  document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'L'}`;
   
-  // Remplir le formulaire des facteurs
-  document.getElementById('facteur-phase-amont').value = energie.phase_amont || '';
-  document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || '';
-  document.getElementById('facteur-total').value = energie.total || energie.facteur || '';
+  // Remplir le formulaire des facteurs avec les valeurs existantes
+  document.getElementById('facteur-phase-amont').value = energie.phase_amont || 0;
+  document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || 0;
+  document.getElementById('facteur-total').value = energie.total || energie.facteur || 0;
+  
+  // Mettre à jour le facteur global dans le modal
+  const facteurGlobalModal = document.getElementById('energie-facteur-modal');
+  if (facteurGlobalModal) {
+    facteurGlobalModal.value = energie.total || energie.facteur || 0;
+  }
+  
+  console.log('📊 Données remplies dans le modal:');
+  console.log('- Phase amont:', energie.phase_amont);
+  console.log('- Phase fonctionnement:', energie.phase_fonctionnement);
+  console.log('- Total:', energie.total || energie.facteur);
   
   // Charger et afficher les valeurs supplémentaires
   loadEnergieValues(energieId);
   
   document.getElementById('facteurs-modal').style.display = 'block';
+  console.log('=== FIN OUVERTURE MODAL FACTEURS ===');
 }
 
 // Afficher le modal des facteurs depuis le formulaire d'énergie
@@ -499,25 +529,37 @@ function showFacteursModalFromEnergieForm() {
     console.log('Modal des facteurs ouvert pour nouvelle énergie');
   } else {
     // Si c'est une modification, utiliser les données existantes
-    const energie = energies.find(e => e.id === energieId || e.identifiant === energieId);
+    const energie = energies.find(e => e.id == currentEditId);
     if (energie) {
+      console.log('✅ Énergie existante trouvée pour modification:', energie);
       currentEnergieForFacteurs = energie.id; // Utiliser l'ID numérique de la base
       document.getElementById('energie-nom-facteurs').textContent = energie.nom;
-      document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'N/A'}`;
+      document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'L'}`;
       
       // Remplir avec les valeurs existantes
-      document.getElementById('facteur-phase-amont').value = energie.phase_amont || '';
-      document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || '';
-      document.getElementById('facteur-total').value = energie.total || energie.facteur || '';
+      document.getElementById('facteur-phase-amont').value = energie.phase_amont || 0;
+      document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || 0;
+      document.getElementById('facteur-total').value = energie.total || energie.facteur || 0;
       
       // Mettre à jour le facteur global avec la valeur existante
       document.getElementById('energie-facteur').value = energie.facteur || '';
       
+      // Mettre à jour le facteur global dans le modal
+      const facteurGlobalModal = document.getElementById('energie-facteur-modal');
+      if (facteurGlobalModal) {
+        facteurGlobalModal.value = energie.total || energie.facteur || 0;
+      }
+      
       // Charger les valeurs supplémentaires existantes
       loadEnergieValues(energie.id);
       
+      console.log('📊 Données chargées pour modification:');
+      console.log('- Phase amont:', energie.phase_amont);
+      console.log('- Phase fonctionnement:', energie.phase_fonctionnement);
+      console.log('- Total:', energie.total || energie.facteur);
       console.log('Modal des facteurs ouvert pour énergie existante:', energie.id);
     } else {
+      console.error('❌ Énergie non trouvée pour modification. currentEditId:', currentEditId);
       alert('Énergie non trouvée. Veuillez d\'abord sauvegarder l\'énergie.');
       return;
     }
@@ -858,17 +900,30 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
     console.log('Résultat API:', result);
     if (result.success) {
       showNotification('Facteurs d\'émission sauvegardés avec succès', 'success');
-      closeFacteursModal();
       
       // Mettre à jour automatiquement le facteur global dans le formulaire principal
       const total = facteursData.total;
       if (total > 0) {
         document.getElementById('energie-facteur').value = total.toFixed(3);
-        console.log('Facteur global mis à jour automatiquement:', total);
+        console.log('✅ Facteur global mis à jour automatiquement:', total);
       }
       
+      // Mettre à jour la liste des énergies en mémoire
+      if (currentEnergieForFacteurs && currentEnergieForFacteurs !== 'new') {
+        const energie = energies.find(e => e.id == currentEnergieForFacteurs);
+        if (energie) {
+          energie.phase_amont = facteursData.phase_amont;
+          energie.phase_fonctionnement = facteursData.phase_fonctionnement;
+          energie.total = total;
+          energie.facteur = total;
+          console.log('✅ Données mises à jour en mémoire:', energie);
+        }
+      }
+      
+      closeFacteursModal();
+      
       // Forcer le rechargement immédiat des données
-      console.log('Rechargement forcé des énergies...');
+      console.log('🔄 Rechargement forcé des énergies...');
       setTimeout(() => {
         loadEnergies();
       }, 100); // Petit délai pour s'assurer que la sauvegarde est terminée
