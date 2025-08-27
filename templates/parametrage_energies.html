@@ -62,8 +62,8 @@
           </div>
           <div class="form-group">
             <label for="energie-facteur">Facteur d'émission global (kg éq. CO₂/unité)</label>
-            <input type="number" id="energie-facteur" name="facteur" step="0.001" min="0" placeholder="0.000">
-            <small class="form-help">Optionnel - Entrez une valeur ou configurez les facteurs détaillés ci-dessous</small>
+            <input type="number" id="energie-facteur" name="facteur" step="0.001" min="0" placeholder="Calculé automatiquement" readonly>
+            <small class="form-help">Calculé automatiquement à partir des facteurs détaillés</small>
           </div>
         </div>
 
@@ -144,8 +144,8 @@
           <div class="form-row">
             <div class="form-group">
               <label for="energie-facteur-modal">Facteur Global (kg éq. CO₂/unité)</label>
-              <input type="number" id="energie-facteur-modal" name="facteur_global" step="0.001" min="0" placeholder="0.000" readonly>
-              <small class="form-help">Facteur global mis à jour automatiquement</small>
+              <input type="number" id="energie-facteur-modal" name="facteur_global" step="0.001" min="0" placeholder="Calculé automatiquement" readonly>
+              <small class="form-help">Facteur global calculé automatiquement (Phase amont + Phase fonctionnement)</small>
             </div>
           </div>
         </form>
@@ -251,22 +251,32 @@ function calculateTotalFacteur() {
   const phaseFonctionnement = parseFloat(document.getElementById('facteur-phase-fonctionnement').value) || 0;
   const total = phaseAmont + phaseFonctionnement;
   
+  console.log('🧮 Calcul des facteurs d\'émission:');
+  console.log('- Phase amont:', phaseAmont);
+  console.log('- Phase fonctionnement:', phaseFonctionnement);
+  console.log('- Total calculé:', total);
+  
   // Afficher avec 3 décimales pour plus de précision
-  document.getElementById('facteur-total').value = total.toFixed(3);
+  const totalField = document.getElementById('facteur-total');
+  if (totalField) {
+    totalField.value = total.toFixed(3);
+  }
   
   // Mettre à jour automatiquement le facteur global dans le formulaire principal
   const facteurGlobalField = document.getElementById('energie-facteur');
   if (facteurGlobalField) {
     facteurGlobalField.value = total.toFixed(3);
-    console.log('Facteur global mis à jour automatiquement dans le formulaire principal:', total);
+    console.log('✅ Facteur global mis à jour dans le formulaire principal:', total.toFixed(3));
   }
   
   // Mettre à jour aussi le facteur global dans le modal des facteurs
   const facteurGlobalModal = document.getElementById('energie-facteur-modal');
   if (facteurGlobalModal) {
     facteurGlobalModal.value = total.toFixed(3);
-    console.log('Facteur global mis à jour automatiquement dans le modal:', total);
+    console.log('✅ Facteur global mis à jour dans le modal:', total.toFixed(3));
   }
+  
+  return total;
 }
 
 // Mettre à jour le facteur global d'une énergie après sauvegarde des facteurs
@@ -479,13 +489,9 @@ function showFacteursModal(energieId) {
   // Remplir le formulaire des facteurs avec les valeurs existantes
   document.getElementById('facteur-phase-amont').value = energie.phase_amont || 0;
   document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || 0;
-  document.getElementById('facteur-total').value = energie.total || energie.facteur || 0;
   
-  // Mettre à jour le facteur global dans le modal
-  const facteurGlobalModal = document.getElementById('energie-facteur-modal');
-  if (facteurGlobalModal) {
-    facteurGlobalModal.value = energie.total || energie.facteur || 0;
-  }
+  // Calculer automatiquement le total et le facteur global
+  calculateTotalFacteur();
   
   console.log('📊 Données remplies dans le modal:');
   console.log('- Phase amont:', energie.phase_amont);
@@ -539,16 +545,12 @@ function showFacteursModalFromEnergieForm() {
       // Remplir avec les valeurs existantes
       document.getElementById('facteur-phase-amont').value = energie.phase_amont || 0;
       document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || 0;
-      document.getElementById('facteur-total').value = energie.total || energie.facteur || 0;
+      
+      // Calculer automatiquement le total et le facteur global
+      calculateTotalFacteur();
       
       // Mettre à jour le facteur global avec la valeur existante
       document.getElementById('energie-facteur').value = energie.facteur || '';
-      
-      // Mettre à jour le facteur global dans le modal
-      const facteurGlobalModal = document.getElementById('energie-facteur-modal');
-      if (facteurGlobalModal) {
-        facteurGlobalModal.value = energie.total || energie.facteur || 0;
-      }
       
       // Charger les valeurs supplémentaires existantes
       loadEnergieValues(energie.id);
