@@ -140,6 +140,14 @@
               <small class="form-help">Total des émissions (Phase amont + Phase de fonctionnement)</small>
             </div>
           </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="energie-facteur-modal">Facteur Global (kg éq. CO₂/unité)</label>
+              <input type="number" id="energie-facteur-modal" name="facteur_global" step="0.001" min="0" placeholder="0.000" readonly>
+              <small class="form-help">Facteur global mis à jour automatiquement</small>
+            </div>
+          </div>
         </form>
 
         <!-- Section 2: Valeurs supplémentaires -->
@@ -237,10 +245,18 @@ function calculateTotalFacteur() {
   // Afficher avec 3 décimales pour plus de précision
   document.getElementById('facteur-total').value = total.toFixed(3);
   
-  // Mettre à jour automatiquement le facteur global dans le modal d'énergie
+  // Mettre à jour automatiquement le facteur global dans le formulaire principal
   const facteurGlobalField = document.getElementById('energie-facteur');
   if (facteurGlobalField) {
     facteurGlobalField.value = total.toFixed(3);
+    console.log('Facteur global mis à jour automatiquement dans le formulaire principal:', total);
+  }
+  
+  // Mettre à jour aussi le facteur global dans le modal des facteurs
+  const facteurGlobalModal = document.getElementById('energie-facteur-modal');
+  if (facteurGlobalModal) {
+    facteurGlobalModal.value = total.toFixed(3);
+    console.log('Facteur global mis à jour automatiquement dans le modal:', total);
   }
 }
 
@@ -463,6 +479,8 @@ function showFacteursModalFromEnergieForm() {
     
     // Vider la liste des valeurs supplémentaires pour une nouvelle énergie
     displayEnergieValues({});
+    
+    console.log('Modal des facteurs ouvert pour nouvelle énergie');
   } else {
     // Si c'est une modification, utiliser les données existantes
     const energie = energies.find(e => e.id === energieId || e.identifiant === energieId);
@@ -481,6 +499,8 @@ function showFacteursModalFromEnergieForm() {
       
       // Charger les valeurs supplémentaires existantes
       loadEnergieValues(energie.id);
+      
+      console.log('Modal des facteurs ouvert pour énergie existante:', energie.id);
     } else {
       alert('Énergie non trouvée. Veuillez d\'abord sauvegarder l\'énergie.');
       return;
@@ -823,6 +843,13 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
     if (result.success) {
       showNotification('Facteurs d\'émission sauvegardés avec succès', 'success');
       closeFacteursModal();
+      
+      // Mettre à jour automatiquement le facteur global dans le formulaire principal
+      const total = facteursData.total;
+      if (total > 0) {
+        document.getElementById('energie-facteur').value = total.toFixed(3);
+        console.log('Facteur global mis à jour automatiquement:', total);
+      }
       
       // Forcer le rechargement immédiat des données
       console.log('Rechargement forcé des énergies...');
