@@ -251,7 +251,26 @@ function loadEnergies() {
     .then(response => response.json())
     .then(result => {
       console.log('Données reçues de l\'API:', result);
-      energies = Object.entries(result).map(([id, data]) => ({ id, ...data }));
+      
+      if (result.success && result.energies) {
+        // L'API retourne {success: true, energies: [...]}
+        energies = result.energies.map(energie => ({
+          id: energie.id,
+          nom: energie.nom,
+          identifiant: energie.identifiant,
+          facteur: energie.facteur,
+          description: energie.description,
+          unite: energie.unite || 'N/A',
+          phase_amont: energie.phase_amont || 0,
+          phase_fonctionnement: energie.phase_fonctionnement || 0,
+          total: energie.total || energie.facteur || 0,
+          donnees_supplementaires: energie.donnees_supplementaires || {}
+        }));
+      } else {
+        // Fallback pour l'ancien format
+        energies = Object.entries(result).map(([id, data]) => ({ id, ...data }));
+      }
+      
       console.log('Énergies formatées:', energies);
       displayEnergies(energies);
     })
@@ -274,43 +293,43 @@ function displayEnergies(energiesToShow) {
     <div class="energie-card" data-id="${energie.id}">
       <div class="energie-header">
         <div class="energie-info">
-          <h3>${energie.nom}</h3>
-          <span class="energie-id">${energie.id}</span>
+          <h3>${energie.nom || 'Sans nom'}</h3>
+          <span class="energie-id">${energie.identifiant || energie.id}</span>
         </div>
         <div class="energie-badge">
-          <span class="badge-unit">${energie.unite || energie.unit || 'N/A'}</span>
+          <span class="badge-unit">${energie.unite || 'N/A'}</span>
         </div>
       </div>
       
       <div class="energie-details">
         <div class="detail-row">
           <span class="detail-label">Facteur global:</span>
-          <span class="detail-value">${energie.facteur || 0} kg CO₂e/unité</span>
+          <span class="detail-value">${energie.facteur || 0} kg éq. CO₂/unité</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Phase amont:</span>
-          <span class="detail-value">${energie.phase_amont || 0} kg CO₂e/unité</span>
+          <span class="detail-value">${energie.phase_amont || 0} kg éq. CO₂/unité</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Phase fonctionnement:</span>
-          <span class="detail-value">${energie.phase_fonctionnement || 0} kg CO₂e/unité</span>
+          <span class="detail-value">${energie.phase_fonctionnement || 0} kg éq. CO₂/unité</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Total détaillé:</span>
-          <span class="detail-value">${energie.total || 0} kg CO₂e/unité</span>
+          <span class="detail-value">${energie.total || energie.facteur || 0} kg éq. CO₂/unité</span>
         </div>
       </div>
       
-             <div class="energie-actions">
-         <button class="btn-edit" onclick="editEnergie('${energie.id}')">
-           <span class="btn-icon">✏️</span>
-           Modifier
-         </button>
-         <button class="btn-delete" onclick="deleteEnergie('${energie.id}')">
-           <span class="btn-icon">🗑️</span>
-           Supprimer
-         </button>
-       </div>
+      <div class="energie-actions">
+        <button class="btn-edit" onclick="editEnergie('${energie.id}')">
+          <span class="btn-icon">✏️</span>
+          Modifier
+        </button>
+        <button class="btn-delete" onclick="deleteEnergie('${energie.id}')">
+          <span class="btn-icon">🗑️</span>
+          Supprimer
+        </button>
+      </div>
     </div>
   `).join('');
 }
@@ -341,14 +360,14 @@ function editEnergie(energieId) {
   if (!energie) return;
   
   currentEditId = energieId;
-  document.getElementById('energie-modal-title').textContent = `Modifier l'Énergie ${energieId}`;
+  document.getElementById('energie-modal-title').textContent = `Modifier l'Énergie ${energie.identifiant || energieId}`;
   
   // Remplir le formulaire
-  document.getElementById('energie-id').value = energie.id || '';
+  document.getElementById('energie-id').value = energie.identifiant || energie.id || '';
   document.getElementById('energie-nom').value = energie.nom || '';
-  document.getElementById('energie-unite').value = energie.unite || energie.unit || '';
+  document.getElementById('energie-unite').value = energie.unite || '';
   document.getElementById('energie-facteur').value = energie.facteur || '';
-  document.getElementById('energie-explication').value = energie.explication || '';
+  document.getElementById('energie-explication').value = energie.description || '';
   document.getElementById('energie-lien-source').value = energie.lien_source || '';
   
   document.getElementById('energie-modal').style.display = 'block';
