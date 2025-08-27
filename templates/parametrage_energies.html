@@ -673,14 +673,16 @@ document.getElementById('energie-form').addEventListener('submit', function(e) {
   
   const formData = new FormData(e.target);
   
+  // Récupérer les données du formulaire
   const energieData = {
-    id: formData.get('id'),
+    identifiant: formData.get('id'), // L'API attend 'identifiant'
     nom: formData.get('nom'),
-    unite: formData.get('unite'),
     facteur: parseFloat(formData.get('facteur')) || 0,
-    explication: formData.get('explication'),
-    lien_source: formData.get('lien_source')
+    description: formData.get('explication'), // L'API attend 'description'
+    unite: formData.get('unite')
   };
+  
+  console.log('Données à envoyer à l\'API:', energieData);
   
   // Sauvegarder l'énergie via l'API
   fetch('/api/energies', {
@@ -688,13 +690,17 @@ document.getElementById('energie-form').addEventListener('submit', function(e) {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      id: energieData.id,
-      data: energieData
-    })
+    body: JSON.stringify(energieData) // Envoyer directement les données
   })
-  .then(response => response.json())
+  .then(response => {
+    console.log('Réponse HTTP:', response.status, response.statusText);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response.json();
+  })
   .then(result => {
+    console.log('Résultat API:', result);
     if (result.success) {
       showNotification('Énergie sauvegardée avec succès', 'success');
       closeEnergieModal();
@@ -705,7 +711,7 @@ document.getElementById('energie-form').addEventListener('submit', function(e) {
   })
   .catch(error => {
     console.error('Erreur lors de la sauvegarde:', error);
-    showNotification('Erreur lors de la sauvegarde', 'error');
+    showNotification(`Erreur lors de la sauvegarde: ${error.message}`, 'error');
   });
 });
 

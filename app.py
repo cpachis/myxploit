@@ -92,6 +92,7 @@ class Energie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
     identifiant = db.Column(db.String(50), unique=True)
+    unite = db.Column(db.String(20), default='L')  # Unité de mesure (L, kg, kWh)
     facteur = db.Column(db.Float)       # kg CO2e/L (total)
     phase_amont = db.Column(db.Float, default=0.0)      # kg CO2e/L (phase amont)
     phase_fonctionnement = db.Column(db.Float, default=0.0)  # kg CO2e/L (phase fonctionnement)
@@ -268,6 +269,7 @@ def creer_energie():
         nouvelle_energie = Energie(
             nom=data['nom'],
             identifiant=data['identifiant'],
+            unite=data.get('unite', 'L'),
             facteur=float(data['facteur']),
             description=data.get('description', '')
         )
@@ -303,6 +305,8 @@ def modifier_energie(energie_id):
         energie.nom = data['nom']
         if data.get('identifiant'):
             energie.identifiant = data['identifiant']
+        if data.get('unite'):
+            energie.unite = data['unite']
         energie.facteur = float(data['facteur'])
         energie.description = data.get('description', '')
         
