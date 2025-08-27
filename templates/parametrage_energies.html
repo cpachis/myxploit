@@ -526,7 +526,7 @@ function showFacteursModalFromEnergieForm() {
     // Vider la liste des valeurs supplémentaires pour une nouvelle énergie
     displayEnergieValues({});
     
-    console.log('Modal des facteurs ouvert pour nouvelle énergie');
+    console.log('Modal des facteurs ouvert pour nouvelle énergie (mode prévisualisation)');
   } else {
     // Si c'est une modification, utiliser les données existantes
     const energie = energies.find(e => e.id == currentEditId);
@@ -857,19 +857,26 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
   
   // Si c'est une nouvelle énergie, on ne peut pas sauvegarder les facteurs encore
   if (currentEnergieForFacteurs === 'new') {
-    showNotification('Veuillez d\'abord sauvegarder l\'énergie avant de configurer ses facteurs.', 'info');
+    showNotification('💡 Mode prévisualisation : Les facteurs seront sauvegardés après la création de l\'énergie.', 'info');
     return;
   }
   
-  // Vérifier que c'est un ID numérique
-  if (isNaN(parseInt(currentEnergieForFacteurs))) {
+  // Vérifier que c'est un ID numérique valide
+  const energieId = parseInt(currentEnergieForFacteurs);
+  if (isNaN(energieId) || energieId <= 0) {
     showNotification('Erreur: ID d\'énergie invalide. Veuillez d\'abord sauvegarder l\'énergie.', 'error');
     return;
   }
   
-  // Récupérer l'énergie actuelle pour ses données supplémentaires
-  const energie = energies.find(e => e.id === parseInt(currentEnergieForFacteurs));
-  const donnees_supplementaires = energie ? (energie.donnees_supplementaires || {}) : {};
+  // Vérifier que l'énergie existe bien
+  const energie = energies.find(e => e.id === energieId);
+  if (!energie) {
+    showNotification('Erreur: Énergie non trouvée. Veuillez d\'abord sauvegarder l\'énergie.', 'error');
+    return;
+  }
+  
+  // Récupérer les données supplémentaires de l'énergie trouvée
+  const donnees_supplementaires = energie.donnees_supplementaires || {};
   
   const facteursData = {
     phase_amont: parseFloat(formData.get('phase_amont')) || 0,
@@ -909,15 +916,12 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
       }
       
       // Mettre à jour la liste des énergies en mémoire
-      if (currentEnergieForFacteurs && currentEnergieForFacteurs !== 'new') {
-        const energie = energies.find(e => e.id == currentEnergieForFacteurs);
-        if (energie) {
-          energie.phase_amont = facteursData.phase_amont;
-          energie.phase_fonctionnement = facteursData.phase_fonctionnement;
-          energie.total = total;
-          energie.facteur = total;
-          console.log('✅ Données mises à jour en mémoire:', energie);
-        }
+      if (energie) {
+        energie.phase_amont = facteursData.phase_amont;
+        energie.phase_fonctionnement = facteursData.phase_fonctionnement;
+        energie.total = total;
+        energie.facteur = total;
+        console.log('✅ Données mises à jour en mémoire:', energie);
       }
       
       closeFacteursModal();
