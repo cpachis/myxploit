@@ -63,7 +63,7 @@
           <div class="form-group">
             <label for="energie-facteur">Facteur d'émission global (kg éq. CO₂/unité)</label>
             <input type="number" id="energie-facteur" name="facteur" step="0.001" min="0" placeholder="Calculé automatiquement" readonly>
-            <small class="form-help">Calculé automatiquement à partir des facteurs détaillés</small>
+            <small class="form-help">Calculé automatiquement à partir des facteurs détaillés (0 si non configuré)</small>
           </div>
         </div>
 
@@ -87,7 +87,7 @@
                <span class="btn-icon">📊</span>
                Configurer les Facteurs d'Émission
              </button>
-             <small class="form-help">Configurez les émissions détaillées (phase amont, phase fonctionnement) - Optionnel pour la création</small>
+             <small class="form-help">Configurez les émissions détaillées (phase amont, phase fonctionnement)</small>
            </div>
          </div>
  
@@ -250,6 +250,8 @@ function calculateTotalFacteur() {
   const phaseAmont = parseFloat(document.getElementById('facteur-phase-amont').value) || 0;
   const phaseFonctionnement = parseFloat(document.getElementById('facteur-phase-fonctionnement').value) || 0;
   const total = phaseAmont + phaseFonctionnement;
+  
+  // Si aucun facteur n'est configuré, le total reste à 0
   
   console.log('🧮 Calcul des facteurs d\'émission:');
   console.log('- Phase amont:', phaseAmont);
@@ -857,9 +859,12 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
     return;
   }
   
-  // Si c'est une nouvelle énergie, on ne peut pas sauvegarder les facteurs encore
+  // Si c'est une nouvelle énergie, permettre la configuration des facteurs
   if (currentEnergieForFacteurs === 'new') {
-    showNotification('💡 Mode prévisualisation : Les facteurs seront sauvegardés après la création de l\'énergie.', 'info');
+    // L'utilisateur peut configurer les facteurs, ils seront sauvegardés après création
+    // Pas besoin d'alerte - le comportement est naturel
+    showNotification('✅ Configuration des facteurs enregistrée. Les facteurs seront sauvegardés lors de la création de l\'énergie.', 'success');
+    closeFacteursModal();
     return;
   }
   
