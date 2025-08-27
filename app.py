@@ -106,6 +106,70 @@ with app.app_context():
         db.create_all()
         logger.info("✅ Base de données initialisée avec succès")
         
+        # Migration automatique pour ajouter les colonnes manquantes
+        try:
+            logger.info("🔧 Vérification de la structure de la table 'energies'...")
+            
+            # Vérifier si les colonnes existent déjà
+            with db.engine.connect() as conn:
+                # Pour PostgreSQL
+                if 'postgresql' in str(db.engine.url):
+                    # Vérifier si la colonne phase_amont existe
+                    result = conn.execute(text("""
+                        SELECT column_name 
+                        FROM information_schema.columns 
+                        WHERE table_name = 'energies' 
+                        AND column_name = 'phase_amont'
+                    """))
+                    
+                    if not result.fetchone():
+                        logger.info("➕ Ajout de la colonne 'phase_amont'...")
+                        conn.execute(text("ALTER TABLE energies ADD COLUMN phase_amont FLOAT DEFAULT 0.0"))
+                        conn.commit()
+                        logger.info("✅ Colonne 'phase_amont' ajoutée")
+                    else:
+                        logger.info("✅ Colonne 'phase_amont' existe déjà")
+                    
+                    # Vérifier si la colonne phase_fonctionnement existe
+                    result = conn.execute(text("""
+                        SELECT column_name 
+                        FROM information_schema.columns 
+                        WHERE table_name = 'energies' 
+                        AND column_name = 'phase_fonctionnement'
+                    """))
+                    
+                    if not result.fetchone():
+                        logger.info("➕ Ajout de la colonne 'phase_fonctionnement'...")
+                        conn.execute(text("ALTER TABLE energies ADD COLUMN phase_fonctionnement FLOAT DEFAULT 0.0"))
+                        conn.commit()
+                        logger.info("✅ Colonne 'phase_fonctionnement' ajoutée")
+                    else:
+                        logger.info("✅ Colonne 'phase_fonctionnement' existe déjà")
+                    
+                    # Vérifier si la colonne donnees_supplementaires existe
+                    result = conn.execute(text("""
+                        SELECT column_name 
+                        FROM information_schema.columns 
+                        WHERE table_name = 'energies' 
+                        AND column_name = 'donnees_supplementaires'
+                    """))
+                    
+                    if not result.fetchone():
+                        logger.info("➕ Ajout de la colonne 'donnees_supplementaires'...")
+                        conn.execute(text("ALTER TABLE energies ADD COLUMN donnees_supplementaires JSONB DEFAULT '{}'"))
+                        conn.commit()
+                        logger.info("✅ Colonne 'donnees_supplementaires' ajoutée")
+                    else:
+                        logger.info("✅ Colonne 'donnees_supplementaires' existe déjà")
+                    
+                    logger.info("🎉 Migration automatique terminée avec succès !")
+                else:
+                    logger.info("📱 Base SQLite détectée - pas de migration nécessaire")
+                    
+        except Exception as migration_error:
+            logger.warning(f"⚠️ Migration automatique échouée (non critique): {str(migration_error)}")
+            logger.info("ℹ️ L'application continuera sans les nouvelles colonnes")
+        
     except Exception as e:
         logger.error(f"❌ Erreur lors de l'initialisation de la base: {str(e)}")
         # Ne pas lever l'erreur pour permettre le démarrage
@@ -362,17 +426,36 @@ def modifier_facteurs_energie(energie_id):
         if not data:
             return jsonify({'success': False, 'error': 'Données manquantes'}), 400
         
-        # Mettre à jour les facteurs
-        if 'phase_amont' in data:
-            energie.phase_amont = float(data['phase_amont'])
-        if 'phase_fonctionnement' in data:
-            energie.phase_fonctionnement = float(data['phase_fonctionnement'])
-        if 'total' in data:
-            energie.facteur = float(data['total'])
-        
-        # Mettre à jour les données supplémentaires
-        if 'donnees_supplementaires' in data:
-            energie.donnees_supplementaires = data['donnees_supplementaires']
+        # Mettre à jour les facteurs avec gestion d'erreur robuste
+        try:
+            if 'phase_amont' in data:
+                if hasattr(energie, 'phase_amont'):
+                    energie.phase_amont = float(data['phase_amont'])
+                else:
+                    logger.warning("⚠️ Colonne 'phase_amont' non disponible")
+            
+            if 'phase_fonctionnement' in data:
+                if hasattr(energie, 'phase_fonctionnement'):
+                    energie.phase_fonctionnement = float(data['phase_fonctionnement'])
+                else:
+                    logger.warning("⚠️ Colonne 'phase_fonctionnement' non disponible")
+            
+            if 'total' in data:
+                energie.facteur = float(data['total'])
+            
+            # Mettre à jour les données supplémentaires
+            if 'donnees_supplementaires' in data:
+                if hasattr(energie, 'donnees_supplementaires'):
+                    energie.donnees_supplementaires = data['donnees_supplementaires']
+                else:
+                    logger.warning("⚠️ Colonne 'donnees_supplementaires' non disponible")
+                    
+        except AttributeError as attr_error:
+            logger.warning(f"⚠️ Colonne non disponible: {str(attr_error)}")
+            # Continuer avec les colonnes disponibles
+        except ValueError as val_error:
+            logger.error(f"❌ Erreur de conversion de valeur: {str(val_error)}")
+            return jsonify({'success': False, 'error': f'Valeur invalide: {str(val_error)}'}), 400
         
         db.session.commit()
         
@@ -855,8 +938,64 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'database': db_status,
-        'timestamp': logging.Formatter().formatTime(logging.LogRecord('', 0, '', 0, '', (), None))
+        'timestamp': logging.Formatter().formatTime(logging.LogRecord('', 0, '', 0, '', '', None))
     })
+
+@app.route('/debug/database')
+def debug_database():
+    """Route de diagnostic pour la structure de la base de données"""
+    try:
+        # Vérifier la structure de la table energies
+        with db.engine.connect() as conn:
+            # Pour PostgreSQL
+            if 'postgresql' in str(db.engine.url):
+                # Récupérer la structure de la table energies
+                result = conn.execute(text("""
+                    SELECT column_name, data_type, is_nullable, column_default
+                    FROM information_schema.columns 
+                    WHERE table_name = 'energies'
+                    ORDER BY ordinal_position
+                """))
+                
+                columns = []
+                for row in result:
+                    columns.append({
+                        'name': row[0],
+                        'type': row[1],
+                        'nullable': row[2],
+                        'default': row[3]
+                    })
+                
+                # Vérifier les colonnes manquantes
+                missing_columns = []
+                required_columns = ['phase_amont', 'phase_fonctionnement', 'donnees_supplementaires']
+                existing_columns = [col['name'] for col in columns]
+                
+                for col in required_columns:
+                    if col not in existing_columns:
+                        missing_columns.append(col)
+                
+                return jsonify({
+                    'success': True,
+                    'database_type': 'PostgreSQL',
+                    'table': 'energies',
+                    'columns': columns,
+                    'missing_columns': missing_columns,
+                    'total_columns': len(columns)
+                })
+            else:
+                return jsonify({
+                    'success': True,
+                    'database_type': 'SQLite',
+                    'message': 'Structure automatiquement gérée par SQLAlchemy'
+                })
+                
+    except Exception as e:
+        logger.error(f"❌ Erreur lors du diagnostic de la base: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.errorhandler(404)
 def not_found(error):
