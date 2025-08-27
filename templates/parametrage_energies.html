@@ -103,7 +103,7 @@
   <div id="facteurs-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="facteurs-modal-title">Facteurs d'Émission Détaillés</h2>
+        <h2 id="facteurs-modal-title">Configurer les Facteurs d'Émission</h2>
         <button class="close-btn" onclick="closeFacteursModal()">&times;</button>
       </div>
       
@@ -113,33 +113,91 @@
           <p id="energie-unite-facteurs"></p>
         </div>
 
+        <!-- Section 1: Valeurs de calcul (Phase amont, Phase fonctionnement) -->
+        <div class="section-title">
+          <h4>📊 Valeurs de Calcul</h4>
+          <p>Ces valeurs sont utilisées pour le calcul automatique des émissions de transport</p>
+        </div>
+
         <form id="facteurs-form" class="facteurs-form">
-                     <div class="form-row">
-             <div class="form-group">
-               <label for="facteur-phase-amont">Phase amont (kg CO₂e/unité) *</label>
-               <input type="number" id="facteur-phase-amont" name="phase_amont" required step="0.001" min="0" placeholder="Ex: 0.66">
-               <small class="form-help">Émissions en phase amont par unité d'énergie</small>
-             </div>
-             <div class="form-group">
-               <label for="facteur-phase-fonctionnement">Phase de fonctionnement (kg CO₂e/unité) *</label>
-               <input type="number" id="facteur-phase-fonctionnement" name="phase_fonctionnement" required step="0.001" min="0" placeholder="Ex: 2.51">
-               <small class="form-help">Émissions en phase de fonctionnement par unité d'énergie</small>
-             </div>
-           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="facteur-phase-amont">Phase amont (kg éq. CO₂/unité) *</label>
+              <input type="number" id="facteur-phase-amont" name="phase_amont" required step="0.001" min="0" placeholder="Ex: 0.66">
+              <small class="form-help">Émissions en phase amont par unité d'énergie</small>
+            </div>
+            <div class="form-group">
+              <label for="facteur-phase-fonctionnement">Phase de fonctionnement (kg éq. CO₂/unité) *</label>
+              <input type="number" id="facteur-phase-fonctionnement" name="phase_fonctionnement" required step="0.001" min="0" placeholder="Ex: 2.51">
+              <small class="form-help">Émissions en phase de fonctionnement par unité d'énergie</small>
+            </div>
+          </div>
 
-                     <div class="form-row">
-             <div class="form-group">
-               <label for="facteur-total">Total (kg CO₂e/unité)</label>
-               <input type="number" id="facteur-total" name="total" step="0.001" min="0" placeholder="Calculé automatiquement" readonly>
-               <small class="form-help">Total des émissions (Phase amont + Phase de fonctionnement)</small>
-             </div>
-           </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn-save">💾 Sauvegarder</button>
-            <button type="button" class="btn-cancel" onclick="closeFacteursModal()">❌ Annuler</button>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="facteur-total">Total (kg éq. CO₂/unité)</label>
+              <input type="number" id="facteur-total" name="total" step="0.001" min="0" placeholder="Calculé automatiquement" readonly>
+              <small class="form-help">Total des émissions (Phase amont + Phase de fonctionnement)</small>
+            </div>
           </div>
         </form>
+
+        <!-- Section 2: Valeurs supplémentaires -->
+        <div class="section-title">
+          <h4>➕ Valeurs Supplémentaires</h4>
+          <p>Ajoutez des valeurs personnalisées pour des calculs spécifiques</p>
+        </div>
+
+        <!-- Bouton pour ajouter une nouvelle valeur -->
+        <div class="add-value-section">
+          <button type="button" class="btn-add-value" onclick="showAddValueForm()">
+            <span class="btn-icon">➕</span>
+            Ajouter une Valeur
+          </button>
+        </div>
+
+        <!-- Formulaire d'ajout de valeur (caché par défaut) -->
+        <div id="add-value-form" class="add-value-form" style="display: none;">
+          <h5>Nouvelle Valeur</h5>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-value-name">Nom de la valeur *</label>
+              <input type="text" id="new-value-name" placeholder="Ex: Émissions indirectes">
+            </div>
+            <div class="form-group">
+              <label for="new-value-valeur">Valeur (kg éq. CO₂/unité) *</label>
+              <input type="number" id="new-value-valeur" step="0.001" min="0" placeholder="Ex: 0.85">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-value-unite">Unité</label>
+              <input type="text" id="new-value-unite" value="kg éq. CO₂" placeholder="kg éq. CO₂">
+            </div>
+            <div class="form-group">
+              <label for="new-value-description">Description</label>
+              <input type="text" id="new-value-description" placeholder="Description de cette valeur">
+            </div>
+          </div>
+          <div class="form-actions-inline">
+            <button type="button" class="btn-save" onclick="addNewValue()">💾 Ajouter</button>
+            <button type="button" class="btn-cancel" onclick="hideAddValueForm()">❌ Annuler</button>
+          </div>
+        </div>
+
+        <!-- Liste des valeurs supplémentaires -->
+        <div class="values-list-section">
+          <h5>Valeurs Configurées</h5>
+          <div id="values-list" class="values-list">
+            <!-- Les valeurs seront chargées dynamiquement -->
+          </div>
+        </div>
+
+        <!-- Actions principales -->
+        <div class="form-actions">
+          <button type="submit" form="facteurs-form" class="btn-save">💾 Sauvegarder Tout</button>
+          <button type="button" class="btn-cancel" onclick="closeFacteursModal()">❌ Annuler</button>
+        </div>
       </div>
     </div>
   </div>
@@ -310,6 +368,9 @@ function showFacteursModal(energieId) {
   document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || '';
   document.getElementById('facteur-total').value = energie.total || '';
   
+  // Charger et afficher les valeurs supplémentaires
+  loadEnergieValues(energieId);
+  
   document.getElementById('facteurs-modal').style.display = 'block';
 }
 
@@ -338,6 +399,9 @@ function showFacteursModalFromEnergieForm() {
     
     // Réinitialiser le facteur global
     document.getElementById('energie-facteur').value = '';
+    
+    // Vider la liste des valeurs supplémentaires pour une nouvelle énergie
+    displayEnergieValues({});
   } else {
     // Si c'est une modification, utiliser les données existantes
     const energie = energies.find(e => e.id === energieId);
@@ -353,10 +417,12 @@ function showFacteursModalFromEnergieForm() {
       
       // Mettre à jour le facteur global avec la valeur existante
       document.getElementById('energie-facteur').value = energie.facteur || '';
+      
+      // Charger les valeurs supplémentaires existantes
+      loadEnergieValues(energieId);
     }
   }
   
-  document.getElementById('facteur-total').value = '';
   document.getElementById('facteurs-modal').style.display = 'block';
 }
 
@@ -377,15 +443,206 @@ function closeFacteursModal() {
     }
   }
   
+  // Cacher le formulaire d'ajout de valeur
+  hideAddValueForm();
+  
   document.getElementById('facteurs-modal').style.display = 'none';
   currentEnergieForFacteurs = null;
+}
+
+// Afficher le formulaire d'ajout de valeur
+function showAddValueForm() {
+  document.getElementById('add-value-form').style.display = 'block';
+  // Vider les champs
+  document.getElementById('new-value-name').value = '';
+  document.getElementById('new-value-valeur').value = '';
+  document.getElementById('new-value-unite').value = 'kg éq. CO₂';
+  document.getElementById('new-value-description').value = '';
+}
+
+// Cacher le formulaire d'ajout de valeur
+function hideAddValueForm() {
+  document.getElementById('add-value-form').style.display = 'none';
+}
+
+// Charger les valeurs supplémentaires d'une énergie
+function loadEnergieValues(energieId) {
+  // Pour l'instant, on utilise les données existantes
+  // Plus tard, on pourra appeler l'API pour récupérer les valeurs
+  const energie = energies.find(e => e.id === energieId);
+  if (!energie) return;
+  
+  // Afficher les valeurs existantes (si disponibles)
+  displayEnergieValues(energie.donnees_supplementaires || {});
+}
+
+// Afficher les valeurs supplémentaires
+function displayEnergieValues(values) {
+  const container = document.getElementById('values-list');
+  
+  if (!values || Object.keys(values).length === 0) {
+    container.innerHTML = '<div class="no-values">Aucune valeur supplémentaire configurée</div>';
+    return;
+  }
+  
+  container.innerHTML = Object.entries(values).map(([name, data]) => `
+    <div class="value-item" data-name="${name}">
+      <div class="value-info">
+        <div class="value-name">${name}</div>
+        <div class="value-details">
+          <span class="value-valeur">${data.valeur} ${data.unite || 'kg éq. CO₂'}</span>
+          ${data.description ? `<span class="value-description">${data.description}</span>` : ''}
+        </div>
+      </div>
+      <div class="value-actions">
+        <button class="btn-edit-small" onclick="editValue('${name}')" title="Modifier">
+          ✏️
+        </button>
+        <button class="btn-delete-small" onclick="deleteValue('${name}')" title="Supprimer">
+          🗑️
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Ajouter une nouvelle valeur
+function addNewValue() {
+  const name = document.getElementById('new-value-name').value.trim();
+  const valeur = parseFloat(document.getElementById('new-value-valeur').value);
+  const unite = document.getElementById('new-value-unite').value.trim();
+  const description = document.getElementById('new-value-description').value.trim();
+  
+  if (!name || isNaN(valeur)) {
+    alert('Veuillez remplir le nom et la valeur');
+    return;
+  }
+  
+  const newValue = {
+    nom: name,
+    valeur: valeur,
+    unite: unite || 'kg éq. CO₂',
+    description: description
+  };
+  
+  // Appeler l'API pour ajouter la valeur
+  fetch(`/api/energies/${currentEnergieForFacteurs}/donnees`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(newValue)
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      showNotification('Valeur ajoutée avec succès', 'success');
+      hideAddValueForm();
+      // Recharger les valeurs
+      loadEnergieValues(currentEnergieForFacteurs);
+      // Recharger la liste des énergies
+      loadEnergies();
+    } else {
+      showNotification(`Erreur: ${result.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur lors de l\'ajout de la valeur:', error);
+    showNotification('Erreur lors de l\'ajout de la valeur', 'error');
+  });
+}
+
+// Modifier une valeur existante
+function editValue(valueName) {
+  // Pour l'instant, on utilise un prompt simple
+  // Plus tard, on pourra créer un modal d'édition
+  const newValeur = prompt(`Nouvelle valeur pour "${valueName}" (kg éq. CO₂):`);
+  if (newValeur === null || isNaN(parseFloat(newValeur))) return;
+  
+  const energie = energies.find(e => e.id === currentEnergieForFacteurs);
+  if (!energie || !energie.donnees_supplementaires) return;
+  
+  // Mettre à jour la valeur
+  energie.donnees_supplementaires[valueName].valeur = parseFloat(newValeur);
+  
+  // Sauvegarder via l'API des facteurs
+  const facteursData = {
+    phase_amont: parseFloat(document.getElementById('facteur-phase-amont').value) || 0,
+    phase_fonctionnement: parseFloat(document.getElementById('facteur-phase-fonctionnement').value) || 0,
+    total: parseFloat(document.getElementById('facteur-total').value) || 0,
+    donnees_supplementaires: energie.donnees_supplementaires
+  };
+  
+  fetch(`/api/energies/${currentEnergieForFacteurs}/facteurs`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(facteursData)
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      showNotification('Valeur modifiée avec succès', 'success');
+      loadEnergieValues(currentEnergieForFacteurs);
+      loadEnergies();
+    } else {
+      showNotification(`Erreur: ${result.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur lors de la modification:', error);
+    showNotification('Erreur lors de la modification', 'error');
+  });
+}
+
+// Supprimer une valeur
+function deleteValue(valueName) {
+  if (!confirm(`Êtes-vous sûr de vouloir supprimer la valeur "${valueName}" ?`)) return;
+  
+  fetch(`/api/energies/${currentEnergieForFacteurs}/donnees/${encodeURIComponent(valueName)}`, {
+    method: 'DELETE'
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      showNotification('Valeur supprimée avec succès', 'success');
+      loadEnergieValues(currentEnergieForFacteurs);
+      loadEnergies();
+    } else {
+      showNotification(`Erreur: ${result.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur lors de la suppression:', error);
+    showNotification('Erreur lors de la suppression', 'error');
+  });
 }
 
 // Supprimer une énergie
 function deleteEnergie(energieId) {
   if (confirm(`Êtes-vous sûr de vouloir supprimer l'énergie ${energieId} ?`)) {
-    // Ici vous pouvez ajouter l'API de suppression si nécessaire
-    showNotification('Fonctionnalité de suppression à implémenter', 'info');
+    // Appeler l'API de suppression
+    fetch(`/api/energies/${energieId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        showNotification('Énergie supprimée avec succès', 'success');
+        // Recharger la liste des énergies
+        loadEnergies();
+      } else {
+        showNotification(`Erreur: ${result.error}`, 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors de la suppression:', error);
+      showNotification('Erreur lors de la suppression', 'error');
+    });
   }
 }
 
@@ -437,10 +694,15 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
   
   const formData = new FormData(e.target);
   
+  // Récupérer l'énergie actuelle pour ses données supplémentaires
+  const energie = energies.find(e => e.id === currentEnergieForFacteurs);
+  const donnees_supplementaires = energie ? (energie.donnees_supplementaires || {}) : {};
+  
   const facteursData = {
     phase_amont: parseFloat(formData.get('phase_amont')) || 0,
     phase_fonctionnement: parseFloat(formData.get('phase_fonctionnement')) || 0,
-    total: parseFloat(formData.get('total')) || 0
+    total: parseFloat(formData.get('total')) || 0,
+    donnees_supplementaires: donnees_supplementaires
   };
   
   console.log('Sauvegarde des facteurs pour:', currentEnergieForFacteurs);
@@ -907,6 +1169,172 @@ function showNotification(message, type) {
   grid-column: 1 / -1;
 }
 
+/* Styles pour les nouvelles sections */
+.section-title {
+  margin: 30px 0 20px 0;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+}
+
+.section-title h4 {
+  margin: 0 0 10px 0;
+  color: #1f2937;
+  font-size: 1.2rem;
+}
+
+.section-title p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.add-value-section {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.btn-add-value {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-add-value:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.add-value-form {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.add-value-form h5 {
+  margin: 0 0 20px 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+}
+
+.form-actions-inline {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.values-list-section {
+  margin: 30px 0;
+}
+
+.values-list-section h5 {
+  margin: 0 0 20px 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+}
+
+.values-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.value-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.value-item:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.value-info {
+  flex: 1;
+}
+
+.value-name {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 5px;
+}
+
+.value-details {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.value-valeur {
+  font-weight: 500;
+  color: #059669;
+  background: #d1fae5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.value-description {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.value-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-edit-small, .btn-delete-small {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.btn-edit-small:hover {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.btn-delete-small:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.no-values {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+  font-style: italic;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 2px dashed #d1d5db;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .page-header {
@@ -938,6 +1366,22 @@ function showNotification(message, type) {
   
   .btn-edit, .btn-delete {
     min-width: auto;
+  }
+  
+  .value-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .value-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .value-actions {
+    align-self: flex-end;
   }
 }
 </style>
