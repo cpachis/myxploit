@@ -392,7 +392,13 @@ function showAddEnergieModal() {
 // Afficher le modal de modification
 function editEnergie(energieId) {
   const energie = energies.find(e => e.id === energieId);
-  if (!energie) return;
+  if (!energie) {
+    console.error('Énergie non trouvée pour l\'ID:', energieId);
+    showNotification('Énergie non trouvée', 'error');
+    return;
+  }
+  
+  console.log('Édition de l\'énergie:', energie);
   
   currentEditId = energieId;
   document.getElementById('energie-modal-title').textContent = `Modifier l'Énergie ${energie.identifiant || energieId}`;
@@ -404,6 +410,8 @@ function editEnergie(energieId) {
   document.getElementById('energie-facteur').value = energie.facteur || '';
   document.getElementById('energie-explication').value = energie.description || '';
   document.getElementById('energie-lien-source').value = energie.lien_source || '';
+  
+  console.log('Formulaire rempli avec currentEditId:', currentEditId);
   
   document.getElementById('energie-modal').style.display = 'block';
 }
@@ -707,25 +715,31 @@ document.getElementById('energie-form').addEventListener('submit', function(e) {
   e.preventDefault();
   
   const formData = new FormData(e.target);
+  const isEdit = !!currentEditId; // Vérifier si c'est une modification
   
   // Récupérer les données du formulaire
   const energieData = {
     identifiant: formData.get('id'), // L'API attend 'identifiant'
     nom: formData.get('nom'),
-    facteur: parseFloat(formData.get('facteur')) || 0,
+    facteur: formData.get('facteur') ? parseFloat(formData.get('facteur')) : null,
     description: formData.get('explication'), // L'API attend 'description'
     unite: formData.get('unite')
   };
   
   console.log('Données à envoyer à l\'API:', energieData);
+  console.log('Mode:', isEdit ? 'Modification' : 'Création');
+  
+  // Déterminer l'URL et la méthode selon le mode
+  const url = isEdit ? `/api/energies/${currentEditId}` : '/api/energies';
+  const method = isEdit ? 'PUT' : 'POST';
   
   // Sauvegarder l'énergie via l'API
-  fetch('/api/energies', {
-    method: 'POST',
+  fetch(url, {
+    method: method,
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(energieData) // Envoyer directement les données
+    body: JSON.stringify(energieData)
   })
   .then(response => {
     console.log('Réponse HTTP:', response.status, response.statusText);
@@ -737,7 +751,8 @@ document.getElementById('energie-form').addEventListener('submit', function(e) {
   .then(result => {
     console.log('Résultat API:', result);
     if (result.success) {
-      showNotification('Énergie sauvegardée avec succès', 'success');
+      const message = isEdit ? 'Énergie modifiée avec succès' : 'Énergie créée avec succès';
+      showNotification(message, 'success');
       closeEnergieModal();
       loadEnergies(); // Recharger pour afficher les modifications
     } else {

@@ -293,8 +293,8 @@ def modifier_energie(energie_id):
         data = request.get_json()
         
         # Validation des données
-        if not data.get('nom') or data.get('facteur') is None:
-            return jsonify({'success': False, 'error': 'Nom et facteur requis'}), 400
+        if not data.get('nom'):
+            return jsonify({'success': False, 'error': 'Nom requis'}), 400
         
         # Vérifier si l'identifiant existe déjà (sauf pour cette énergie)
         if data.get('identifiant') and data['identifiant'] != energie.identifiant:
@@ -307,7 +307,8 @@ def modifier_energie(energie_id):
             energie.identifiant = data['identifiant']
         if data.get('unite'):
             energie.unite = data['unite']
-        energie.facteur = float(data['facteur'])
+        if data.get('facteur') is not None:
+            energie.facteur = float(data['facteur'])
         energie.description = data.get('description', '')
         
         db.session.commit()
