@@ -311,15 +311,18 @@ function loadEnergies() {
           identifiant: energie.identifiant,
           facteur: energie.facteur,
           description: energie.description,
-          unite: energie.unite || 'N/A',
+          unite: energie.unite || 'L',
           phase_amont: energie.phase_amont || 0,
           phase_fonctionnement: energie.phase_fonctionnement || 0,
-          total: energie.total || energie.facteur || 0,
+          total: energie.phase_amont + energie.phase_fonctionnement || energie.facteur || 0,
           donnees_supplementaires: energie.donnees_supplementaires || {}
         }));
+        
+        console.log('Énergies mappées avec succès:', energies);
       } else {
         // Fallback pour l'ancien format
         energies = Object.entries(result).map(([id, data]) => ({ id, ...data }));
+        console.log('Utilisation du format fallback');
       }
       
       console.log('Énergies formatées:', energies);
@@ -407,17 +410,29 @@ function showAddEnergieModal() {
 
 // Afficher le modal de modification
 function editEnergie(energieId) {
-  const energie = energies.find(e => e.id === energieId);
+  console.log('=== DÉBUT ÉDITION ÉNERGIE ===');
+  console.log('Tentative d\'édition de l\'énergie avec ID:', energieId);
+  console.log('Type de l\'ID reçu:', typeof energieId);
+  console.log('Énergies disponibles:', energies);
+  console.log('Nombre d\'énergies:', energies.length);
+  
+  // Chercher l'énergie par ID numérique ou par identifiant
+  const energie = energies.find(e => {
+    console.log('Comparaison:', e.id, energieId, e.identifiant);
+    return e.id == energieId || e.identifiant === energieId;
+  });
+  
   if (!energie) {
-    console.error('Énergie non trouvée pour l\'ID:', energieId);
+    console.error('❌ Énergie non trouvée pour l\'ID:', energieId);
+    console.error('Énergies dans la liste:', energies);
     showNotification('Énergie non trouvée', 'error');
     return;
   }
   
-  console.log('Édition de l\'énergie:', energie);
+  console.log('✅ Énergie trouvée pour édition:', energie);
   
-  currentEditId = energieId;
-  document.getElementById('energie-modal-title').textContent = `Modifier l'Énergie ${energie.identifiant || energieId}`;
+  currentEditId = energie.id; // Toujours utiliser l'ID numérique de la base
+  document.getElementById('energie-modal-title').textContent = `Modifier l'Énergie ${energie.identifiant || energie.id}`;
   
   // Remplir le formulaire
   document.getElementById('energie-id').value = energie.identifiant || energie.id || '';
@@ -428,6 +443,7 @@ function editEnergie(energieId) {
   document.getElementById('energie-lien-source').value = energie.lien_source || '';
   
   console.log('Formulaire rempli avec currentEditId:', currentEditId);
+  console.log('=== FIN ÉDITION ÉNERGIE ===');
   
   document.getElementById('energie-modal').style.display = 'block';
 }

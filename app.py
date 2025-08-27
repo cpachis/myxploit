@@ -206,8 +206,12 @@ def api_energies():
                 'id': e.id,
                 'nom': e.nom,
                 'identifiant': e.identifiant,
+                'unite': e.unite,
                 'facteur': e.facteur,
-                'description': e.description
+                'description': e.description,
+                'phase_amont': getattr(e, 'phase_amont', 0.0),
+                'phase_fonctionnement': getattr(e, 'phase_fonctionnement', 0.0),
+                'donnees_supplementaires': getattr(e, 'donnees_supplementaires', {})
             })
         
         return jsonify({
