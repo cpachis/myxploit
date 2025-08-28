@@ -103,6 +103,7 @@ class Energie(db.Model):
 # Initialiser la base de données APRÈS la définition des modèles
 with app.app_context():
     try:
+        logger.info("🚀 Démarrage de l'initialisation de la base de données...")
         db.create_all()
         logger.info("✅ Base de données initialisée avec succès")
         
@@ -114,6 +115,7 @@ with app.app_context():
             with db.engine.connect() as conn:
                 # Pour PostgreSQL
                 if 'postgresql' in str(db.engine.url):
+                    logger.info("🐘 Base PostgreSQL détectée - vérification des colonnes...")
                     # Vérifier si la colonne phase_amont existe
                     result = conn.execute(text("""
                         SELECT column_name 
@@ -170,9 +172,13 @@ with app.app_context():
             logger.warning(f"⚠️ Migration automatique échouée (non critique): {str(migration_error)}")
             logger.info("ℹ️ L'application continuera sans les nouvelles colonnes")
         
+        logger.info("✅ Initialisation de la base de données terminée avec succès")
+        
     except Exception as e:
-        logger.error(f"❌ Erreur lors de l'initialisation de la base: {str(e)}")
+        logger.error(f"❌ Erreur critique lors de l'initialisation de la base: {str(e)}")
+        logger.error(f"❌ Type d'erreur: {type(e).__name__}")
         # Ne pas lever l'erreur pour permettre le démarrage
+        logger.info("ℹ️ L'application tentera de continuer malgré l'erreur")
 
 # Les modèles sont maintenant définis directement dans app.py
 # Plus besoin d'importer transport_api
@@ -180,7 +186,21 @@ with app.app_context():
 @app.route('/')
 def index():
     """Page d'accueil"""
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de l'affichage de l'index: {str(e)}")
+        return f"""
+        <html>
+        <head><title>MyXploit - Statut</title></head>
+        <body>
+            <h1>🚀 MyXploit - Application en cours de démarrage</h1>
+            <p>L'application est en cours d'initialisation...</p>
+            <p>Erreur: {str(e)}</p>
+            <p><a href="/health">Vérifier le statut</a></p>
+        </body>
+        </html>
+        """, 500
 
 @app.route('/dashboard')
 def dashboard():
@@ -932,13 +952,42 @@ def health_check():
         # Vérifier la base de données
         db.session.execute(text('SELECT 1'))
         db_status = 'OK'
+        db_details = 'Connexion réussie'
     except Exception as e:
         db_status = f'ERROR: {str(e)}'
+        db_details = f'Type: {type(e).__name__}'
+    
+    # Vérifier les modèles
+    try:
+        energie_count = Energie.query.count()
+        transport_count = Transport.query.count()
+        vehicule_count = Vehicule.query.count()
+        models_status = 'OK'
+        models_details = {
+            'energies': energie_count,
+            'transports': transport_count,
+            'vehicules': vehicule_count
+        }
+    except Exception as e:
+        models_status = f'ERROR: {str(e)}'
+        models_details = f'Type: {type(e).__name__}'
     
     return jsonify({
         'status': 'healthy',
-        'database': db_status,
-        'timestamp': logging.Formatter().formatTime(logging.LogRecord('', 0, '', 0, '', '', None))
+        'timestamp': datetime.utcnow().isoformat(),
+        'database': {
+            'status': db_status,
+            'details': db_details
+        },
+        'models': {
+            'status': models_status,
+            'details': models_details
+        },
+        'app_info': {
+            'flask_version': '2.3.3',
+            'sqlalchemy_version': '2.0.43',
+            'environment': app.config.get('ENV', 'production')
+        }
     })
 
 @app.route('/debug/database')
@@ -975,13 +1024,33 @@ def debug_database():
                     if col not in existing_columns:
                         missing_columns.append(col)
                 
+                # Vérifier les données existantes
+                try:
+                    energie_count = Energie.query.count()
+                    sample_energies = Energie.query.limit(3).all()
+                    sample_data = []
+                    for e in sample_energies:
+                        sample_data.append({
+                            'id': e.id,
+                            'nom': e.nom,
+                            'has_phase_amont': hasattr(e, 'phase_amont'),
+                            'has_phase_fonctionnement': hasattr(e, 'phase_fonctionnement'),
+                            'has_donnees_supplementaires': hasattr(e, 'donnees_supplementaires')
+                        })
+                except Exception as model_error:
+                    sample_data = f"Erreur modèles: {str(model_error)}"
+                
                 return jsonify({
                     'success': True,
                     'database_type': 'PostgreSQL',
                     'table': 'energies',
                     'columns': columns,
                     'missing_columns': missing_columns,
-                    'total_columns': len(columns)
+                    'total_columns': len(columns),
+                    'data_info': {
+                        'total_energies': energie_count if 'energie_count' in locals() else 'N/A',
+                        'sample_data': sample_data
+                    }
                 })
             else:
                 return jsonify({
@@ -994,7 +1063,8 @@ def debug_database():
         logger.error(f"❌ Erreur lors du diagnostic de la base: {str(e)}")
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': str(e),
+            'error_type': type(e).__name__
         }), 500
 
 @app.errorhandler(404)
@@ -1005,9 +1075,29 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     """Gestion des erreurs 500"""
-    db.session.rollback()
-    logger.error(f"Erreur interne: {str(error)}")
-    return render_template('error.html', error='Erreur interne du serveur'), 500
+    try:
+        db.session.rollback()
+    except Exception as rollback_error:
+        logger.error(f"❌ Erreur lors du rollback: {str(rollback_error)}")
+    
+    logger.error(f"❌ Erreur interne 500: {str(error)}")
+    logger.error(f"❌ Type d'erreur: {type(error).__name__}")
+    
+    try:
+        return render_template('error.html', error='Erreur interne du serveur'), 500
+    except Exception as template_error:
+        logger.error(f"❌ Erreur lors du rendu du template d'erreur: {str(template_error)}")
+        return f"""
+        <html>
+        <head><title>Erreur 500 - MyXploit</title></head>
+        <body>
+            <h1>❌ Erreur interne du serveur</h1>
+            <p>Une erreur s'est produite lors du traitement de votre demande.</p>
+            <p>Détails: {str(error)}</p>
+            <p><a href="/health">Vérifier le statut de l'application</a></p>
+        </body>
+        </html>
+        """, 500
 
 def init_database():
     """Initialise la base de données et crée les tables"""
