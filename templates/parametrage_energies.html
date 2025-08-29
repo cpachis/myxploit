@@ -485,7 +485,17 @@ function editEnergie(energieId) {
 // Afficher le modal des facteurs d'émission
 function showFacteursModal(energieId) {
   console.log('=== OUVERTURE MODAL FACTEURS ===');
-  console.log('Ouverture du modal des facteurs pour l\'énergie:', energieId);
+  console.log('🔍 ID d\'énergie reçu:', energieId, 'Type:', typeof energieId);
+  
+  // S'assurer que l'ID est numérique
+  energieId = parseInt(energieId);
+  if (isNaN(energieId)) {
+    console.error('❌ ID d\'énergie invalide:', energieId);
+    showNotification('ID d\'énergie invalide', 'error');
+    return;
+  }
+  
+  console.log('🔢 ID d\'énergie parsé:', energieId);
   
   const energie = energies.find(e => e.id === energieId);
   if (!energie) {
@@ -496,8 +506,10 @@ function showFacteursModal(energieId) {
   
   console.log('✅ Énergie trouvée pour le modal:', energie);
   
-  // S'assurer que l'ID est numérique
+  // S'assurer que l'ID est numérique et définir la variable globale
   currentEnergieForFacteurs = parseInt(energieId);
+  console.log('🎯 currentEnergieForFacteurs défini à:', currentEnergieForFacteurs);
+  
   document.getElementById('energie-nom-facteurs').textContent = energie.nom;
   document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'L'}`;
   
@@ -512,6 +524,7 @@ function showFacteursModal(energieId) {
   console.log('- Phase amont:', energie.phase_amont);
   console.log('- Phase fonctionnement:', energie.phase_fonctionnement);
   console.log('- Total:', energie.total || energie.facteur);
+  console.log('🎯 currentEnergieForFacteurs final:', currentEnergieForFacteurs);
   
   // Charger et afficher les valeurs supplémentaires
   loadEnergieValues(energieId);
@@ -534,8 +547,11 @@ function showFacteursModalFromEnergieForm() {
   
   // Si c'est une nouvelle énergie, utiliser les données du formulaire
   if (!currentEditId) {
+    console.log('🆕 Nouvelle énergie détectée - configuration des facteurs');
     // Pour une nouvelle énergie, on peut configurer les facteurs mais on utilise un ID temporaire
     currentEnergieForFacteurs = 'new'; // Marqueur pour nouvelle énergie
+    console.log('🎯 currentEnergieForFacteurs défini à:', currentEnergieForFacteurs);
+    
     document.getElementById('energie-nom-facteurs').textContent = energieNom;
     document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energieUnite}`;
     
@@ -547,13 +563,15 @@ function showFacteursModalFromEnergieForm() {
     // Vider la liste des valeurs supplémentaires pour une nouvelle énergie
     displayEnergieValues({});
     
-    console.log('Modal des facteurs ouvert pour nouvelle énergie (mode prévisualisation)');
+    console.log('✅ Modal des facteurs ouvert pour nouvelle énergie (mode prévisualisation)');
   } else {
     // Si c'est une modification, utiliser les données existantes
     const energie = energies.find(e => e.id == currentEditId);
     if (energie) {
       console.log('✅ Énergie existante trouvée pour modification:', energie);
       currentEnergieForFacteurs = energie.id; // Utiliser l'ID numérique de la base
+      console.log('🎯 currentEnergieForFacteurs défini à:', currentEnergieForFacteurs);
+      
       document.getElementById('energie-nom-facteurs').textContent = energie.nom;
       document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'L'}`;
       
@@ -574,7 +592,8 @@ function showFacteursModalFromEnergieForm() {
       console.log('- Phase amont:', energie.phase_amont);
       console.log('- Phase fonctionnement:', energie.phase_fonctionnement);
       console.log('- Total:', energie.total || energie.facteur);
-      console.log('Modal des facteurs ouvert pour énergie existante:', energie.id);
+      console.log('🎯 currentEnergieForFacteurs final:', currentEnergieForFacteurs);
+      console.log('✅ Modal des facteurs ouvert pour énergie existante:', energie.id);
     } else {
       console.error('❌ Énergie non trouvée pour modification. currentEditId:', currentEditId);
       alert('Énergie non trouvée. Veuillez d\'abord sauvegarder l\'énergie.');
@@ -864,18 +883,23 @@ document.getElementById('energie-form').addEventListener('submit', function(e) {
 document.getElementById('facteurs-form').addEventListener('submit', function(e) {
   e.preventDefault();
   
-  const formData = new FormData(e.target);
+  console.log('=== SOUMISSION FORMULAIRE FACTEURS ===');
+  console.log('🔍 État actuel:', {
+    currentEnergieForFacteurs,
+    energies: energies.length,
+    currentEditId
+  });
   
   // Vérifier que currentEnergieForFacteurs est valide
   if (!currentEnergieForFacteurs) {
+    console.error('❌ Aucune énergie sélectionnée');
     showNotification('Erreur: Aucune énergie sélectionnée.', 'error');
     return;
   }
   
   // Si c'est une nouvelle énergie, permettre la configuration des facteurs
   if (currentEnergieForFacteurs === 'new') {
-    // L'utilisateur peut configurer les facteurs, ils seront sauvegardés après création
-    // Pas besoin d'alerte - le comportement est naturel
+    console.log('ℹ️ Nouvelle énergie - facteurs configurés mais non sauvegardés');
     showNotification('✅ Configuration des facteurs enregistrée. Les facteurs seront sauvegardés lors de la création de l\'énergie.', 'success');
     closeFacteursModal();
     return;
@@ -883,33 +907,50 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
   
   // Vérifier que c'est un ID numérique valide
   const energieId = parseInt(currentEnergieForFacteurs);
+  console.log('🔢 ID d\'énergie à traiter:', energieId, 'Type:', typeof energieId);
+  
   if (isNaN(energieId) || energieId <= 0) {
+    console.error('❌ ID d\'énergie invalide:', currentEnergieForFacteurs);
     showNotification('Erreur: ID d\'énergie invalide. Veuillez d\'abord sauvegarder l\'énergie.', 'error');
     return;
   }
   
   // Vérifier que l'énergie existe bien
   const energie = energies.find(e => e.id === energieId);
+  console.log('🔍 Énergie trouvée:', energie);
+  
   if (!energie) {
+    console.error('❌ Énergie non trouvée pour l\'ID:', energieId);
+    console.error('Énergies disponibles:', energies);
     showNotification('Erreur: Énergie non trouvée. Veuillez d\'abord sauvegarder l\'énergie.', 'error');
     return;
   }
+  
+  // Récupérer les valeurs directement depuis les champs du formulaire
+  const phaseAmont = parseFloat(document.getElementById('facteur-phase-amont').value) || 0;
+  const phaseFonctionnement = parseFloat(document.getElementById('facteur-phase-fonctionnement').value) || 0;
+  const total = phaseAmont + phaseFonctionnement;
+  
+  console.log('📊 Valeurs du formulaire:');
+  console.log('- Phase amont:', phaseAmont);
+  console.log('- Phase fonctionnement:', phaseFonctionnement);
+  console.log('- Total calculé:', total);
   
   // Récupérer les données supplémentaires de l'énergie trouvée
   const donnees_supplementaires = energie.donnees_supplementaires || {};
   
   const facteursData = {
-    phase_amont: parseFloat(formData.get('phase_amont')) || 0,
-    phase_fonctionnement: parseFloat(formData.get('phase_fonctionnement')) || 0,
-    total: parseFloat(formData.get('total')) || 0,
+    phase_amont: phaseAmont,
+    phase_fonctionnement: phaseFonctionnement,
+    total: total,
     donnees_supplementaires: donnees_supplementaires
   };
   
-  console.log('Sauvegarde des facteurs pour l\'énergie ID:', currentEnergieForFacteurs);
-  console.log('Données à sauvegarder:', facteursData);
+  console.log('📤 Données à envoyer à l\'API:', facteursData);
+  console.log('🌐 URL de l\'API:', `/api/energies/${energieId}/facteurs`);
   
   // Sauvegarder via l'API
-  fetch(`/api/energies/${currentEnergieForFacteurs}/facteurs`, {
+  fetch(`/api/energies/${energieId}/facteurs`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -917,53 +958,60 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
     body: JSON.stringify(facteursData)
   })
   .then(response => {
-    console.log('Réponse API:', response);
+    console.log('📡 Réponse HTTP:', response.status, response.statusText);
+    console.log('📡 Headers de réponse:', response.headers);
+    
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     return response.json();
   })
   .then(result => {
-    console.log('Résultat API:', result);
+    console.log('📥 Résultat API:', result);
+    
     if (result.success) {
-      showNotification('Facteurs d\'émission sauvegardés avec succès', 'success');
+      console.log('✅ Facteurs sauvegardés avec succès');
       
       // Mettre à jour automatiquement le facteur global dans le formulaire principal
-      const total = facteursData.total;
       if (total > 0) {
         document.getElementById('energie-facteur').value = total.toFixed(3);
         console.log('✅ Facteur global mis à jour automatiquement:', total);
       }
       
-                                  // Mettre à jour la liste des énergies en mémoire
-                            if (energie) {
-                                energie.phase_amont = facteursData.phase_amont;
-                                energie.phase_fonctionnement = facteursData.phase_fonctionnement;
-                                energie.total = total;
-                                energie.facteur = total;
-                                console.log('✅ Données mises à jour en mémoire:', energie);
-                                
-                                // Mettre à jour immédiatement l'affichage de cette énergie
-                                updateEnergieDisplay(energie.id);
-                            }
-                            
-                            closeFacteursModal();
-                            
-                            // Rafraîchissement immédiat et rechargement depuis le serveur
-                            console.log('🔄 Rafraîchissement immédiat et rechargement...');
-                            if (energie) {
-                                refreshEnergieImmediately(energie.id);
-                            } else {
-                                setTimeout(() => {
-                                    loadEnergies();
-                                }, 300);
-                            }
+      // Mettre à jour la liste des énergies en mémoire
+      if (energie) {
+        energie.phase_amont = facteursData.phase_amont;
+        energie.phase_fonctionnement = facteursData.phase_fonctionnement;
+        energie.total = total;
+        energie.facteur = total;
+        console.log('✅ Données mises à jour en mémoire:', energie);
+        
+        // Mettre à jour immédiatement l'affichage de cette énergie
+        updateEnergieDisplay(energie.id);
+      }
+      
+      closeFacteursModal();
+      
+      // Rafraîchissement immédiat et rechargement depuis le serveur
+      console.log('🔄 Rafraîchissement immédiat et rechargement...');
+      if (energie) {
+        refreshEnergieImmediately(energie.id);
+      } else {
+        setTimeout(() => {
+          loadEnergies();
+        }, 300);
+      }
+      
+      showNotification('✅ Facteurs d\'émission sauvegardés avec succès', 'success');
     } else {
+      console.error('❌ Erreur API:', result.error);
       showNotification(`Erreur: ${result.error}`, 'error');
     }
   })
   .catch(error => {
-    console.error('Erreur lors de la sauvegarde:', error);
+    console.error('❌ Erreur lors de la sauvegarde:', error);
+    console.error('❌ Type d\'erreur:', error.name);
+    console.error('❌ Message d\'erreur:', error.message);
     showNotification(`Erreur lors de la sauvegarde: ${error.message}`, 'error');
   });
 });
