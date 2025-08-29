@@ -1,0 +1,11 @@
+2025-08-29 11:57:14,485 - app - INFO - === CRÉATION D'ÉNERGIE ===
+2025-08-29 11:57:14,534 - app - INFO -    - nom: Test API Diagnostic
+2025-08-29 11:57:14,534 - app - INFO -    - identifiant: test-api-diagnostic
+2025-08-29 11:57:14,534 - app - INFO -    - unite: L
+2025-08-29 11:57:14,534 - app - INFO -    - facteur: 1.0
+2025-08-29 11:57:14,535 - app - INFO -    - description: Test de l'API
+2025-08-29 11:57:14,537 - app - INFO -    - nom: Test API Diagnostic
+2025-08-29 11:57:14,538 - app - INFO -    - identifiant: test-api-diagnostic
+2025-08-29 11:57:14,538 - app - INFO -    - unite: L
+2025-08-29 11:57:14,538 - app - INFO -    - facteur: 1.0
+2025-08-29 11:57:14,538 - app - INFO -    - description: Test de l'API

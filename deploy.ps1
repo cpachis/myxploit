@@ -100,3 +100,4 @@ Write-Host "🔗 Documentation Render: https://render.com/docs" -ForegroundColor
 Write-Host "📖 Guide de dépannage: TROUBLESHOOTING.md" -ForegroundColor Blue
 
 Write-Host "`n🎉 Déploiement préparé avec succès!" -ForegroundColor Green
+

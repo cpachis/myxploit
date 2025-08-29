@@ -135,3 +135,4 @@ pip list
 2. Testez localement avec `python deploy_check.py`
 3. Vérifiez la configuration dans `render.yaml`
 4. Consultez la documentation des outils utilisés
+

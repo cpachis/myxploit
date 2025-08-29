@@ -64,7 +64,7 @@ class Transport(db.Model):
     type_transport = db.Column(db.String(50))
     niveau_calcul = db.Column(db.String(50))
     type_vehicule = db.Column(db.String(50))
-    energie = db.Column(db.String(50))
+    energie = db.Column(db.String(50)) # Changed from energie to energie
     conso_vehicule = db.Column(db.Float)
     poids_tonnes = db.Column(db.Float)
     distance_km = db.Column(db.Float)
@@ -367,22 +367,66 @@ def creer_energie():
         else:
             logger.info(f"✅ Identifiant disponible: {data['identifiant']}")
         
+        # Validation des types de données
+        try:
+            unite = data.get('unite', 'L')
+            logger.info(f"🔍 Unité: '{unite}' (type: {type(unite)})")
+            
+            facteur = None
+            if data.get('facteur') is not None:
+                facteur = float(data.get('facteur'))
+                logger.info(f"🔍 Facteur: {facteur} (type: {type(facteur)})")
+            else:
+                logger.info("🔍 Facteur: None (non fourni)")
+            
+            description = data.get('description', '')
+            logger.info(f"🔍 Description: '{description}' (type: {type(description)})")
+            
+        except (ValueError, TypeError) as e:
+            logger.error(f"❌ Erreur de conversion de type: {str(e)}")
+            return jsonify({'success': False, 'error': f'Type de données invalide: {str(e)}'}), 400
+        
         # Créer la nouvelle énergie
-        logger.info(f"🏗️ Création de l'énergie avec les données: {data}")
+        logger.info(f"🏗️ Création de l'énergie avec les données validées:")
+        logger.info(f"   - nom: {data['nom']}")
+        logger.info(f"   - identifiant: {data['identifiant']}")
+        logger.info(f"   - unite: {unite}")
+        logger.info(f"   - facteur: {facteur}")
+        logger.info(f"   - description: {description}")
         
         nouvelle_energie = Energie(
             nom=data['nom'],
             identifiant=data['identifiant'],
-            unite=data.get('unite', 'L'),
-            facteur=float(data.get('facteur', 0)) if data.get('facteur') else None,
-            description=data.get('description', '')
+            unite=unite,
+            facteur=facteur,
+            description=description
         )
         
         logger.info(f"📝 Objet énergie créé: {nouvelle_energie.nom} (ID: {nouvelle_energie.id})")
+        logger.info(f"📊 Attributs de l'objet:")
+        logger.info(f"   - nom: {nouvelle_energie.nom}")
+        logger.info(f"   - identifiant: {nouvelle_energie.identifiant}")
+        logger.info(f"   - unite: {nouvelle_energie.unite}")
+        logger.info(f"   - facteur: {nouvelle_energie.facteur}")
+        logger.info(f"   - description: {nouvelle_energie.description}")
         
-        db.session.add(nouvelle_energie)
-        db.session.commit()
-        logger.info(f"💾 Énergie sauvegardée en base avec l'ID: {nouvelle_energie.id}")
+        # Vérifier la validité de l'objet avant l'ajout
+        try:
+            db.session.add(nouvelle_energie)
+            logger.info("✅ Objet ajouté à la session")
+            
+            # Vérifier que l'objet est valide
+            db.session.flush()
+            logger.info("✅ Objet validé par la base de données")
+            
+            db.session.commit()
+            logger.info(f"💾 Énergie sauvegardée en base avec l'ID: {nouvelle_energie.id}")
+            
+        except Exception as db_error:
+            logger.error(f"❌ Erreur lors de la sauvegarde en base: {str(db_error)}")
+            logger.error(f"❌ Type d'erreur: {type(db_error).__name__}")
+            db.session.rollback()
+            return jsonify({'success': False, 'error': f'Erreur de base de données: {str(db_error)}'}), 500
         
         logger.info(f"✅ Nouvelle énergie créée: {nouvelle_energie.nom}")
         return jsonify({

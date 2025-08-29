@@ -110,3 +110,4 @@ if __name__ == "__main__":
     else:
         logger.error("❌ Migration échouée !")
         sys.exit(1)
+
