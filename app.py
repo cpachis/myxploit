@@ -343,17 +343,33 @@ def parametrage_energies():
 def creer_energie():
     """Créer une nouvelle énergie"""
     try:
+        logger.info("=== CRÉATION D'ÉNERGIE ===")
+        
         data = request.get_json()
+        logger.info(f"📥 JSON parsé: {data}")
+        logger.info(f"📊 Type de données: {type(data)}")
         
         # Validation des données
+        if not data:
+            logger.error("❌ Données JSON manquantes ou invalides")
+            return jsonify({'success': False, 'error': 'Données JSON manquantes ou invalides'}), 400
+            
         if not data.get('nom') or not data.get('identifiant'):
+            logger.error(f"❌ Validation échouée - nom: '{data.get('nom')}', identifiant: '{data.get('identifiant')}'")
             return jsonify({'success': False, 'error': 'Nom et identifiant requis'}), 400
         
         # Vérifier si l'identifiant existe déjà
-        if Energie.query.filter_by(identifiant=data['identifiant']).first():
+        logger.info(f"🔍 Vérification de l'identifiant: {data['identifiant']}")
+        energie_existante = Energie.query.filter_by(identifiant=data['identifiant']).first()
+        if energie_existante:
+            logger.error(f"❌ Identifiant déjà existant: {data['identifiant']} (ID: {energie_existante.id})")
             return jsonify({'success': False, 'error': 'Cet identifiant existe déjà'}), 400
+        else:
+            logger.info(f"✅ Identifiant disponible: {data['identifiant']}")
         
         # Créer la nouvelle énergie
+        logger.info(f"🏗️ Création de l'énergie avec les données: {data}")
+        
         nouvelle_energie = Energie(
             nom=data['nom'],
             identifiant=data['identifiant'],
@@ -362,8 +378,11 @@ def creer_energie():
             description=data.get('description', '')
         )
         
+        logger.info(f"📝 Objet énergie créé: {nouvelle_energie.nom} (ID: {nouvelle_energie.id})")
+        
         db.session.add(nouvelle_energie)
         db.session.commit()
+        logger.info(f"💾 Énergie sauvegardée en base avec l'ID: {nouvelle_energie.id}")
         
         logger.info(f"✅ Nouvelle énergie créée: {nouvelle_energie.nom}")
         return jsonify({
@@ -375,7 +394,15 @@ def creer_energie():
         
     except Exception as e:
         logger.error(f"❌ Erreur lors de la création de l'énergie: {str(e)}")
-        db.session.rollback()
+        logger.error(f"❌ Type d'erreur: {type(e).__name__}")
+        logger.error(f"❌ Détails de l'erreur: {str(e)}")
+        
+        try:
+            db.session.rollback()
+            logger.info("✅ Rollback effectué")
+        except Exception as rollback_error:
+            logger.error(f"❌ Erreur lors du rollback: {str(rollback_error)}")
+        
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/energies/<int:energie_id>', methods=['PUT'])
