@@ -366,7 +366,12 @@ def creer_energie():
         db.session.commit()
         
         logger.info(f"✅ Nouvelle énergie créée: {nouvelle_energie.nom}")
-        return jsonify({'success': True, 'message': 'Énergie créée avec succès'})
+        return jsonify({
+            'success': True, 
+            'message': 'Énergie créée avec succès',
+            'energie_id': nouvelle_energie.id,
+            'id': nouvelle_energie.id
+        })
         
     except Exception as e:
         logger.error(f"❌ Erreur lors de la création de l'énergie: {str(e)}")
