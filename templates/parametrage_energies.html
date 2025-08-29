@@ -849,7 +849,18 @@ document.getElementById('energie-form').addEventListener('submit', function(e) {
     unite: formData.get('unite')
   };
   
-  console.log('Données à envoyer à l\'API:', energieData);
+  // Validation des données obligatoires
+  if (!energieData.identifiant || !energieData.nom) {
+    showNotification('Erreur: Identifiant et nom sont obligatoires', 'error');
+    return;
+  }
+  
+  // Nettoyer les valeurs vides
+  if (energieData.description === '') {
+    energieData.description = null;
+  }
+  
+  console.log('📤 Données à envoyer à l\'API:', energieData);
   console.log('Mode:', isEdit ? 'Modification' : 'Création');
   
   // Déterminer l'URL et la méthode selon le mode
@@ -857,6 +868,10 @@ document.getElementById('energie-form').addEventListener('submit', function(e) {
   const method = isEdit ? 'PUT' : 'POST';
   
   // Sauvegarder l'énergie via l'API
+  console.log('🌐 URL de l\'API:', url);
+  console.log('📡 Méthode HTTP:', method);
+  console.log('📦 Corps de la requête:', JSON.stringify(energieData, null, 2));
+  
   fetch(url, {
     method: method,
     headers: {
@@ -890,11 +905,17 @@ document.getElementById('energie-form').addEventListener('submit', function(e) {
           sauvegarderFacteursApresCreation(nouvelleEnergieId);
         } else {
           console.warn('⚠️ ID de la nouvelle énergie non trouvé dans la réponse');
+          console.warn('📥 Réponse complète:', result);
           closeEnergieModal();
           loadEnergies();
         }
       } else {
         console.log('ℹ️ Fermeture directe - pas de facteurs à sauvegarder');
+        console.log('🔍 État des facteurs:', {
+          isEdit,
+          currentEnergieForFacteurs,
+          facteursConfigures: window.facteursConfigures
+        });
         closeEnergieModal();
         loadEnergies(); // Recharger pour afficher les modifications
       }
