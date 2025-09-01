@@ -1100,21 +1100,49 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
         
         // Mettre à jour immédiatement l'affichage de cette énergie
         updateEnergieDisplay(energie.id);
+        
+        // Ajouter un effet visuel pour confirmer la mise à jour
+        const energieCard = document.querySelector(`[data-energie-id="${energie.id}"]`);
+        if (energieCard) {
+          energieCard.style.backgroundColor = '#e8f5e8';
+          energieCard.style.border = '2px solid #28a745';
+          setTimeout(() => {
+            energieCard.style.backgroundColor = '';
+            energieCard.style.border = '';
+          }, 2000);
+        }
       }
       
       closeFacteursModal();
       
       // Rafraîchissement immédiat et rechargement depuis le serveur
       console.log('🔄 Rafraîchissement immédiat et rechargement...');
-      if (energie) {
-        refreshEnergieImmediately(energie.id);
-      } else {
-        setTimeout(() => {
-          loadEnergies();
-        }, 300);
-      }
+      setTimeout(() => {
+        loadEnergies();
+      }, 500);
       
       showNotification('✅ Facteurs d\'émission sauvegardés avec succès', 'success');
+      
+      // Afficher un message de confirmation dans le modal avant de le fermer
+      const modalContent = document.querySelector('.facteurs-modal-content');
+      if (modalContent) {
+        const successMessage = document.createElement('div');
+        successMessage.className = 'success-message';
+        successMessage.innerHTML = `
+          <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin: 10px 0; text-align: center;">
+            <strong>✅ Sauvegarde réussie !</strong><br>
+            Les facteurs d'émission ont été mis à jour.
+          </div>
+        `;
+        modalContent.appendChild(successMessage);
+        
+        // Fermer le modal après 1.5 secondes
+        setTimeout(() => {
+          closeFacteursModal();
+        }, 1500);
+      } else {
+        closeFacteursModal();
+      }
     } else {
       console.error('❌ Erreur API:', result.error);
       showNotification(`Erreur: ${result.error}`, 'error');
