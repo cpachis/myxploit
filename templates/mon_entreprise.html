@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+
+{% block title %}MyXploit - Mon Entreprise{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>🏢 Mon Entreprise</h1>
+        <p>Gérez les informations de votre entreprise et vos paramètres</p>
+    </div>
+
+    <div class="entreprise-info-section">
+        <div class="card">
+            <div class="card-header">
+                <h2>📋 Informations de l'entreprise</h2>
+            </div>
+            <div class="card-body">
+                <form id="entreprise-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nom_entreprise">Nom de l'entreprise *</label>
+                            <input type="text" id="nom_entreprise" name="nom_entreprise" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="siret">Numéro SIRET</label>
+                            <input type="text" id="siret" name="siret" class="form-control" placeholder="123 456 789 00012">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="adresse">Adresse</label>
+                            <textarea id="adresse" name="adresse" class="form-control" rows="3" placeholder="123 Rue de la Paix&#10;75001 Paris"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="telephone">Téléphone</label>
+                            <input type="tel" id="telephone" name="telephone" class="form-control" placeholder="01 23 45 67 89">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email_contact">Email de contact</label>
+                            <input type="email" id="email_contact" name="email_contact" class="form-control" placeholder="contact@entreprise.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="site_web">Site web</label>
+                            <input type="url" id="site_web" name="site_web" class="form-control" placeholder="https://www.entreprise.com">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description de l'activité</label>
+                        <textarea id="description" name="description" class="form-control" rows="4" placeholder="Décrivez brièvement l'activité de votre entreprise..."></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="btn-icon">💾</span>
+                            Sauvegarder les informations
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="user-profile-section">
+        <div class="card">
+            <div class="card-header">
+                <h2>👤 Mon Profil</h2>
+            </div>
+            <div class="card-body">
+                <form id="profile-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nom_utilisateur">Nom complet *</label>
+                            <input type="text" id="nom_utilisateur" name="nom_utilisateur" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fonction">Fonction</label>
+                            <input type="text" id="fonction" name="fonction" class="form-control" placeholder="Directeur, Responsable, etc.">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email_personnel">Email personnel</label>
+                            <input type="email" id="email_personnel" name="email_personnel" class="form-control" placeholder="prenom.nom@email.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="telephone_personnel">Téléphone personnel</label>
+                            <input type="tel" id="telephone_personnel" name="telephone_personnel" class="form-control" placeholder="06 12 34 56 78">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="btn-icon">👤</span>
+                            Mettre à jour le profil
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="preferences-section">
+        <div class="card">
+            <div class="card-header">
+                <h2>⚙️ Préférences</h2>
+            </div>
+            <div class="card-body">
+                <form id="preferences-form">
+                    <div class="form-group">
+                        <label for="langue">Langue d'interface</label>
+                        <select id="langue" name="langue" class="form-control">
+                            <option value="fr">Français</option>
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fuseau_horaire">Fuseau horaire</label>
+                        <select id="fuseau_horaire" name="fuseau_horaire" class="form-control">
+                            <option value="Europe/Paris">Europe/Paris (UTC+1)</option>
+                            <option value="Europe/London">Europe/London (UTC+0)</option>
+                            <option value="America/New_York">America/New_York (UTC-5)</option>
+                            <option value="Asia/Tokyo">Asia/Tokyo (UTC+9)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="unite_distance">Unité de distance</label>
+                        <select id="unite_distance" name="unite_distance" class="form-control">
+                            <option value="km">Kilomètres (km)</option>
+                            <option value="miles">Miles</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="unite_poids">Unité de poids</label>
+                        <select id="unite_poids" name="unite_poids" class="form-control">
+                            <option value="tonnes">Tonnes</option>
+                            <option value="kg">Kilogrammes (kg)</option>
+                            <option value="lbs">Livres (lbs)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="notifications_email" name="notifications_email">
+                            <span class="checkmark"></span>
+                            Recevoir les notifications par email
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rapports_automatiques" name="rapports_automatiques">
+                            <span class="checkmark"></span>
+                            Générer des rapports automatiques
+                        </label>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="btn-icon">⚙️</span>
+                            Sauvegarder les préférences
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="security-section">
+        <div class="card">
+            <div class="card-header">
+                <h2>🔒 Sécurité</h2>
+            </div>
+            <div class="card-body">
+                <form id="security-form">
+                    <div class="form-group">
+                        <label for="ancien_mot_de_passe">Ancien mot de passe</label>
+                        <input type="password" id="ancien_mot_de_passe" name="ancien_mot_de_passe" class="form-control">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nouveau_mot_de_passe">Nouveau mot de passe</label>
+                            <input type="password" id="nouveau_mot_de_passe" name="nouveau_mot_de_passe" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirmation_mot_de_passe">Confirmer le nouveau mot de passe</label>
+                            <input type="password" id="confirmation_mot_de_passe" name="confirmation_mot_de_passe" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-warning">
+                            <span class="btn-icon">🔒</span>
+                            Changer le mot de passe
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+}
+
+.page-header h1 {
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.entreprise-info-section,
+.user-profile-section,
+.preferences-section,
+.security-section {
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.card-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.3rem;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    color: #333;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 0.75rem;
+    width: 18px;
+    height: 18px;
+    accent-color: #667eea;
+}
+
+.form-actions {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    color: white;
+}
+
+.btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+}
+
+.btn-icon {
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    max-width: 400px;
+}
+
+.notification-success {
+    background: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.notification-error {
+    background: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+}
+</style>
+
+<script>
+// Système de notification moderne
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+            <span class="notification-message">${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animation d'entrée
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Auto-suppression
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Sauvegarder les informations de l'entreprise
+async function saveEntrepriseInfo(formData) {
+    try {
+        // Simulation d'une sauvegarde
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        showNotification('Informations de l\'entreprise sauvegardées avec succès', 'success');
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la sauvegarde', 'error');
+    }
+}
+
+// Sauvegarder le profil utilisateur
+async function saveUserProfile(formData) {
+    try {
+        // Simulation d'une sauvegarde
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        showNotification('Profil utilisateur mis à jour avec succès', 'success');
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la mise à jour du profil', 'error');
+    }
+}
+
+// Sauvegarder les préférences
+async function savePreferences(formData) {
+    try {
+        // Simulation d'une sauvegarde
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        showNotification('Préférences sauvegardées avec succès', 'success');
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la sauvegarde des préférences', 'error');
+    }
+}
+
+// Changer le mot de passe
+async function changePassword(formData) {
+    try {
+        const nouveauMotDePasse = formData.get('nouveau_mot_de_passe');
+        const confirmationMotDePasse = formData.get('confirmation_mot_de_passe');
+        
+        if (nouveauMotDePasse !== confirmationMotDePasse) {
+            showNotification('Les mots de passe ne correspondent pas', 'error');
+            return;
+        }
+        
+        if (nouveauMotDePasse.length < 8) {
+            showNotification('Le mot de passe doit contenir au moins 8 caractères', 'error');
+            return;
+        }
+        
+        // Simulation d'un changement de mot de passe
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        showNotification('Mot de passe changé avec succès', 'success');
+        document.getElementById('security-form').reset();
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors du changement de mot de passe', 'error');
+    }
+}
+
+// Événements
+document.addEventListener('DOMContentLoaded', function() {
+    // Formulaire entreprise
+    document.getElementById('entreprise-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        saveEntrepriseInfo(formData);
+    });
+    
+    // Formulaire profil
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        saveUserProfile(formData);
+    });
+    
+    // Formulaire préférences
+    document.getElementById('preferences-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        savePreferences(formData);
+    });
+    
+    // Formulaire sécurité
+    document.getElementById('security-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        changePassword(formData);
+    });
+});
+</script>
+{% endblock %}

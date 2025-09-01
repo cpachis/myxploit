@@ -22,6 +22,12 @@
             <li><a href="{{ url_for('transporteurs') }}">🚚 Mes Transporteurs</a></li>
             <li><a href="{{ url_for('transports') }}">📦 Mes Transports</a></li>
             <li><a href="{{ url_for('dashboard') }}">📊 Mon Dashboard</a></li>
+            <li class="dropdown-submenu">
+              <a href="#">⚙️ Paramètres</a>
+              <ul class="dropdown-submenu-content">
+                <li><a href="{{ url_for('mon_entreprise') }}">🏢 Mon Entreprise</a></li>
+              </ul>
+            </li>
           </ul>
         </li>
         <li class="dropdown">
@@ -32,6 +38,7 @@
             <li><a href="{{ url_for('parametrage_energies') }}">⚡ Gestion des Énergies</a></li>
             <li><a href="{{ url_for('parametrage_impact') }}">🌱 Configuration de l'Impact</a></li>
             <li><a href="{{ url_for('parametrage_systeme') }}">⚙️ Paramètres Système</a></li>
+            <li><a href="{{ url_for('invitations') }}">📧 Invitations Clients</a></li>
             <li><a href="{{ url_for('debug_page') }}">🔧 Debug</a></li>
           </ul>
         </li>

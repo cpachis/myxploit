@@ -117,6 +117,22 @@ class Energie(db.Model):
     donnees_supplementaires = db.Column(db.JSON, default={})  # Données supplémentaires en JSON
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Invitation(db.Model):
+    """Modèle pour les invitations de clients"""
+    __tablename__ = 'invitations'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False)
+    token = db.Column(db.String(100), unique=True, nullable=False)
+    statut = db.Column(db.String(20), default='en_attente')  # en_attente, acceptee, refusee, expiree
+    nom_entreprise = db.Column(db.String(100))
+    nom_utilisateur = db.Column(db.String(100))
+    date_invitation = db.Column(db.DateTime, default=datetime.utcnow)
+    date_reponse = db.Column(db.DateTime)
+    message_personnalise = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 # Initialiser la base de données APRÈS la définition des modèles
 with app.app_context():
     try:
@@ -1501,6 +1517,158 @@ def force_migration():
             'error': str(e),
             'error_type': type(e).__name__
         }), 500
+
+# Routes pour les invitations de clients
+@app.route('/invitations')
+def invitations():
+    """Page de gestion des invitations de clients"""
+    try:
+        return render_template('invitations.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des invitations: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/api/invitations', methods=['GET', 'POST'])
+def api_invitations():
+    """API pour gérer les invitations"""
+    if request.method == 'GET':
+        try:
+            invitations = Invitation.query.order_by(Invitation.created_at.desc()).all()
+            invitations_data = []
+            
+            for inv in invitations:
+                invitations_data.append({
+                    'id': inv.id,
+                    'email': inv.email,
+                    'statut': inv.statut,
+                    'nom_entreprise': inv.nom_entreprise,
+                    'nom_utilisateur': inv.nom_utilisateur,
+                    'date_invitation': inv.date_invitation.strftime('%d/%m/%Y %H:%M') if inv.date_invitation else None,
+                    'date_reponse': inv.date_reponse.strftime('%d/%m/%Y %H:%M') if inv.date_reponse else None,
+                    'message_personnalise': inv.message_personnalise
+                })
+            
+            return jsonify({
+                'success': True,
+                'invitations': invitations_data
+            })
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des invitations: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+            email = data.get('email')
+            message_personnalise = data.get('message_personnalise', '')
+            
+            if not email:
+                return jsonify({'success': False, 'error': 'Email requis'}), 400
+            
+            # Vérifier si l'email n'est pas déjà invité
+            existing_invitation = Invitation.query.filter_by(email=email).first()
+            if existing_invitation:
+                return jsonify({'success': False, 'error': 'Une invitation existe déjà pour cet email'}), 400
+            
+            # Générer un token unique
+            import secrets
+            token = secrets.token_urlsafe(32)
+            
+            # Créer l'invitation
+            invitation = Invitation(
+                email=email,
+                token=token,
+                message_personnalise=message_personnalise
+            )
+            
+            db.session.add(invitation)
+            db.session.commit()
+            
+            # TODO: Envoyer l'email d'invitation
+            # Pour l'instant, on simule l'envoi
+            logger.info(f"📧 Invitation envoyée à {email} avec le token {token}")
+            
+            return jsonify({
+                'success': True,
+                'message': f'Invitation envoyée à {email}',
+                'invitation_id': invitation.id
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la création de l'invitation: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/invitation/<token>')
+def invitation_accept(token):
+    """Page pour accepter/refuser une invitation"""
+    try:
+        invitation = Invitation.query.filter_by(token=token).first()
+        
+        if not invitation:
+            return render_template('error.html', error='Invitation invalide ou expirée'), 404
+        
+        if invitation.statut != 'en_attente':
+            return render_template('error.html', error='Cette invitation a déjà été traitée'), 400
+        
+        return render_template('invitation_accept.html', invitation=invitation)
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage de l'invitation: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/api/invitation/<token>/reponse', methods=['POST'])
+def api_invitation_reponse(token):
+    """API pour accepter/refuser une invitation"""
+    try:
+        invitation = Invitation.query.filter_by(token=token).first()
+        
+        if not invitation:
+            return jsonify({'success': False, 'error': 'Invitation invalide'}), 404
+        
+        if invitation.statut != 'en_attente':
+            return jsonify({'success': False, 'error': 'Cette invitation a déjà été traitée'}), 400
+        
+        data = request.get_json()
+        action = data.get('action')  # 'accepter' ou 'refuser'
+        nom_entreprise = data.get('nom_entreprise', '')
+        nom_utilisateur = data.get('nom_utilisateur', '')
+        
+        if action == 'accepter':
+            if not nom_entreprise or not nom_utilisateur:
+                return jsonify({'success': False, 'error': 'Nom d\'entreprise et nom d\'utilisateur requis'}), 400
+            
+            invitation.statut = 'acceptee'
+            invitation.nom_entreprise = nom_entreprise
+            invitation.nom_utilisateur = nom_utilisateur
+            invitation.date_reponse = datetime.utcnow()
+            
+            # TODO: Créer le compte utilisateur
+            logger.info(f"✅ Invitation acceptée par {nom_utilisateur} ({nom_entreprise})")
+            
+        elif action == 'refuser':
+            invitation.statut = 'refusee'
+            invitation.date_reponse = datetime.utcnow()
+            logger.info(f"❌ Invitation refusée par {invitation.email}")
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Invitation {action} avec succès'
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors du traitement de l'invitation: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/mon-entreprise')
+def mon_entreprise():
+    """Page de gestion de l'entreprise (côté client)"""
+    try:
+        return render_template('mon_entreprise.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage de mon entreprise: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
 
 @app.errorhandler(404)
 def not_found(error):
