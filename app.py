@@ -116,53 +116,37 @@ with app.app_context():
                 # Pour PostgreSQL
                 if 'postgresql' in str(db.engine.url):
                     logger.info("🐘 Base PostgreSQL détectée - vérification des colonnes...")
-                    # Vérifier si la colonne phase_amont existe
-                    result = conn.execute(text("""
-                        SELECT column_name 
-                        FROM information_schema.columns 
-                        WHERE table_name = 'energies' 
-                        AND column_name = 'phase_amont'
-                    """))
                     
-                    if not result.fetchone():
-                        logger.info("➕ Ajout de la colonne 'phase_amont'...")
-                        conn.execute(text("ALTER TABLE energies ADD COLUMN phase_amont FLOAT DEFAULT 0.0"))
-                        conn.commit()
-                        logger.info("✅ Colonne 'phase_amont' ajoutée")
-                    else:
-                        logger.info("✅ Colonne 'phase_amont' existe déjà")
+                    # Forcer l'ajout des colonnes manquantes (avec gestion d'erreur)
+                    columns_to_add = [
+                        ('phase_amont', 'FLOAT DEFAULT 0.0'),
+                        ('phase_fonctionnement', 'FLOAT DEFAULT 0.0'),
+                        ('donnees_supplementaires', 'JSONB DEFAULT \'{}\'')
+                    ]
                     
-                    # Vérifier si la colonne phase_fonctionnement existe
-                    result = conn.execute(text("""
-                        SELECT column_name 
-                        FROM information_schema.columns 
-                        WHERE table_name = 'energies' 
-                        AND column_name = 'phase_fonctionnement'
-                    """))
-                    
-                    if not result.fetchone():
-                        logger.info("➕ Ajout de la colonne 'phase_fonctionnement'...")
-                        conn.execute(text("ALTER TABLE energies ADD COLUMN phase_fonctionnement FLOAT DEFAULT 0.0"))
-                        conn.commit()
-                        logger.info("✅ Colonne 'phase_fonctionnement' ajoutée")
-                    else:
-                        logger.info("✅ Colonne 'phase_fonctionnement' existe déjà")
-                    
-                    # Vérifier si la colonne donnees_supplementaires existe
-                    result = conn.execute(text("""
-                        SELECT column_name 
-                        FROM information_schema.columns 
-                        WHERE table_name = 'energies' 
-                        AND column_name = 'donnees_supplementaires'
-                    """))
-                    
-                    if not result.fetchone():
-                        logger.info("➕ Ajout de la colonne 'donnees_supplementaires'...")
-                        conn.execute(text("ALTER TABLE energies ADD COLUMN donnees_supplementaires JSONB DEFAULT '{}'"))
-                        conn.commit()
-                        logger.info("✅ Colonne 'donnees_supplementaires' ajoutée")
-                    else:
-                        logger.info("✅ Colonne 'donnees_supplementaires' existe déjà")
+                    for column_name, column_definition in columns_to_add:
+                        try:
+                            # Vérifier si la colonne existe
+                            result = conn.execute(text(f"""
+                                SELECT column_name 
+                                FROM information_schema.columns 
+                                WHERE table_name = 'energies' 
+                                AND column_name = '{column_name}'
+                            """))
+                            
+                            if not result.fetchone():
+                                logger.info(f"➕ Ajout de la colonne '{column_name}'...")
+                                conn.execute(text(f"ALTER TABLE energies ADD COLUMN {column_name} {column_definition}"))
+                                conn.commit()
+                                logger.info(f"✅ Colonne '{column_name}' ajoutée")
+                            else:
+                                logger.info(f"✅ Colonne '{column_name}' existe déjà")
+                                
+                        except Exception as col_error:
+                            if "already exists" in str(col_error).lower() or "duplicate column" in str(col_error).lower():
+                                logger.info(f"ℹ️ Colonne '{column_name}' existe déjà (erreur ignorée)")
+                            else:
+                                logger.warning(f"⚠️ Erreur avec la colonne '{column_name}': {str(col_error)}")
                     
                     logger.info("🎉 Migration automatique terminée avec succès !")
                 else:
@@ -1177,6 +1161,75 @@ def debug_database():
                 
     except Exception as e:
         logger.error(f"❌ Erreur lors du diagnostic de la base: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'error_type': type(e).__name__
+        }), 500
+
+@app.route('/debug')
+def debug_page():
+    """Page de debug pour diagnostiquer la base de données"""
+    return render_template('debug.html')
+
+@app.route('/debug/migrate')
+def force_migration():
+    """Route pour forcer la migration des colonnes manquantes"""
+    try:
+        with db.engine.connect() as conn:
+            if 'postgresql' in str(db.engine.url):
+                # Forcer l'ajout des colonnes manquantes
+                columns_to_add = [
+                    ('phase_amont', 'FLOAT DEFAULT 0.0'),
+                    ('phase_fonctionnement', 'FLOAT DEFAULT 0.0'),
+                    ('donnees_supplementaires', 'JSONB DEFAULT \'{}\'')
+                ]
+                
+                added_columns = []
+                existing_columns = []
+                errors = []
+                
+                for column_name, column_definition in columns_to_add:
+                    try:
+                        # Vérifier si la colonne existe
+                        result = conn.execute(text(f"""
+                            SELECT column_name 
+                            FROM information_schema.columns 
+                            WHERE table_name = 'energies' 
+                            AND column_name = '{column_name}'
+                        """))
+                        
+                        if not result.fetchone():
+                            # Ajouter la colonne
+                            conn.execute(text(f"ALTER TABLE energies ADD COLUMN {column_name} {column_definition}"))
+                            added_columns.append(column_name)
+                        else:
+                            existing_columns.append(column_name)
+                            
+                    except Exception as col_error:
+                        if "already exists" in str(col_error).lower() or "duplicate column" in str(col_error).lower():
+                            existing_columns.append(column_name)
+                        else:
+                            errors.append(f"{column_name}: {str(col_error)}")
+                
+                # Valider les changements
+                conn.commit()
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Migration terminée',
+                    'added_columns': added_columns,
+                    'existing_columns': existing_columns,
+                    'errors': errors
+                })
+            else:
+                return jsonify({
+                    'success': True,
+                    'message': 'SQLite détecté - migration non nécessaire'
+                })
+                
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de la migration forcée: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e),

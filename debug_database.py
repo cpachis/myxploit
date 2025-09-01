@@ -1,203 +1,135 @@
 #!/usr/bin/env python3
 """
-Script de diagnostic pour la base de données MyXploit
-Permet de vérifier l'état de la base et identifier les problèmes
+Script de diagnostic pour vérifier l'état de la base de données
 """
 
 import os
 import sys
-from dotenv import load_dotenv
+from sqlalchemy import create_engine, text, inspect
+from sqlalchemy.exc import SQLAlchemyError
 
-# Ajouter le répertoire courant au path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-# Charger les variables d'environnement
-load_dotenv('env.local')
-
-def test_database_connection():
-    """Test de connexion à la base de données"""
-    print("🔍 Test de connexion a la base de donnees...")
+def check_database():
+    """Vérifier l'état de la base de données"""
     
-    try:
-        from app import app, db
-        from sqlalchemy import text
-        
-        with app.app_context():
-            # Test de connexion simple
-            result = db.session.execute(text('SELECT 1'))
-            print("✅ Connexion a la base reussie")
-            
-            # Vérifier la structure de la table energies
-            print("\n🔍 Structure de la table 'energies'...")
-            
-            # Compter les énergies existantes
-            from app import Energie
-            energie_count = Energie.query.count()
-            print(f"📊 Nombre d'energies en base: {energie_count}")
-            
-            # Vérifier les colonnes disponibles
-            print("\n🔍 Colonnes disponibles dans le modele Energie:")
-            energie_instance = Energie()
-            for column in Energie.__table__.columns:
-                print(f"   - {column.name}: {column.type} (nullable: {column.nullable})")
-            
-            # Vérifier la base de données réelle
-            print("\n🔍 Verification de la base de donnees reelle...")
-            
-            if 'postgresql' in str(db.engine.url):
-                print("🐘 Base PostgreSQL detectee")
-                
-                # Vérifier la structure réelle de la table
-                with db.engine.connect() as conn:
-                    result = conn.execute(text("""
-                        SELECT column_name, data_type, is_nullable, column_default
-                        FROM information_schema.columns 
-                        WHERE table_name = 'energies'
-                        ORDER BY ordinal_position
-                    """))
-                    
-                    columns = []
-                    for row in result:
-                        columns.append({
-                            'name': row[0],
-                            'type': row[1],
-                            'nullable': row[2],
-                            'default': row[3]
-                        })
-                    
-                    print(f"📋 Colonnes reelles en base ({len(columns)}):")
-                    for col in columns:
-                        print(f"   - {col['name']}: {col['type']} (nullable: {col['nullable']}, default: {col['default']})")
-                    
-                    # Vérifier les contraintes
-                    result = conn.execute(text("""
-                        SELECT constraint_name, constraint_type
-                        FROM information_schema.table_constraints
-                        WHERE table_name = 'energies'
-                    """))
-                    
-                    constraints = []
-                    for row in result:
-                        constraints.append({
-                            'name': row[0],
-                            'type': row[1]
-                        })
-                    
-                    print(f"\n🔒 Contraintes de la table:")
-                    for const in constraints:
-                        print(f"   - {const['name']}: {const['type']}")
-                    
-            else:
-                print("📱 Base SQLite detectee")
-                
-            # Test de création d'une énergie
-            print("\n🧪 Test de creation d'une energie...")
-            
-            try:
-                # Créer une énergie de test
-                test_energie = Energie(
-                    nom="Test Diagnostic",
-                    identifiant="test-diagnostic",
-                    unite="L",
-                    facteur=1.0,
-                    description="Energie de test pour diagnostic"
-                )
-                
-                print("✅ Objet Energie cree avec succes")
-                print(f"   - nom: {test_energie.nom}")
-                print(f"   - identifiant: {test_energie.identifiant}")
-                print(f"   - unite: {test_energie.unite}")
-                print(f"   - facteur: {test_energie.facteur}")
-                
-                # Ajouter à la session
-                db.session.add(test_energie)
-                print("✅ Objet ajoute a la session")
-                
-                # Flush pour validation
-                db.session.flush()
-                print("✅ Objet valide par la base de donnees")
-                
-                # Rollback pour ne pas sauvegarder
-                db.session.rollback()
-                print("✅ Rollback effectue (test non sauvegarde)")
-                
-            except Exception as e:
-                print(f"❌ Erreur lors du test de creation: {str(e)}")
-                print(f"❌ Type d'erreur: {type(e).__name__}")
-                db.session.rollback()
-                
-        return True
-        
-    except Exception as e:
-        print(f"❌ Erreur de connexion: {str(e)}")
-        print(f"❌ Type d'erreur: {type(e).__name__}")
+    # Configuration de la base de données
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        print("❌ DATABASE_URL non définie")
         return False
-
-def test_api_endpoint():
-    """Test de l'endpoint API"""
-    print("\n🌐 Test de l'endpoint API...")
+    
+    print(f"🔍 URL de la base de données: {database_url}")
     
     try:
-        from app import app
+        # Créer la connexion
+        engine = create_engine(database_url)
         
-        with app.test_client() as client:
-            # Test avec des données valides
-            test_data = {
-                "identifiant": "test-api-diagnostic",
-                "nom": "Test API Diagnostic",
-                "facteur": 1.0,
-                "description": "Test de l'API",
-                "unite": "L"
-            }
+        with engine.connect() as conn:
+            # Vérifier la connexion
+            result = conn.execute(text("SELECT 1"))
+            print("✅ Connexion à la base de données réussie")
             
-            print(f"📤 Donnees de test: {test_data}")
+            # Lister les tables
+            inspector = inspect(engine)
+            tables = inspector.get_table_names()
+            print(f"📋 Tables disponibles: {tables}")
             
-            response = client.post('/api/energies', 
-                                json=test_data,
-                                content_type='application/json')
-            
-            print(f"📥 Reponse HTTP: {response.status_code}")
-            print(f"📥 Headers: {dict(response.headers)}")
-            
-            if response.data:
-                try:
-                    response_json = response.get_json()
-                    print(f"📥 JSON de reponse: {response_json}")
-                except Exception as json_error:
-                    print(f"📥 Contenu brut: {response.data.decode('utf-8')}")
-                    print(f"⚠️ Erreur parsing JSON: {str(json_error)}")
-            
-            if response.status_code == 200:
-                print("✅ API fonctionne correctement")
-            elif response.status_code == 400:
-                print("⚠️ API retourne une erreur 400 (Bad Request)")
-                if response.data:
-                    try:
-                        error_data = response.get_json()
-                        print(f"❌ Details de l'erreur: {error_data}")
-                    except:
-                        print(f"❌ Erreur sans details: {response.data.decode('utf-8')}")
-            else:
-                print(f"⚠️ API retourne un code inattendu: {response.status_code}")
+            if 'energies' in tables:
+                print("✅ Table 'energies' trouvée")
                 
+                # Vérifier les colonnes de la table energies
+                columns = inspector.get_columns('energies')
+                column_names = [col['name'] for col in columns]
+                print(f"📊 Colonnes de la table 'energies': {column_names}")
+                
+                # Vérifier les colonnes spécifiques
+                required_columns = ['phase_amont', 'phase_fonctionnement', 'donnees_supplementaires']
+                for col in required_columns:
+                    if col in column_names:
+                        print(f"✅ Colonne '{col}' présente")
+                    else:
+                        print(f"❌ Colonne '{col}' manquante")
+                
+                # Compter les enregistrements
+                result = conn.execute(text("SELECT COUNT(*) FROM energies"))
+                count = result.fetchone()[0]
+                print(f"📈 Nombre d'énergies enregistrées: {count}")
+                
+                # Afficher un exemple d'énergie
+                if count > 0:
+                    result = conn.execute(text("SELECT * FROM energies LIMIT 1"))
+                    energie = result.fetchone()
+                    print(f"📝 Exemple d'énergie: {energie}")
+                
+            else:
+                print("❌ Table 'energies' non trouvée")
+                
+    except SQLAlchemyError as e:
+        print(f"❌ Erreur de base de données: {str(e)}")
+        return False
     except Exception as e:
-        print(f"❌ Erreur lors du test API: {str(e)}")
-        print(f"❌ Type d'erreur: {type(e).__name__}")
+        print(f"❌ Erreur inattendue: {str(e)}")
+        return False
+    
+    return True
 
-def main():
-    """Fonction principale"""
-    print("🚀 Diagnostic de la base de donnees MyXploit")
+def create_missing_columns():
+    """Créer les colonnes manquantes"""
+    
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        print("❌ DATABASE_URL non définie")
+        return False
+    
+    try:
+        engine = create_engine(database_url)
+        
+        with engine.connect() as conn:
+            # Vérifier si les colonnes existent
+            inspector = inspect(engine)
+            columns = inspector.get_columns('energies')
+            column_names = [col['name'] for col in columns]
+            
+            # Ajouter les colonnes manquantes
+            if 'phase_amont' not in column_names:
+                print("➕ Ajout de la colonne 'phase_amont'...")
+                conn.execute(text("ALTER TABLE energies ADD COLUMN phase_amont FLOAT DEFAULT 0.0"))
+                print("✅ Colonne 'phase_amont' ajoutée")
+            
+            if 'phase_fonctionnement' not in column_names:
+                print("➕ Ajout de la colonne 'phase_fonctionnement'...")
+                conn.execute(text("ALTER TABLE energies ADD COLUMN phase_fonctionnement FLOAT DEFAULT 0.0"))
+                print("✅ Colonne 'phase_fonctionnement' ajoutée")
+            
+            if 'donnees_supplementaires' not in column_names:
+                print("➕ Ajout de la colonne 'donnees_supplementaires'...")
+                if 'postgresql' in database_url:
+                    conn.execute(text("ALTER TABLE energies ADD COLUMN donnees_supplementaires JSONB DEFAULT '{}'"))
+                else:
+                    conn.execute(text("ALTER TABLE energies ADD COLUMN donnees_supplementaires TEXT DEFAULT '{}'"))
+                print("✅ Colonne 'donnees_supplementaires' ajoutée")
+            
+            conn.commit()
+            print("🎉 Migration terminée avec succès")
+            
+    except Exception as e:
+        print(f"❌ Erreur lors de la migration: {str(e)}")
+        return False
+    
+    return True
+
+if __name__ == "__main__":
+    print("🔧 Diagnostic de la base de données MyXploit")
     print("=" * 50)
     
-    # Test de connexion
-    if test_database_connection():
-        # Test de l'API
-        test_api_endpoint()
+    # Vérifier l'état actuel
+    if check_database():
+        print("\n🔧 Voulez-vous créer les colonnes manquantes ? (y/n)")
+        response = input().lower()
+        
+        if response == 'y':
+            print("\n🔄 Création des colonnes manquantes...")
+            create_missing_columns()
+            print("\n🔍 Vérification finale...")
+            check_database()
     else:
-        print("\n❌ Impossible de continuer sans connexion a la base")
-        sys.exit(1)
-    
-    print("\n✅ Diagnostic termine")
-
-if __name__ == '__main__':
-    main()
+        print("❌ Impossible de diagnostiquer la base de données")
