@@ -404,7 +404,7 @@ function displayEnergies(energiesToShow) {
         <div class="energie-details">
           <div class="detail-row total-emissions">
             <span class="detail-label">Total des émissions:</span>
-            <span class="detail-value total-emissions-value">${total.toFixed(3)} kg éq. CO₂/unité</span>
+            <span class="detail-value total-emissions-value">${total.toFixed(3)} kg éq. CO₂/${energie.unite || 'unité'}</span>
           </div>
         </div>
         
@@ -1082,8 +1082,9 @@ function updateEnergieDisplay(energieId) {
   // Mettre à jour la valeur du total des émissions
   const totalEmissionsElement = energieBlock.querySelector('.total-emissions-value');
   if (totalEmissionsElement) {
-    totalEmissionsElement.textContent = `${total.toFixed(3)} kg éq. CO₂/unité`;
-    console.log(`✅ Total des émissions mis à jour: ${total.toFixed(3)}`);
+    const unite = energie.unite || 'unité';
+    totalEmissionsElement.textContent = `${total.toFixed(3)} kg éq. CO₂/${unite}`;
+    console.log(`✅ Total des émissions mis à jour: ${total.toFixed(3)} kg éq. CO₂/${unite}`);
   }
   
   console.log(`✅ Affichage de l'énergie ${energieId} mis à jour avec succès`);
