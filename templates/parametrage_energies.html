@@ -1271,17 +1271,17 @@ function showNotification(message, type) {
 
 .energies-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
 }
 
 .energie-card {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 15px;
+  border: 1px solid #e2e8f0;
   transition: all 0.3s ease;
-  min-height: 260px; /* Unifier la hauteur des cartes */
+  min-height: 180px; /* Réduire la hauteur minimale */
   display: flex;
   flex-direction: column;
 }
@@ -1296,17 +1296,18 @@ function showNotification(message, type) {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .energie-info h3 {
-  margin: 0 0 5px 0;
-  font-size: 1.2rem;
+  margin: 0 0 3px 0;
+  font-size: 1.1rem;
   color: #1f2937;
+  line-height: 1.2;
 }
 
 .energie-id {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #6b7280;
   font-family: monospace;
 }
@@ -1317,23 +1318,23 @@ function showNotification(message, type) {
 }
 
 .badge-unit {
-  padding: 6px 12px;
+  padding: 4px 8px;
   background: #dbeafe;
   color: #1e40af;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
   font-weight: 600;
 }
 
 .energie-details {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   flex: 1; /* Prendre l'espace disponible pour centrer le contenu */
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 6px 0;
   border-bottom: 1px solid #f3f4f6;
 }
 
@@ -1344,45 +1345,47 @@ function showNotification(message, type) {
 .detail-label {
   font-weight: 600;
   color: #4b5563;
+  font-size: 0.9rem;
 }
 
 .detail-value {
   color: #1f2937;
+  font-size: 0.9rem;
 }
 
 .total-emissions {
   background: #f0f9ff;
-  border-radius: 8px;
-  padding: 12px;
-  margin: 10px 0;
-  border-left: 4px solid #3b82f6;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 8px 0;
+  border-left: 3px solid #3b82f6;
 }
 
 .total-emissions-value {
   font-weight: 700;
   color: #1e40af;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .energie-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .btn-edit, .btn-delete {
   flex: 1;
-  min-width: 120px;
-  padding: 10px 16px;
+  min-width: 100px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 
@@ -2086,6 +2089,12 @@ function showNotification(message, type) {
   
   .energies-list {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .energie-card {
+    min-height: 160px;
+    padding: 12px;
   }
   
   .form-row {
@@ -2103,10 +2112,13 @@ function showNotification(message, type) {
   
   .energie-actions {
     flex-direction: column;
+    gap: 6px;
   }
   
   .btn-edit, .btn-delete {
     min-width: auto;
+    padding: 10px 16px;
+    font-size: 0.9rem;
   }
   
   .value-item {
@@ -2139,6 +2151,19 @@ function showNotification(message, type) {
   .energie-info-compact {
     flex-direction: column;
     gap: 10px;
+  }
+}
+
+/* Responsive pour les écrans moyens */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .energies-list {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+  }
+  
+  .energie-card {
+    min-height: 170px;
+    padding: 12px;
   }
 }
 </style>
