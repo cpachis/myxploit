@@ -8,6 +8,9 @@ import os
 import logging
 from datetime import datetime
 from config import get_config
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Configuration du logging
 logging.basicConfig(
@@ -132,6 +135,166 @@ class Invitation(db.Model):
     message_personnalise = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Client(db.Model):
+    """Modèle pour les clients"""
+    __tablename__ = 'clients'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    telephone = db.Column(db.String(20))
+    adresse = db.Column(db.Text)
+    siret = db.Column(db.String(14))
+    site_web = db.Column(db.String(200))
+    description = db.Column(db.Text)
+    statut = db.Column(db.String(20), default='actif')  # actif, inactif
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Transporteur(db.Model):
+    """Modèle pour les transporteurs"""
+    __tablename__ = 'transporteurs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    telephone = db.Column(db.String(20))
+    adresse = db.Column(db.Text)
+    siret = db.Column(db.String(14))
+    site_web = db.Column(db.String(200))
+    description = db.Column(db.Text)
+    statut = db.Column(db.String(20), default='actif')  # actif, inactif
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+def envoyer_email(destinataire, sujet, contenu_html, contenu_texte=None):
+    """Fonction pour envoyer des emails"""
+    try:
+        # Configuration email (à adapter selon votre fournisseur)
+        smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.environ.get('SMTP_PORT', '587'))
+        email_emetteur = os.environ.get('EMAIL_EMETTEUR', 'noreply@myxploit.com')
+        mot_de_passe = os.environ.get('EMAIL_PASSWORD', '')
+        
+        # Si pas de mot de passe configuré, simuler l'envoi
+        if not mot_de_passe:
+            logger.info(f"📧 SIMULATION - Email à {destinataire}: {sujet}")
+            return True
+        
+        # Créer le message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = sujet
+        msg['From'] = email_emetteur
+        msg['To'] = destinataire
+        
+        # Ajouter le contenu texte et HTML
+        if contenu_texte:
+            msg.attach(MIMEText(contenu_texte, 'plain', 'utf-8'))
+        msg.attach(MIMEText(contenu_html, 'html', 'utf-8'))
+        
+        # Envoyer l'email
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(email_emetteur, mot_de_passe)
+            server.send_message(msg)
+        
+        logger.info(f"📧 Email envoyé avec succès à {destinataire}: {sujet}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de l'envoi d'email à {destinataire}: {str(e)}")
+        return False
+
+def envoyer_email_confirmation_client(client):
+    """Envoyer un email de confirmation à un nouveau client"""
+    sujet = "Bienvenue chez MyXploit - Votre compte a été créé"
+    
+    contenu_html = f"""
+    <html>
+    <body>
+        <h2>🎉 Bienvenue chez MyXploit !</h2>
+        <p>Bonjour {client.nom},</p>
+        <p>Votre compte client a été créé avec succès sur notre plateforme MyXploit.</p>
+        
+        <h3>📋 Vos informations :</h3>
+        <ul>
+            <li><strong>Nom :</strong> {client.nom}</li>
+            <li><strong>Email :</strong> {client.email}</li>
+            <li><strong>Téléphone :</strong> {client.telephone or 'Non renseigné'}</li>
+        </ul>
+        
+        <p>Vous pouvez maintenant accéder à votre espace client et commencer à gérer vos transports.</p>
+        
+        <p>Cordialement,<br>L'équipe MyXploit</p>
+    </body>
+    </html>
+    """
+    
+    contenu_texte = f"""
+    Bienvenue chez MyXploit !
+    
+    Bonjour {client.nom},
+    
+    Votre compte client a été créé avec succès sur notre plateforme MyXploit.
+    
+    Vos informations :
+    - Nom : {client.nom}
+    - Email : {client.email}
+    - Téléphone : {client.telephone or 'Non renseigné'}
+    
+    Vous pouvez maintenant accéder à votre espace client et commencer à gérer vos transports.
+    
+    Cordialement,
+    L'équipe MyXploit
+    """
+    
+    return envoyer_email(client.email, sujet, contenu_html, contenu_texte)
+
+def envoyer_email_confirmation_transporteur(transporteur):
+    """Envoyer un email de confirmation à un nouveau transporteur"""
+    sujet = "Bienvenue chez MyXploit - Votre compte transporteur a été créé"
+    
+    contenu_html = f"""
+    <html>
+    <body>
+        <h2>🚚 Bienvenue chez MyXploit !</h2>
+        <p>Bonjour {transporteur.nom},</p>
+        <p>Votre compte transporteur a été créé avec succès sur notre plateforme MyXploit.</p>
+        
+        <h3>📋 Vos informations :</h3>
+        <ul>
+            <li><strong>Nom :</strong> {transporteur.nom}</li>
+            <li><strong>Email :</strong> {transporteur.email}</li>
+            <li><strong>Téléphone :</strong> {transporteur.telephone or 'Non renseigné'}</li>
+        </ul>
+        
+        <p>Vous pouvez maintenant accéder à votre espace transporteur et commencer à gérer vos missions de transport.</p>
+        
+        <p>Cordialement,<br>L'équipe MyXploit</p>
+    </body>
+    </html>
+    """
+    
+    contenu_texte = f"""
+    Bienvenue chez MyXploit !
+    
+    Bonjour {transporteur.nom},
+    
+    Votre compte transporteur a été créé avec succès sur notre plateforme MyXploit.
+    
+    Vos informations :
+    - Nom : {transporteur.nom}
+    - Email : {transporteur.email}
+    - Téléphone : {transporteur.telephone or 'Non renseigné'}
+    
+    Vous pouvez maintenant accéder à votre espace transporteur et commencer à gérer vos missions de transport.
+    
+    Cordialement,
+    L'équipe MyXploit
+    """
+    
+    return envoyer_email(transporteur.email, sujet, contenu_html, contenu_texte)
 
 # Initialiser la base de données APRÈS la définition des modèles
 with app.app_context():
@@ -1611,25 +1774,22 @@ def api_clients():
     """API pour gérer les clients"""
     if request.method == 'GET':
         try:
-            # Simulation de données clients pour le moment
-            clients_data = [
-                {
-                    'id': 1,
-                    'nom': 'Client Test 1',
-                    'email': 'client1@test.com',
-                    'telephone': '01 23 45 67 89',
-                    'adresse': '123 Rue de la Paix, 75001 Paris',
-                    'statut': 'actif'
-                },
-                {
-                    'id': 2,
-                    'nom': 'Client Test 2',
-                    'email': 'client2@test.com',
-                    'telephone': '01 98 76 54 32',
-                    'adresse': '456 Avenue des Champs, 75008 Paris',
-                    'statut': 'actif'
-                }
-            ]
+            clients = Client.query.all()
+            clients_data = []
+            
+            for client in clients:
+                clients_data.append({
+                    'id': client.id,
+                    'nom': client.nom,
+                    'email': client.email,
+                    'telephone': client.telephone,
+                    'adresse': client.adresse,
+                    'siret': client.siret,
+                    'site_web': client.site_web,
+                    'description': client.description,
+                    'statut': client.statut,
+                    'created_at': client.created_at.strftime('%Y-%m-%d %H:%M:%S') if client.created_at else None
+                })
             
             return jsonify({
                 'success': True,
@@ -1643,26 +1803,57 @@ def api_clients():
         try:
             data = request.get_json()
             
-            # Simulation de création d'un client
-            nouveau_client = {
-                'id': len(data) + 1,  # Simulation d'ID
-                'nom': data.get('nom', ''),
-                'email': data.get('email', ''),
-                'telephone': data.get('telephone', ''),
-                'adresse': data.get('adresse', ''),
-                'statut': 'actif'
-            }
+            # Validation des données
+            if not data.get('nom') or not data.get('email'):
+                return jsonify({'success': False, 'error': 'Nom et email sont obligatoires'}), 400
             
-            logger.info(f"✅ Nouveau client créé: {nouveau_client['nom']}")
+            # Vérifier si l'email existe déjà
+            if Client.query.filter_by(email=data['email']).first():
+                return jsonify({'success': False, 'error': 'Un client avec cet email existe déjà'}), 400
+            
+            # Créer le nouveau client
+            nouveau_client = Client(
+                nom=data.get('nom'),
+                email=data.get('email'),
+                telephone=data.get('telephone'),
+                adresse=data.get('adresse'),
+                siret=data.get('siret'),
+                site_web=data.get('site_web'),
+                description=data.get('description'),
+                statut='actif'
+            )
+            
+            db.session.add(nouveau_client)
+            db.session.commit()
+            
+            logger.info(f"✅ Nouveau client créé: {nouveau_client.nom} ({nouveau_client.email})")
+            
+            # Envoyer un email de confirmation
+            try:
+                email_envoye = envoyer_email_confirmation_client(nouveau_client)
+                if email_envoye:
+                    logger.info(f"📧 Email de confirmation envoyé à {nouveau_client.email}")
+                else:
+                    logger.warning(f"⚠️ Échec de l'envoi d'email à {nouveau_client.email}")
+            except Exception as email_error:
+                logger.warning(f"⚠️ Erreur lors de l'envoi d'email: {str(email_error)}")
             
             return jsonify({
                 'success': True,
-                'message': 'Client créé avec succès',
-                'client': nouveau_client
+                'message': 'Client créé avec succès. Un email de confirmation a été envoyé.',
+                'client': {
+                    'id': nouveau_client.id,
+                    'nom': nouveau_client.nom,
+                    'email': nouveau_client.email,
+                    'telephone': nouveau_client.telephone,
+                    'adresse': nouveau_client.adresse,
+                    'statut': nouveau_client.statut
+                }
             })
             
         except Exception as e:
             logger.error(f"Erreur lors de la création du client: {str(e)}")
+            db.session.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
     
     elif request.method == 'PUT':
@@ -1670,26 +1861,56 @@ def api_clients():
             data = request.get_json()
             client_id = data.get('id')
             
-            # Simulation de mise à jour d'un client
-            client_modifie = {
-                'id': client_id,
-                'nom': data.get('nom', ''),
-                'email': data.get('email', ''),
-                'telephone': data.get('telephone', ''),
-                'adresse': data.get('adresse', ''),
-                'statut': data.get('statut', 'actif')
-            }
+            if not client_id:
+                return jsonify({'success': False, 'error': 'ID du client manquant'}), 400
             
-            logger.info(f"✅ Client modifié: {client_modifie['nom']}")
+            client = Client.query.get(client_id)
+            if not client:
+                return jsonify({'success': False, 'error': 'Client non trouvé'}), 404
+            
+            # Mettre à jour les champs
+            if data.get('nom'):
+                client.nom = data['nom']
+            if data.get('email'):
+                # Vérifier si l'email existe déjà pour un autre client
+                existing_client = Client.query.filter_by(email=data['email']).first()
+                if existing_client and existing_client.id != client_id:
+                    return jsonify({'success': False, 'error': 'Un autre client utilise déjà cet email'}), 400
+                client.email = data['email']
+            if data.get('telephone'):
+                client.telephone = data['telephone']
+            if data.get('adresse'):
+                client.adresse = data['adresse']
+            if data.get('siret'):
+                client.siret = data['siret']
+            if data.get('site_web'):
+                client.site_web = data['site_web']
+            if data.get('description'):
+                client.description = data['description']
+            if data.get('statut'):
+                client.statut = data['statut']
+            
+            client.updated_at = datetime.utcnow()
+            db.session.commit()
+            
+            logger.info(f"✅ Client modifié: {client.nom}")
             
             return jsonify({
                 'success': True,
                 'message': 'Client modifié avec succès',
-                'client': client_modifie
+                'client': {
+                    'id': client.id,
+                    'nom': client.nom,
+                    'email': client.email,
+                    'telephone': client.telephone,
+                    'adresse': client.adresse,
+                    'statut': client.statut
+                }
             })
             
         except Exception as e:
             logger.error(f"Erreur lors de la modification du client: {str(e)}")
+            db.session.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
     
     elif request.method == 'DELETE':
@@ -1697,7 +1918,18 @@ def api_clients():
             data = request.get_json()
             client_id = data.get('id')
             
-            logger.info(f"✅ Client supprimé: ID {client_id}")
+            if not client_id:
+                return jsonify({'success': False, 'error': 'ID du client manquant'}), 400
+            
+            client = Client.query.get(client_id)
+            if not client:
+                return jsonify({'success': False, 'error': 'Client non trouvé'}), 404
+            
+            nom_client = client.nom
+            db.session.delete(client)
+            db.session.commit()
+            
+            logger.info(f"✅ Client supprimé: {nom_client} (ID: {client_id})")
             
             return jsonify({
                 'success': True,
@@ -1706,6 +1938,7 @@ def api_clients():
             
         except Exception as e:
             logger.error(f"Erreur lors de la suppression du client: {str(e)}")
+            db.session.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/transporteurs')
@@ -1722,25 +1955,22 @@ def api_transporteurs():
     """API pour gérer les transporteurs"""
     if request.method == 'GET':
         try:
-            # Simulation de données transporteurs pour le moment
-            transporteurs_data = [
-                {
-                    'id': 1,
-                    'nom': 'Transporteur Test 1',
-                    'email': 'transporteur1@test.com',
-                    'telephone': '01 11 22 33 44',
-                    'adresse': '789 Boulevard de la République, 75011 Paris',
-                    'statut': 'actif'
-                },
-                {
-                    'id': 2,
-                    'nom': 'Transporteur Test 2',
-                    'email': 'transporteur2@test.com',
-                    'telephone': '01 55 66 77 88',
-                    'adresse': '321 Rue de Rivoli, 75001 Paris',
-                    'statut': 'actif'
-                }
-            ]
+            transporteurs = Transporteur.query.all()
+            transporteurs_data = []
+            
+            for transporteur in transporteurs:
+                transporteurs_data.append({
+                    'id': transporteur.id,
+                    'nom': transporteur.nom,
+                    'email': transporteur.email,
+                    'telephone': transporteur.telephone,
+                    'adresse': transporteur.adresse,
+                    'siret': transporteur.siret,
+                    'site_web': transporteur.site_web,
+                    'description': transporteur.description,
+                    'statut': transporteur.statut,
+                    'created_at': transporteur.created_at.strftime('%Y-%m-%d %H:%M:%S') if transporteur.created_at else None
+                })
             
             return jsonify({
                 'success': True,
@@ -1754,26 +1984,57 @@ def api_transporteurs():
         try:
             data = request.get_json()
             
-            # Simulation de création d'un transporteur
-            nouveau_transporteur = {
-                'id': len(data) + 1,  # Simulation d'ID
-                'nom': data.get('nom', ''),
-                'email': data.get('email', ''),
-                'telephone': data.get('telephone', ''),
-                'adresse': data.get('adresse', ''),
-                'statut': 'actif'
-            }
+            # Validation des données
+            if not data.get('nom') or not data.get('email'):
+                return jsonify({'success': False, 'error': 'Nom et email sont obligatoires'}), 400
             
-            logger.info(f"✅ Nouveau transporteur créé: {nouveau_transporteur['nom']}")
+            # Vérifier si l'email existe déjà
+            if Transporteur.query.filter_by(email=data['email']).first():
+                return jsonify({'success': False, 'error': 'Un transporteur avec cet email existe déjà'}), 400
+            
+            # Créer le nouveau transporteur
+            nouveau_transporteur = Transporteur(
+                nom=data.get('nom'),
+                email=data.get('email'),
+                telephone=data.get('telephone'),
+                adresse=data.get('adresse'),
+                siret=data.get('siret'),
+                site_web=data.get('site_web'),
+                description=data.get('description'),
+                statut='actif'
+            )
+            
+            db.session.add(nouveau_transporteur)
+            db.session.commit()
+            
+            logger.info(f"✅ Nouveau transporteur créé: {nouveau_transporteur.nom} ({nouveau_transporteur.email})")
+            
+            # Envoyer un email de confirmation
+            try:
+                email_envoye = envoyer_email_confirmation_transporteur(nouveau_transporteur)
+                if email_envoye:
+                    logger.info(f"📧 Email de confirmation envoyé à {nouveau_transporteur.email}")
+                else:
+                    logger.warning(f"⚠️ Échec de l'envoi d'email à {nouveau_transporteur.email}")
+            except Exception as email_error:
+                logger.warning(f"⚠️ Erreur lors de l'envoi d'email: {str(email_error)}")
             
             return jsonify({
                 'success': True,
-                'message': 'Transporteur créé avec succès',
-                'transporteur': nouveau_transporteur
+                'message': 'Transporteur créé avec succès. Un email de confirmation a été envoyé.',
+                'transporteur': {
+                    'id': nouveau_transporteur.id,
+                    'nom': nouveau_transporteur.nom,
+                    'email': nouveau_transporteur.email,
+                    'telephone': nouveau_transporteur.telephone,
+                    'adresse': nouveau_transporteur.adresse,
+                    'statut': nouveau_transporteur.statut
+                }
             })
             
         except Exception as e:
             logger.error(f"Erreur lors de la création du transporteur: {str(e)}")
+            db.session.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
     
     elif request.method == 'PUT':
@@ -1781,26 +2042,56 @@ def api_transporteurs():
             data = request.get_json()
             transporteur_id = data.get('id')
             
-            # Simulation de mise à jour d'un transporteur
-            transporteur_modifie = {
-                'id': transporteur_id,
-                'nom': data.get('nom', ''),
-                'email': data.get('email', ''),
-                'telephone': data.get('telephone', ''),
-                'adresse': data.get('adresse', ''),
-                'statut': data.get('statut', 'actif')
-            }
+            if not transporteur_id:
+                return jsonify({'success': False, 'error': 'ID du transporteur manquant'}), 400
             
-            logger.info(f"✅ Transporteur modifié: {transporteur_modifie['nom']}")
+            transporteur = Transporteur.query.get(transporteur_id)
+            if not transporteur:
+                return jsonify({'success': False, 'error': 'Transporteur non trouvé'}), 404
+            
+            # Mettre à jour les champs
+            if data.get('nom'):
+                transporteur.nom = data['nom']
+            if data.get('email'):
+                # Vérifier si l'email existe déjà pour un autre transporteur
+                existing_transporteur = Transporteur.query.filter_by(email=data['email']).first()
+                if existing_transporteur and existing_transporteur.id != transporteur_id:
+                    return jsonify({'success': False, 'error': 'Un autre transporteur utilise déjà cet email'}), 400
+                transporteur.email = data['email']
+            if data.get('telephone'):
+                transporteur.telephone = data['telephone']
+            if data.get('adresse'):
+                transporteur.adresse = data['adresse']
+            if data.get('siret'):
+                transporteur.siret = data['siret']
+            if data.get('site_web'):
+                transporteur.site_web = data['site_web']
+            if data.get('description'):
+                transporteur.description = data['description']
+            if data.get('statut'):
+                transporteur.statut = data['statut']
+            
+            transporteur.updated_at = datetime.utcnow()
+            db.session.commit()
+            
+            logger.info(f"✅ Transporteur modifié: {transporteur.nom}")
             
             return jsonify({
                 'success': True,
                 'message': 'Transporteur modifié avec succès',
-                'transporteur': transporteur_modifie
+                'transporteur': {
+                    'id': transporteur.id,
+                    'nom': transporteur.nom,
+                    'email': transporteur.email,
+                    'telephone': transporteur.telephone,
+                    'adresse': transporteur.adresse,
+                    'statut': transporteur.statut
+                }
             })
             
         except Exception as e:
             logger.error(f"Erreur lors de la modification du transporteur: {str(e)}")
+            db.session.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
     
     elif request.method == 'DELETE':
@@ -1808,7 +2099,18 @@ def api_transporteurs():
             data = request.get_json()
             transporteur_id = data.get('id')
             
-            logger.info(f"✅ Transporteur supprimé: ID {transporteur_id}")
+            if not transporteur_id:
+                return jsonify({'success': False, 'error': 'ID du transporteur manquant'}), 400
+            
+            transporteur = Transporteur.query.get(transporteur_id)
+            if not transporteur:
+                return jsonify({'success': False, 'error': 'Transporteur non trouvé'}), 404
+            
+            nom_transporteur = transporteur.nom
+            db.session.delete(transporteur)
+            db.session.commit()
+            
+            logger.info(f"✅ Transporteur supprimé: {nom_transporteur} (ID: {transporteur_id})")
             
             return jsonify({
                 'success': True,
@@ -1817,6 +2119,7 @@ def api_transporteurs():
             
         except Exception as e:
             logger.error(f"Erreur lors de la suppression du transporteur: {str(e)}")
+            db.session.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/parametrage_impact')
