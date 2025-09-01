@@ -1,0 +1,872 @@
+{% extends "base.html" %}
+{% block title %}Configuration de l'Impact — GreenXploit{% endblock %}
+
+{% block content %}
+<div class="impact-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>🌱 Configuration de l'Impact</h1>
+      <p class="header-subtitle">Paramétrez les facteurs d'impact environnemental</p>
+    </div>
+  </div>
+
+  <!-- Sections de configuration -->
+  <div class="impact-sections">
+    <!-- Facteurs d'émission globaux -->
+    <div class="impact-section">
+      <div class="section-header">
+        <h2>📊 Facteurs d'Émission Globaux</h2>
+        <p>Configuration des facteurs d'émission par défaut pour les calculs</p>
+      </div>
+      
+      <div class="config-grid">
+        <div class="config-card">
+          <div class="config-icon">🚛</div>
+          <div class="config-content">
+            <h3>Transport Routier</h3>
+            <div class="config-value">
+              <input type="number" id="facteur-routier" value="2.5" step="0.1" min="0">
+              <span class="unit">kg CO₂e/km</span>
+            </div>
+            <p class="config-description">Facteur d'émission moyen pour le transport routier</p>
+          </div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-icon">🚢</div>
+          <div class="config-content">
+            <h3>Transport Maritime</h3>
+            <div class="config-value">
+              <input type="number" id="facteur-maritime" value="0.015" step="0.001" min="0">
+              <span class="unit">kg CO₂e/t.km</span>
+            </div>
+            <p class="config-description">Facteur d'émission pour le transport maritime</p>
+          </div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-icon">✈️</div>
+          <div class="config-content">
+            <h3>Transport Aérien</h3>
+            <div class="config-value">
+              <input type="number" id="facteur-aerien" value="0.5" step="0.01" min="0">
+              <span class="unit">kg CO₂e/t.km</span>
+            </div>
+            <p class="config-description">Facteur d'émission pour le transport aérien</p>
+          </div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-icon">🚂</div>
+          <div class="config-content">
+            <h3>Transport Ferroviaire</h3>
+            <div class="config-value">
+              <input type="number" id="facteur-ferroviaire" value="0.03" step="0.001" min="0">
+              <span class="unit">kg CO₂e/t.km</span>
+            </div>
+            <p class="config-description">Facteur d'émission pour le transport ferroviaire</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Métriques d'impact -->
+    <div class="impact-section">
+      <div class="section-header">
+        <h2>📈 Métriques d'Impact</h2>
+        <p>Configuration des seuils et métriques pour l'évaluation environnementale</p>
+      </div>
+      
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-header">
+            <h3>Seuils d'Alerte CO₂</h3>
+            <span class="metric-badge">Seuils</span>
+          </div>
+          <div class="metric-content">
+            <div class="metric-row">
+              <label>Seuil d'alerte faible:</label>
+              <input type="number" id="seuil-faible" value="100" min="0">
+              <span class="unit">kg CO₂e</span>
+            </div>
+            <div class="metric-row">
+              <label>Seuil d'alerte moyen:</label>
+              <input type="number" id="seuil-moyen" value="500" min="0">
+              <span class="unit">kg CO₂e</span>
+            </div>
+            <div class="metric-row">
+              <label>Seuil d'alerte élevé:</label>
+              <input type="number" id="seuil-eleve" value="1000" min="0">
+              <span class="unit">kg CO₂e</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-header">
+            <h3>Objectifs de Réduction</h3>
+            <span class="metric-badge">Objectifs</span>
+          </div>
+          <div class="metric-content">
+            <div class="metric-row">
+              <label>Réduction cible 2024:</label>
+              <input type="number" id="reduction-2024" value="10" min="0" max="100">
+              <span class="unit">%</span>
+            </div>
+            <div class="metric-row">
+              <label>Réduction cible 2025:</label>
+              <input type="number" id="reduction-2025" value="20" min="0" max="100">
+              <span class="unit">%</span>
+            </div>
+            <div class="metric-row">
+              <label>Réduction cible 2030:</label>
+              <input type="number" id="reduction-2030" value="50" min="0" max="100">
+              <span class="unit">%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-header">
+            <h3>Équivalences CO₂</h3>
+            <span class="metric-badge">Équivalences</span>
+          </div>
+          <div class="metric-content">
+            <div class="metric-row">
+              <label>1 kg CO₂e =</label>
+              <input type="number" id="equivalence-arbres" value="0.05" step="0.01" min="0">
+              <span class="unit">arbres/an</span>
+            </div>
+            <div class="metric-row">
+              <label>1 kg CO₂e =</label>
+              <input type="number" id="equivalence-km" value="4" min="0">
+              <span class="unit">km voiture</span>
+            </div>
+            <div class="metric-row">
+              <label>1 kg CO₂e =</label>
+              <input type="number" id="equivalence-kwh" value="0.5" step="0.1" min="0">
+              <span class="unit">kWh électricité</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paramètres de calcul -->
+    <div class="impact-section">
+      <div class="section-header">
+        <h2>⚙️ Paramètres de Calcul</h2>
+        <p>Configuration des algorithmes et méthodes de calcul d'impact</p>
+      </div>
+      
+      <div class="params-grid">
+        <div class="param-card">
+          <div class="param-header">
+            <h3>Méthode de Calcul</h3>
+          </div>
+          <div class="param-content">
+            <div class="param-row">
+              <label>Méthode principale:</label>
+              <select id="methode-calcul">
+                <option value="ADEME">Standards ADEME</option>
+                <option value="GHG_PROTOCOL">GHG Protocol</option>
+                <option value="ISO_14064">ISO 14064</option>
+                <option value="CUSTOM">Personnalisée</option>
+              </select>
+            </div>
+            <div class="param-row">
+              <label>Inclure les émissions amont:</label>
+              <input type="checkbox" id="emissions-amont" checked>
+            </div>
+            <div class="param-row">
+              <label>Inclure les émissions aval:</label>
+              <input type="checkbox" id="emissions-aval">
+            </div>
+          </div>
+        </div>
+
+        <div class="param-card">
+          <div class="param-header">
+            <h3>Précision des Calculs</h3>
+          </div>
+          <div class="param-content">
+            <div class="param-row">
+              <label>Nombre de décimales:</label>
+              <select id="precision-decimale">
+                <option value="0">0 (entiers)</option>
+                <option value="1">1 décimale</option>
+                <option value="2" selected>2 décimales</option>
+                <option value="3">3 décimales</option>
+              </select>
+            </div>
+            <div class="param-row">
+              <label>Arrondi:</label>
+              <select id="methode-arrondi">
+                <option value="standard">Standard</option>
+                <option value="toujours_haut">Toujours vers le haut</option>
+                <option value="toujours_bas">Toujours vers le bas</option>
+              </select>
+            </div>
+            <div class="param-row">
+              <label>Calculs en temps réel:</label>
+              <input type="checkbox" id="calculs-temps-reel" checked>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-section">
+      <div class="action-buttons">
+        <button class="btn-primary" onclick="sauvegarderConfiguration()">
+          <span class="btn-icon">💾</span>
+          Sauvegarder la Configuration
+        </button>
+        <button class="btn-secondary" onclick="restaurerDefauts()">
+          <span class="btn-icon">🔄</span>
+          Restaurer les Défauts
+        </button>
+        <button class="btn-info" onclick="exporterConfiguration()">
+          <span class="btn-icon">📤</span>
+          Exporter la Configuration
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Charger la configuration au démarrage
+document.addEventListener('DOMContentLoaded', function() {
+  chargerConfiguration();
+});
+
+// Charger la configuration depuis l'API
+function chargerConfiguration() {
+  fetch('/api/impact/configuration')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        appliquerConfiguration(data.configuration);
+      } else {
+        console.warn('Configuration non trouvée, utilisation des valeurs par défaut');
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement de la configuration:', error);
+    });
+}
+
+// Appliquer la configuration aux champs
+function appliquerConfiguration(config) {
+  // Facteurs d'émission
+  if (config.facteurs) {
+    document.getElementById('facteur-routier').value = config.facteurs.routier || 2.5;
+    document.getElementById('facteur-maritime').value = config.facteurs.maritime || 0.015;
+    document.getElementById('facteur-aerien').value = config.facteurs.aerien || 0.5;
+    document.getElementById('facteur-ferroviaire').value = config.facteurs.ferroviaire || 0.03;
+  }
+
+  // Seuils d'alerte
+  if (config.seuils) {
+    document.getElementById('seuil-faible').value = config.seuils.faible || 100;
+    document.getElementById('seuil-moyen').value = config.seuils.moyen || 500;
+    document.getElementById('seuil-eleve').value = config.seuils.eleve || 1000;
+  }
+
+  // Objectifs de réduction
+  if (config.objectifs) {
+    document.getElementById('reduction-2024').value = config.objectifs['2024'] || 10;
+    document.getElementById('reduction-2025').value = config.objectifs['2025'] || 20;
+    document.getElementById('reduction-2030').value = config.objectifs['2030'] || 50;
+  }
+
+  // Équivalences
+  if (config.equivalences) {
+    document.getElementById('equivalence-arbres').value = config.equivalences.arbres || 0.05;
+    document.getElementById('equivalence-km').value = config.equivalences.km || 4;
+    document.getElementById('equivalence-kwh').value = config.equivalences.kwh || 0.5;
+  }
+
+  // Paramètres
+  if (config.parametres) {
+    document.getElementById('methode-calcul').value = config.parametres.methode || 'ADEME';
+    document.getElementById('emissions-amont').checked = config.parametres.emissions_amont !== false;
+    document.getElementById('emissions-aval').checked = config.parametres.emissions_aval === true;
+    document.getElementById('precision-decimale').value = config.parametres.precision || 2;
+    document.getElementById('methode-arrondi').value = config.parametres.arrondi || 'standard';
+    document.getElementById('calculs-temps-reel').checked = config.parametres.temps_reel !== false;
+  }
+}
+
+// Sauvegarder la configuration
+function sauvegarderConfiguration() {
+  const configuration = {
+    facteurs: {
+      routier: parseFloat(document.getElementById('facteur-routier').value),
+      maritime: parseFloat(document.getElementById('facteur-maritime').value),
+      aerien: parseFloat(document.getElementById('facteur-aerien').value),
+      ferroviaire: parseFloat(document.getElementById('facteur-ferroviaire').value)
+    },
+    seuils: {
+      faible: parseInt(document.getElementById('seuil-faible').value),
+      moyen: parseInt(document.getElementById('seuil-moyen').value),
+      eleve: parseInt(document.getElementById('seuil-eleve').value)
+    },
+    objectifs: {
+      '2024': parseInt(document.getElementById('reduction-2024').value),
+      '2025': parseInt(document.getElementById('reduction-2025').value),
+      '2030': parseInt(document.getElementById('reduction-2030').value)
+    },
+    equivalences: {
+      arbres: parseFloat(document.getElementById('equivalence-arbres').value),
+      km: parseFloat(document.getElementById('equivalence-km').value),
+      kwh: parseFloat(document.getElementById('equivalence-kwh').value)
+    },
+    parametres: {
+      methode: document.getElementById('methode-calcul').value,
+      emissions_amont: document.getElementById('emissions-amont').checked,
+      emissions_aval: document.getElementById('emissions-aval').checked,
+      precision: parseInt(document.getElementById('precision-decimale').value),
+      arrondi: document.getElementById('methode-arrondi').value,
+      temps_reel: document.getElementById('calculs-temps-reel').checked
+    }
+  };
+
+  fetch('/api/impact/configuration', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(configuration)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification('✅ Configuration sauvegardée avec succès', 'success');
+    } else {
+      showNotification(`❌ Erreur: ${data.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur lors de la sauvegarde:', error);
+    showNotification('❌ Erreur lors de la sauvegarde', 'error');
+  });
+}
+
+// Restaurer les valeurs par défaut
+function restaurerDefauts() {
+  if (!confirm('Êtes-vous sûr de vouloir restaurer les valeurs par défaut ?')) {
+    return;
+  }
+
+  // Valeurs par défaut
+  const defauts = {
+    facteurs: { routier: 2.5, maritime: 0.015, aerien: 0.5, ferroviaire: 0.03 },
+    seuils: { faible: 100, moyen: 500, eleve: 1000 },
+    objectifs: { '2024': 10, '2025': 20, '2030': 50 },
+    equivalences: { arbres: 0.05, km: 4, kwh: 0.5 },
+    parametres: { 
+      methode: 'ADEME', 
+      emissions_amont: true, 
+      emissions_aval: false, 
+      precision: 2, 
+      arrondi: 'standard', 
+      temps_reel: true 
+    }
+  };
+
+  appliquerConfiguration(defauts);
+  showNotification('🔄 Valeurs par défaut restaurées', 'info');
+}
+
+// Exporter la configuration
+function exporterConfiguration() {
+  const configuration = {
+    facteurs: {
+      routier: parseFloat(document.getElementById('facteur-routier').value),
+      maritime: parseFloat(document.getElementById('facteur-maritime').value),
+      aerien: parseFloat(document.getElementById('facteur-aerien').value),
+      ferroviaire: parseFloat(document.getElementById('facteur-ferroviaire').value)
+    },
+    seuils: {
+      faible: parseInt(document.getElementById('seuil-faible').value),
+      moyen: parseInt(document.getElementById('seuil-moyen').value),
+      eleve: parseInt(document.getElementById('seuil-eleve').value)
+    },
+    objectifs: {
+      '2024': parseInt(document.getElementById('reduction-2024').value),
+      '2025': parseInt(document.getElementById('reduction-2025').value),
+      '2030': parseInt(document.getElementById('reduction-2030').value)
+    },
+    equivalences: {
+      arbres: parseFloat(document.getElementById('equivalence-arbres').value),
+      km: parseFloat(document.getElementById('equivalence-km').value),
+      kwh: parseFloat(document.getElementById('equivalence-kwh').value)
+    },
+    parametres: {
+      methode: document.getElementById('methode-calcul').value,
+      emissions_amont: document.getElementById('emissions-amont').checked,
+      emissions_aval: document.getElementById('emissions-aval').checked,
+      precision: parseInt(document.getElementById('precision-decimale').value),
+      arrondi: document.getElementById('methode-arrondi').value,
+      temps_reel: document.getElementById('calculs-temps-reel').checked
+    }
+  };
+
+  // Créer et télécharger le fichier JSON
+  const dataStr = JSON.stringify(configuration, null, 2);
+  const dataBlob = new Blob([dataStr], {type: 'application/json'});
+  const url = URL.createObjectURL(dataBlob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'configuration-impact-' + new Date().toISOString().split('T')[0] + '.json';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  showNotification('📤 Configuration exportée avec succès', 'success');
+}
+
+// Système de notifications modernes
+function showNotification(message, type = 'info') {
+  // Supprimer les notifications existantes
+  const existingNotifications = document.querySelectorAll('.modern-notification');
+  existingNotifications.forEach(notif => notif.remove());
+  
+  // Créer la nouvelle notification
+  const notification = document.createElement('div');
+  notification.className = `modern-notification modern-notification-${type}`;
+  
+  // Icônes selon le type
+  let icon, bgColor, borderColor;
+  switch(type) {
+    case 'success':
+      icon = '✅';
+      bgColor = '#d4edda';
+      borderColor = '#28a745';
+      break;
+    case 'error':
+      icon = '❌';
+      bgColor = '#f8d7da';
+      borderColor = '#dc3545';
+      break;
+    case 'warning':
+      icon = '⚠️';
+      bgColor = '#fff3cd';
+      borderColor = '#ffc107';
+      break;
+    default:
+      icon = 'ℹ️';
+      bgColor = '#d1ecf1';
+      borderColor = '#17a2b8';
+  }
+  
+  notification.innerHTML = `
+    <div class="notification-icon">${icon}</div>
+    <div class="notification-message">${message}</div>
+  `;
+  
+  // Styles inline pour garantir l'apparence
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${bgColor};
+    border: 2px solid ${borderColor};
+    border-radius: 10px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    max-width: 350px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+  `;
+  
+  // Styles pour l'icône et le message
+  const iconElement = notification.querySelector('.notification-icon');
+  iconElement.style.cssText = `
+    font-size: 20px;
+    flex-shrink: 0;
+  `;
+  
+  const messageElement = notification.querySelector('.notification-message');
+  messageElement.style.cssText = `
+    color: #333;
+    font-weight: 500;
+    line-height: 1.4;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animation d'entrée
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+    notification.style.opacity = '1';
+  }, 10);
+  
+  // Auto-suppression avec fade out
+  setTimeout(() => {
+    notification.style.transform = 'translateX(400px)';
+    notification.style.opacity = '0';
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 300);
+  }, 4000);
+}
+</script>
+
+<!-- Styles CSS -->
+<style>
+.impact-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 15px;
+  color: white;
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.header-subtitle {
+  margin: 10px 0 0 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+.impact-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.impact-section {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.section-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.section-header h2 {
+  margin: 0 0 10px 0;
+  color: #2d3748;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.section-header p {
+  margin: 0;
+  color: #718096;
+  font-size: 1rem;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.config-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 25px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.config-card:hover {
+  border-color: #10b981;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
+}
+
+.config-icon {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.config-content h3 {
+  margin: 0 0 15px 0;
+  color: #2d3748;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.config-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.config-value input {
+  width: 100px;
+  padding: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.config-value input:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.unit {
+  color: #718096;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.config-description {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 25px;
+}
+
+.metric-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 25px;
+  border: 2px solid #e2e8f0;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.metric-header h3 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.metric-badge {
+  background: #10b981;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.metric-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.metric-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.metric-row label {
+  flex: 1;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.metric-row input {
+  width: 80px;
+  padding: 8px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.metric-row input:focus {
+  outline: none;
+  border-color: #10b981;
+}
+
+.params-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 25px;
+}
+
+.param-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 25px;
+  border: 2px solid #e2e8f0;
+}
+
+.param-header h3 {
+  margin: 0 0 20px 0;
+  color: #2d3748;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.param-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.param-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.param-row label {
+  flex: 1;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.param-row select {
+  padding: 8px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  cursor: pointer;
+}
+
+.param-row select:focus {
+  outline: none;
+  border-color: #10b981;
+}
+
+.param-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #10b981;
+}
+
+.actions-section {
+  text-align: center;
+  padding: 30px;
+  background: #f8fafc;
+  border-radius: 15px;
+  border: 2px solid #e2e8f0;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.btn-primary, .btn-secondary, .btn-info {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn-secondary:hover {
+  background: #cbd5e0;
+  transform: translateY(-2px);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .config-grid,
+  .metrics-grid,
+  .params-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .metric-row,
+  .param-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .metric-row input,
+  .param-row select {
+    width: 100%;
+  }
+}
+</style>

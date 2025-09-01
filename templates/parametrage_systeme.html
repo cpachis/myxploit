@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+{% block title %}Paramètres Système — GreenXploit{% endblock %}
+
+{% block content %}
+<div class="systeme-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>⚙️ Paramètres Système</h1>
+      <p class="header-subtitle">Configuration générale et maintenance de l'application</p>
+    </div>
+  </div>
+
+  <!-- Sections de configuration -->
+  <div class="systeme-sections">
+    <!-- Configuration générale -->
+    <div class="systeme-section">
+      <div class="section-header">
+        <h2>🔧 Configuration Générale</h2>
+        <p>Paramètres de base de l'application</p>
+      </div>
+      
+      <div class="config-grid">
+        <div class="config-card">
+          <h3>Nom de l'Application</h3>
+          <input type="text" id="app-name" value="MyXploit" placeholder="Nom de l'application">
+        </div>
+
+        <div class="config-card">
+          <h3>Version</h3>
+          <input type="text" id="app-version" value="1.0.0" placeholder="Version">
+        </div>
+
+        <div class="config-card">
+          <h3>Mode Debug</h3>
+          <select id="debug-mode">
+            <option value="false">Désactivé</option>
+            <option value="true">Activé</option>
+          </select>
+        </div>
+
+        <div class="config-card">
+          <h3>Fuseau Horaire</h3>
+          <select id="timezone">
+            <option value="Europe/Paris" selected>Europe/Paris</option>
+            <option value="UTC">UTC</option>
+            <option value="America/New_York">America/New_York</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Base de données -->
+    <div class="systeme-section">
+      <div class="section-header">
+        <h2>🗄️ Base de Données</h2>
+        <p>Configuration et maintenance de la base de données</p>
+      </div>
+      
+      <div class="db-grid">
+        <div class="db-card">
+          <h3>Type de Base</h3>
+          <div class="db-info">
+            <span id="db-type">PostgreSQL</span>
+            <span class="db-status" id="db-status">✅ Connecté</span>
+          </div>
+        </div>
+
+        <div class="db-card">
+          <h3>Actions</h3>
+          <div class="db-actions">
+            <button class="btn-secondary" onclick="sauvegarderDB()">💾 Sauvegarde</button>
+            <button class="btn-warning" onclick="optimiserDB()">🔧 Optimiser</button>
+            <button class="btn-danger" onclick="viderCache()">🗑️ Vider Cache</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sécurité -->
+    <div class="systeme-section">
+      <div class="section-header">
+        <h2>🔒 Sécurité</h2>
+        <p>Paramètres de sécurité et authentification</p>
+      </div>
+      
+      <div class="security-grid">
+        <div class="security-card">
+          <h3>Authentification</h3>
+          <div class="security-option">
+            <label>
+              <input type="checkbox" id="auth-required" checked>
+              Authentification requise
+            </label>
+          </div>
+          <div class="security-option">
+            <label>
+              <input type="checkbox" id="session-timeout">
+              Timeout de session automatique
+            </label>
+          </div>
+        </div>
+
+        <div class="security-card">
+          <h3>Logs</h3>
+          <div class="security-option">
+            <label>
+              <input type="checkbox" id="log-errors" checked>
+              Logger les erreurs
+            </label>
+          </div>
+          <div class="security-option">
+            <label>
+              <input type="checkbox" id="log-access">
+              Logger les accès
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-section">
+      <div class="action-buttons">
+        <button class="btn-primary" onclick="sauvegarderParametres()">
+          <span class="btn-icon">💾</span>
+          Sauvegarder
+        </button>
+        <button class="btn-secondary" onclick="restaurerDefauts()">
+          <span class="btn-icon">🔄</span>
+          Restaurer Défauts
+        </button>
+        <button class="btn-info" onclick="redemarrerApp()">
+          <span class="btn-icon">🔄</span>
+          Redémarrer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Charger les paramètres au démarrage
+document.addEventListener('DOMContentLoaded', function() {
+  chargerParametres();
+});
+
+// Charger les paramètres depuis l'API
+function chargerParametres() {
+  fetch('/api/systeme/parametres')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        appliquerParametres(data.parametres);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement des paramètres:', error);
+    });
+}
+
+// Appliquer les paramètres aux champs
+function appliquerParametres(params) {
+  if (params.general) {
+    document.getElementById('app-name').value = params.general.nom || 'MyXploit';
+    document.getElementById('app-version').value = params.general.version || '1.0.0';
+    document.getElementById('debug-mode').value = params.general.debug ? 'true' : 'false';
+    document.getElementById('timezone').value = params.general.timezone || 'Europe/Paris';
+  }
+
+  if (params.securite) {
+    document.getElementById('auth-required').checked = params.securite.auth_requise !== false;
+    document.getElementById('session-timeout').checked = params.securite.timeout_session === true;
+    document.getElementById('log-errors').checked = params.securite.log_erreurs !== false;
+    document.getElementById('log-access').checked = params.securite.log_acces === true;
+  }
+}
+
+// Sauvegarder les paramètres
+function sauvegarderParametres() {
+  const parametres = {
+    general: {
+      nom: document.getElementById('app-name').value,
+      version: document.getElementById('app-version').value,
+      debug: document.getElementById('debug-mode').value === 'true',
+      timezone: document.getElementById('timezone').value
+    },
+    securite: {
+      auth_requise: document.getElementById('auth-required').checked,
+      timeout_session: document.getElementById('session-timeout').checked,
+      log_erreurs: document.getElementById('log-errors').checked,
+      log_acces: document.getElementById('log-access').checked
+    }
+  };
+
+  fetch('/api/systeme/parametres', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(parametres)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification('✅ Paramètres sauvegardés avec succès', 'success');
+    } else {
+      showNotification(`❌ Erreur: ${data.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur lors de la sauvegarde:', error);
+    showNotification('❌ Erreur lors de la sauvegarde', 'error');
+  });
+}
+
+// Restaurer les valeurs par défaut
+function restaurerDefauts() {
+  if (!confirm('Êtes-vous sûr de vouloir restaurer les valeurs par défaut ?')) {
+    return;
+  }
+
+  const defauts = {
+    general: { nom: 'MyXploit', version: '1.0.0', debug: false, timezone: 'Europe/Paris' },
+    securite: { auth_requise: true, timeout_session: false, log_erreurs: true, log_acces: false }
+  };
+
+  appliquerParametres(defauts);
+  showNotification('🔄 Valeurs par défaut restaurées', 'info');
+}
+
+// Actions de base de données
+function sauvegarderDB() {
+  showNotification('💾 Sauvegarde en cours...', 'info');
+  // Ici on appellerait l'API de sauvegarde
+}
+
+function optimiserDB() {
+  showNotification('🔧 Optimisation en cours...', 'info');
+  // Ici on appellerait l'API d'optimisation
+}
+
+function viderCache() {
+  if (!confirm('Êtes-vous sûr de vouloir vider le cache ?')) {
+    return;
+  }
+  showNotification('🗑️ Cache vidé avec succès', 'success');
+}
+
+function redemarrerApp() {
+  if (!confirm('Êtes-vous sûr de vouloir redémarrer l\'application ?')) {
+    return;
+  }
+  showNotification('🔄 Redémarrage en cours...', 'info');
+}
+
+// Système de notifications
+function showNotification(message, type = 'info') {
+  const existingNotifications = document.querySelectorAll('.modern-notification');
+  existingNotifications.forEach(notif => notif.remove());
+  
+  const notification = document.createElement('div');
+  notification.className = `modern-notification modern-notification-${type}`;
+  
+  let icon, bgColor, borderColor;
+  switch(type) {
+    case 'success': icon = '✅'; bgColor = '#d4edda'; borderColor = '#28a745'; break;
+    case 'error': icon = '❌'; bgColor = '#f8d7da'; borderColor = '#dc3545'; break;
+    case 'warning': icon = '⚠️'; bgColor = '#fff3cd'; borderColor = '#ffc107'; break;
+    default: icon = 'ℹ️'; bgColor = '#d1ecf1'; borderColor = '#17a2b8';
+  }
+  
+  notification.innerHTML = `
+    <div class="notification-icon">${icon}</div>
+    <div class="notification-message">${message}</div>
+  `;
+  
+  notification.style.cssText = `
+    position: fixed; top: 20px; right: 20px; background: ${bgColor};
+    border: 2px solid ${borderColor}; border-radius: 10px; padding: 15px 20px;
+    display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000; transform: translateX(400px); opacity: 0; transition: all 0.3s ease-in-out;
+    max-width: 350px; font-family: Arial, sans-serif; font-size: 14px;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+    notification.style.opacity = '1';
+  }, 10);
+  
+  setTimeout(() => {
+    notification.style.transform = 'translateX(400px)';
+    notification.style.opacity = '0';
+    setTimeout(() => {
+      if (notification.parentElement) notification.remove();
+    }, 300);
+  }, 4000);
+}
+</script>
+
+<style>
+.systeme-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px;
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  border-radius: 15px;
+  color: white;
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.header-subtitle {
+  margin: 10px 0 0 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+.systeme-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.systeme-section {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.section-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.section-header h2 {
+  margin: 0 0 10px 0;
+  color: #2d3748;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.section-header p {
+  margin: 0;
+  color: #718096;
+  font-size: 1rem;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+}
+
+.config-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 25px;
+  border: 2px solid #e2e8f0;
+}
+
+.config-card h3 {
+  margin: 0 0 15px 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.config-card input,
+.config-card select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.config-card input:focus,
+.config-card select:focus {
+  outline: none;
+  border-color: #6b7280;
+  box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
+}
+
+.db-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.db-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 25px;
+  border: 2px solid #e2e8f0;
+}
+
+.db-card h3 {
+  margin: 0 0 15px 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.db-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.db-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: #d4edda;
+  color: #155724;
+}
+
+.db-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.security-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.security-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 25px;
+  border: 2px solid #e2e8f0;
+}
+
+.security-card h3 {
+  margin: 0 0 20px 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.security-option {
+  margin-bottom: 15px;
+}
+
+.security-option label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #4a5568;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.security-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #6b7280;
+}
+
+.actions-section {
+  text-align: center;
+  padding: 30px;
+  background: #f8fafc;
+  border-radius: 15px;
+  border: 2px solid #e2e8f0;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.btn-primary, .btn-secondary, .btn-info, .btn-warning, .btn-danger {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  color: white;
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.btn-primary:hover, .btn-secondary:hover, .btn-info:hover, .btn-warning:hover, .btn-danger:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .config-grid, .db-grid, .security-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .db-actions {
+    flex-direction: column;
+  }
+}
+</style>

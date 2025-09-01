@@ -1391,6 +1391,42 @@ def parametrage_dashboards():
         logger.error(f"Erreur lors de l'affichage des dashboards: {str(e)}")
         return render_template('error.html', error=str(e)), 500
 
+@app.route('/clients')
+def clients():
+    """Page de gestion des clients (côté client)"""
+    try:
+        return render_template('clients.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des clients: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/transporteurs')
+def transporteurs():
+    """Page de gestion des transporteurs (côté client)"""
+    try:
+        return render_template('transporteurs.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des transporteurs: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/parametrage_impact')
+def parametrage_impact():
+    """Page de configuration de l'impact environnemental"""
+    try:
+        return render_template('parametrage_impact.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage de la configuration d'impact: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/parametrage_systeme')
+def parametrage_systeme():
+    """Page de paramètres système"""
+    try:
+        return render_template('parametrage_systeme.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des paramètres système: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
 @app.route('/debug/migrate')
 def force_migration():
     """Route pour forcer la migration des colonnes manquantes"""

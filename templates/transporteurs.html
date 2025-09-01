@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Mes Clients — GreenXploit{% endblock %}
+{% block title %}Mes Transporteurs — GreenXploit{% endblock %}
 
 {% block content %}
-<div class="clients-container">
+<div class="transporteurs-container">
   <!-- Header -->
   <div class="page-header">
     <div class="header-content">
-      <h1>👥 Mes Clients</h1>
-      <p class="header-subtitle">Gérez vos clients et leurs informations</p>
+      <h1>🚚 Mes Transporteurs</h1>
+      <p class="header-subtitle">Gérez vos transporteurs et prestataires logistiques</p>
     </div>
     <div class="header-actions">
-      <button class="btn-primary" onclick="showAddClientModal()">
+      <button class="btn-primary" onclick="showAddTransporteurModal()">
         <span class="btn-icon">➕</span>
-        Ajouter un Client
+        Ajouter un Transporteur
       </button>
     </div>
   </div>
@@ -20,70 +20,87 @@
   <!-- Filtres et recherche -->
   <div class="filters-section">
     <div class="search-box">
-      <input type="text" id="search-clients" placeholder="Rechercher un client..." onkeyup="filterClients()">
+      <input type="text" id="search-transporteurs" placeholder="Rechercher un transporteur..." onkeyup="filterTransporteurs()">
       <span class="search-icon">🔍</span>
     </div>
     <div class="filter-options">
-      <select id="filter-statut" onchange="filterClients()">
+      <select id="filter-type" onchange="filterTransporteurs()">
+        <option value="">Tous les types</option>
+        <option value="ROUTIER">Transport routier</option>
+        <option value="MARITIME">Transport maritime</option>
+        <option value="AERIEN">Transport aérien</option>
+        <option value="FERROVIAIRE">Transport ferroviaire</option>
+      </select>
+      <select id="filter-statut" onchange="filterTransporteurs()">
         <option value="">Tous les statuts</option>
         <option value="ACTIF">Actif</option>
         <option value="INACTIF">Inactif</option>
-        <option value="PROSPECT">Prospect</option>
+        <option value="EN_ATTENTE">En attente</option>
       </select>
     </div>
   </div>
 
-  <!-- Liste des clients -->
-  <div class="clients-list" id="clients-list">
-    <!-- Les clients seront chargés dynamiquement -->
+  <!-- Liste des transporteurs -->
+  <div class="transporteurs-list" id="transporteurs-list">
+    <!-- Les transporteurs seront chargés dynamiquement -->
   </div>
 
-  <!-- Modal d'ajout/modification de client -->
-  <div id="client-modal" class="modal">
+  <!-- Modal d'ajout/modification de transporteur -->
+  <div id="transporteur-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="client-modal-title">Ajouter un Client</h2>
-        <button class="close-btn" onclick="closeClientModal()">&times;</button>
+        <h2 id="transporteur-modal-title">Ajouter un Transporteur</h2>
+        <button class="close-btn" onclick="closeTransporteurModal()">&times;</button>
       </div>
       
-      <form id="client-form" class="client-form">
+      <form id="transporteur-form" class="transporteur-form">
         <div class="form-row">
           <div class="form-group">
-            <label for="client-nom">Nom du client *</label>
-            <input type="text" id="client-nom" name="nom" required placeholder="Ex: Entreprise ABC">
+            <label for="transporteur-nom">Nom du transporteur *</label>
+            <input type="text" id="transporteur-nom" name="nom" required placeholder="Ex: Transport Express SA">
           </div>
           <div class="form-group">
-            <label for="client-email">Email de contact</label>
-            <input type="email" id="client-email" name="email" placeholder="contact@entreprise.com">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="client-telephone">Téléphone</label>
-            <input type="tel" id="client-telephone" name="telephone" placeholder="+33 1 23 45 67 89">
-          </div>
-          <div class="form-group">
-            <label for="client-statut">Statut</label>
-            <select id="client-statut" name="statut">
-              <option value="ACTIF">Actif</option>
-              <option value="INACTIF">Inactif</option>
-              <option value="PROSPECT">Prospect</option>
+            <label for="transporteur-type">Type de transport *</label>
+            <select id="transporteur-type" name="type" required>
+              <option value="">Sélectionner le type</option>
+              <option value="ROUTIER">Transport routier</option>
+              <option value="MARITIME">Transport maritime</option>
+              <option value="AERIEN">Transport aérien</option>
+              <option value="FERROVIAIRE">Transport ferroviaire</option>
             </select>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="client-adresse">Adresse</label>
-            <textarea id="client-adresse" name="adresse" rows="3" placeholder="Adresse complète du client"></textarea>
+            <label for="transporteur-email">Email de contact</label>
+            <input type="email" id="transporteur-email" name="email" placeholder="contact@transporteur.com">
+          </div>
+          <div class="form-group">
+            <label for="transporteur-telephone">Téléphone</label>
+            <input type="tel" id="transporteur-telephone" name="telephone" placeholder="+33 1 23 45 67 89">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="client-description">Description</label>
-            <textarea id="client-description" name="description" rows="3" placeholder="Informations complémentaires..."></textarea>
+            <label for="transporteur-adresse">Adresse</label>
+            <textarea id="transporteur-adresse" name="adresse" rows="3" placeholder="Adresse complète du transporteur"></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="transporteur-statut">Statut</label>
+            <select id="transporteur-statut" name="statut">
+              <option value="ACTIF">Actif</option>
+              <option value="INACTIF">Inactif</option>
+              <option value="EN_ATTENTE">En attente</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="transporteur-description">Description</label>
+            <textarea id="transporteur-description" name="description" rows="3" placeholder="Informations complémentaires..."></textarea>
           </div>
         </div>
 
@@ -92,7 +109,7 @@
             <span class="btn-icon">💾</span>
             Sauvegarder
           </button>
-          <button type="button" class="btn-cancel" onclick="closeClientModal()">
+          <button type="button" class="btn-cancel" onclick="closeTransporteurModal()">
             <span class="btn-icon">❌</span>
             Annuler
           </button>
@@ -104,24 +121,24 @@
 
 <script>
 // Variables globales
-let clients = [];
+let transporteurs = [];
 let currentEditId = null;
 
-// Charger les clients au démarrage
+// Charger les transporteurs au démarrage
 document.addEventListener('DOMContentLoaded', function() {
-  loadClients();
+  loadTransporteurs();
 });
 
-// Charger les clients depuis l'API
-function loadClients() {
-  fetch('/api/clients')
+// Charger les transporteurs depuis l'API
+function loadTransporteurs() {
+  fetch('/api/transporteurs')
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        clients = data.clients || [];
-        displayClients(clients);
+        transporteurs = data.transporteurs || [];
+        displayTransporteurs(transporteurs);
       } else {
-        showNotification('❌ Erreur lors du chargement des clients', 'error');
+        showNotification('❌ Erreur lors du chargement des transporteurs', 'error');
       }
     })
     .catch(error => {
@@ -130,36 +147,37 @@ function loadClients() {
     });
 }
 
-// Afficher la liste des clients
-function displayClients(clientsToShow) {
-  const container = document.getElementById('clients-list');
+// Afficher la liste des transporteurs
+function displayTransporteurs(transporteursToShow) {
+  const container = document.getElementById('transporteurs-list');
   
-  if (clientsToShow.length === 0) {
-    container.innerHTML = '<div class="no-clients">Aucun client trouvé</div>';
+  if (transporteursToShow.length === 0) {
+    container.innerHTML = '<div class="no-transporteurs">Aucun transporteur trouvé</div>';
     return;
   }
   
-  container.innerHTML = clientsToShow.map(client => `
-    <div class="client-card" data-id="${client.id}">
-      <div class="client-header">
-        <div class="client-info">
-          <h3>${client.nom}</h3>
-          <span class="client-statut ${client.statut.toLowerCase()}">${client.statut}</span>
+  container.innerHTML = transporteursToShow.map(transporteur => `
+    <div class="transporteur-card" data-id="${transporteur.id}">
+      <div class="transporteur-header">
+        <div class="transporteur-info">
+          <h3>${transporteur.nom}</h3>
+          <span class="transporteur-type">${transporteur.type}</span>
+          <span class="transporteur-statut ${transporteur.statut.toLowerCase()}">${transporteur.statut}</span>
         </div>
       </div>
       
-      <div class="client-details">
-        ${client.email ? `<div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${client.email}</span></div>` : ''}
-        ${client.telephone ? `<div class="detail-row"><span class="detail-label">Téléphone:</span><span class="detail-value">${client.telephone}</span></div>` : ''}
-        ${client.description ? `<div class="detail-row"><span class="detail-label">Description:</span><span class="detail-value">${client.description}</span></div>` : ''}
+      <div class="transporteur-details">
+        ${transporteur.email ? `<div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${transporteur.email}</span></div>` : ''}
+        ${transporteur.telephone ? `<div class="detail-row"><span class="detail-label">Téléphone:</span><span class="detail-value">${transporteur.telephone}</span></div>` : ''}
+        ${transporteur.description ? `<div class="detail-row"><span class="detail-label">Description:</span><span class="detail-value">${transporteur.description}</span></div>` : ''}
       </div>
       
-      <div class="client-actions">
-        <button class="btn-edit" onclick="editClient('${client.id}')">
+      <div class="transporteur-actions">
+        <button class="btn-edit" onclick="editTransporteur('${transporteur.id}')">
           <span class="btn-icon">✏️</span>
           Modifier
         </button>
-        <button class="btn-delete" onclick="deleteClient('${client.id}')">
+        <button class="btn-delete" onclick="deleteTransporteur('${transporteur.id}')">
           <span class="btn-icon">🗑️</span>
           Supprimer
         </button>
@@ -168,66 +186,69 @@ function displayClients(clientsToShow) {
   `).join('');
 }
 
-// Filtrer les clients
-function filterClients() {
-  const searchTerm = document.getElementById('search-clients').value.toLowerCase();
+// Filtrer les transporteurs
+function filterTransporteurs() {
+  const searchTerm = document.getElementById('search-transporteurs').value.toLowerCase();
+  const typeFilter = document.getElementById('filter-type').value;
   const statutFilter = document.getElementById('filter-statut').value;
   
-  const filtered = clients.filter(client => {
-    const matchesSearch = client.nom.toLowerCase().includes(searchTerm);
-    const matchesStatut = !statutFilter || client.statut === statutFilter;
+  const filtered = transporteurs.filter(transporteur => {
+    const matchesSearch = transporteur.nom.toLowerCase().includes(searchTerm);
+    const matchesType = !typeFilter || transporteur.type === typeFilter;
+    const matchesStatut = !statutFilter || transporteur.statut === statutFilter;
     
-    return matchesSearch && matchesStatut;
+    return matchesSearch && matchesType && matchesStatut;
   });
   
-  displayClients(filtered);
+  displayTransporteurs(filtered);
 }
 
 // Afficher le modal d'ajout
-function showAddClientModal() {
+function showAddTransporteurModal() {
   currentEditId = null;
-  document.getElementById('client-modal-title').textContent = 'Ajouter un Client';
-  document.getElementById('client-form').reset();
-  document.getElementById('client-modal').style.display = 'block';
+  document.getElementById('transporteur-modal-title').textContent = 'Ajouter un Transporteur';
+  document.getElementById('transporteur-form').reset();
+  document.getElementById('transporteur-modal').style.display = 'block';
 }
 
 // Fermer le modal
-function closeClientModal() {
-  document.getElementById('client-modal').style.display = 'none';
+function closeTransporteurModal() {
+  document.getElementById('transporteur-modal').style.display = 'none';
   currentEditId = null;
 }
 
-// Éditer un client
-function editClient(id) {
-  const client = clients.find(c => c.id == id);
-  if (!client) return;
+// Éditer un transporteur
+function editTransporteur(id) {
+  const transporteur = transporteurs.find(t => t.id == id);
+  if (!transporteur) return;
   
   currentEditId = id;
-  document.getElementById('client-modal-title').textContent = 'Modifier le Client';
+  document.getElementById('transporteur-modal-title').textContent = 'Modifier le Transporteur';
   
   // Remplir le formulaire
-  document.getElementById('client-nom').value = client.nom;
-  document.getElementById('client-email').value = client.email || '';
-  document.getElementById('client-telephone').value = client.telephone || '';
-  document.getElementById('client-statut').value = client.statut;
-  document.getElementById('client-adresse').value = client.adresse || '';
-  document.getElementById('client-description').value = client.description || '';
+  document.getElementById('transporteur-nom').value = transporteur.nom;
+  document.getElementById('transporteur-type').value = transporteur.type;
+  document.getElementById('transporteur-email').value = transporteur.email || '';
+  document.getElementById('transporteur-telephone').value = transporteur.telephone || '';
+  document.getElementById('transporteur-adresse').value = transporteur.adresse || '';
+  document.getElementById('transporteur-statut').value = transporteur.statut;
+  document.getElementById('transporteur-description').value = transporteur.description || '';
   
-  document.getElementById('client-modal').style.display = 'block';
+  document.getElementById('transporteur-modal').style.display = 'block';
 }
 
-// Supprimer un client
-function deleteClient(id) {
-  if (!confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) return;
+// Supprimer un transporteur
+function deleteTransporteur(id) {
+  if (!confirm('Êtes-vous sûr de vouloir supprimer ce transporteur ?')) return;
   
-  fetch(`/api/clients/${id}`, {
+  fetch(`/api/transporteurs/${id}`, {
     method: 'DELETE'
   })
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      showNotification('✅ Client supprimé avec succès', 'success');
-      loadClients();
+      showNotification('✅ Transporteur supprimé avec succès', 'success');
+      loadTransporteurs();
     } else {
       showNotification(`❌ Erreur: ${data.error}`, 'error');
     }
@@ -239,20 +260,21 @@ function deleteClient(id) {
 }
 
 // Gérer la soumission du formulaire
-document.getElementById('client-form').addEventListener('submit', function(e) {
+document.getElementById('transporteur-form').addEventListener('submit', function(e) {
   e.preventDefault();
   
   const formData = new FormData(this);
-  const clientData = {
+  const transporteurData = {
     nom: formData.get('nom'),
+    type: formData.get('type'),
     email: formData.get('email'),
     telephone: formData.get('telephone'),
-    statut: formData.get('statut'),
     adresse: formData.get('adresse'),
+    statut: formData.get('statut'),
     description: formData.get('description')
   };
   
-  const url = currentEditId ? `/api/clients/${currentEditId}` : '/api/clients';
+  const url = currentEditId ? `/api/transporteurs/${currentEditId}` : '/api/transporteurs';
   const method = currentEditId ? 'PUT' : 'POST';
   
   fetch(url, {
@@ -260,14 +282,14 @@ document.getElementById('client-form').addEventListener('submit', function(e) {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(clientData)
+    body: JSON.stringify(transporteurData)
   })
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      showNotification('✅ Client sauvegardé avec succès', 'success');
-      closeClientModal();
-      loadClients();
+      showNotification('✅ Transporteur sauvegardé avec succès', 'success');
+      closeTransporteurModal();
+      loadTransporteurs();
     } else {
       showNotification(`❌ Erreur: ${data.error}`, 'error');
     }
@@ -376,7 +398,7 @@ function showNotification(message, type = 'info') {
 
 <!-- Styles CSS -->
 <style>
-.clients-container {
+.transporteurs-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
@@ -476,7 +498,7 @@ function showNotification(message, type = 'info') {
   cursor: pointer;
 }
 
-.client-card {
+.transporteur-card {
   background: white;
   border-radius: 12px;
   padding: 20px;
@@ -486,47 +508,57 @@ function showNotification(message, type = 'info') {
   transition: all 0.3s ease;
 }
 
-.client-card:hover {
+.transporteur-card:hover {
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   transform: translateY(-2px);
 }
 
-.client-header {
+.transporteur-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 15px;
 }
 
-.client-info h3 {
+.transporteur-info h3 {
   margin: 0 0 8px 0;
   color: #2d3748;
   font-size: 1.25rem;
 }
 
-.client-statut {
+.transporteur-type {
+  background: #e3eaff;
+  color: #2a7de1;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-right: 10px;
+}
+
+.transporteur-statut {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.875rem;
   font-weight: 500;
 }
 
-.client-statut.actif {
+.transporteur-statut.actif {
   background: #d4edda;
   color: #155724;
 }
 
-.client-statut.inactif {
+.transporteur-statut.inactif {
   background: #f8d7da;
   color: #721c24;
 }
 
-.client-statut.prospect {
+.transporteur-statut.en_attente {
   background: #fff3cd;
   color: #856404;
 }
 
-.client-details {
+.transporteur-details {
   margin-bottom: 20px;
 }
 
@@ -547,7 +579,7 @@ function showNotification(message, type = 'info') {
   flex: 1;
 }
 
-.client-actions {
+.transporteur-actions {
   display: flex;
   gap: 10px;
 }
@@ -641,7 +673,7 @@ function showNotification(message, type = 'info') {
   background: rgba(255,255,255,0.2);
 }
 
-.client-form {
+.transporteur-form {
   padding: 20px;
 }
 
@@ -725,7 +757,7 @@ function showNotification(message, type = 'info') {
   background: #cbd5e0;
 }
 
-.no-clients {
+.no-transporteurs {
   text-align: center;
   padding: 60px 20px;
   color: #718096;
@@ -748,9 +780,8 @@ function showNotification(message, type = 'info') {
     grid-template-columns: 1fr;
   }
   
-  .client-actions {
+  .transporteur-actions {
     flex-direction: column;
   }
 }
 </style>
-{% endblock %}
