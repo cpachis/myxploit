@@ -92,10 +92,15 @@ class Vehicule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
     type = db.Column(db.String(50))
+    energie_id = db.Column(db.Integer, db.ForeignKey('energies.id'))
     consommation = db.Column(db.Float)  # L/100km
     emissions = db.Column(db.Float)     # g CO2e/km
     charge_utile = db.Column(db.Float)  # tonnes
+    description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relation avec l'énergie
+    energie = db.relationship('Energie', backref='vehicules')
 
 class Energie(db.Model):
     """Modèle pour les énergies"""
@@ -147,6 +152,12 @@ with app.app_context():
                         ('donnees_supplementaires', 'JSONB DEFAULT \'{}\'')
                     ]
                     
+                    # Colonnes pour la table véhicules
+                    vehicules_columns_to_add = [
+                        ('energie_id', 'INTEGER REFERENCES energies(id)'),
+                        ('description', 'TEXT')
+                    ]
+                    
                     for column_name, column_definition in columns_to_add:
                         try:
                             # Vérifier si la colonne existe
@@ -170,6 +181,32 @@ with app.app_context():
                                 logger.info(f"ℹ️ Colonne '{column_name}' existe déjà (erreur ignorée)")
                             else:
                                 logger.warning(f"⚠️ Erreur avec la colonne '{column_name}': {str(col_error)}")
+                    
+                    # Migration pour la table véhicules
+                    logger.info("🔧 Vérification de la structure de la table 'vehicules'...")
+                    for column_name, column_definition in vehicules_columns_to_add:
+                        try:
+                            # Vérifier si la colonne existe
+                            result = conn.execute(text(f"""
+                                SELECT column_name 
+                                FROM information_schema.columns 
+                                WHERE table_name = 'vehicules' 
+                                AND column_name = '{column_name}'
+                            """))
+                            
+                            if not result.fetchone():
+                                logger.info(f"➕ Ajout de la colonne '{column_name}' à la table vehicules...")
+                                conn.execute(text(f"ALTER TABLE vehicules ADD COLUMN {column_name} {column_definition}"))
+                                conn.commit()
+                                logger.info(f"✅ Colonne '{column_name}' ajoutée à vehicules")
+                            else:
+                                logger.info(f"✅ Colonne '{column_name}' existe déjà dans vehicules")
+                                
+                        except Exception as col_error:
+                            if "already exists" in str(col_error).lower() or "duplicate column" in str(col_error).lower():
+                                logger.info(f"ℹ️ Colonne '{column_name}' existe déjà dans vehicules (erreur ignorée)")
+                            else:
+                                logger.warning(f"⚠️ Erreur avec la colonne '{column_name}' dans vehicules: {str(col_error)}")
                     
                     logger.info("🎉 Migration automatique terminée avec succès !")
                 else:
