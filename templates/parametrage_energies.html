@@ -253,8 +253,6 @@ function calculateTotalFacteur() {
   const phaseFonctionnement = parseFloat(document.getElementById('facteur-phase-fonctionnement').value) || 0;
   const total = phaseAmont + phaseFonctionnement;
   
-  // Si aucun facteur n'est configuré, le total reste à 0
-  
   console.log('🧮 Calcul des facteurs d\'émission:');
   console.log('- Phase amont:', phaseAmont);
   console.log('- Phase fonctionnement:', phaseFonctionnement);
@@ -334,18 +332,31 @@ function loadEnergies() {
       
       if (result.success && result.energies) {
         // L'API retourne {success: true, energies: [...]}
-        energies = result.energies.map(energie => ({
-          id: energie.id,
-          nom: energie.nom,
-          identifiant: energie.identifiant,
-          facteur: energie.facteur,
-          description: energie.description,
-          unite: energie.unite || 'L',
-          phase_amont: energie.phase_amont || 0,
-          phase_fonctionnement: energie.phase_fonctionnement || 0,
-          total: (energie.phase_amont || 0) + (energie.phase_fonctionnement || 0) || energie.facteur || 0,
-          donnees_supplementaires: energie.donnees_supplementaires || {}
-        }));
+        energies = result.energies.map(energie => {
+          const phaseAmont = parseFloat(energie.phase_amont) || 0;
+          const phaseFonctionnement = parseFloat(energie.phase_fonctionnement) || 0;
+          const total = phaseAmont + phaseFonctionnement || energie.facteur || 0;
+          
+          console.log(`📊 Mapping énergie ${energie.nom}:`, {
+            phase_amont: phaseAmont,
+            phase_fonctionnement: phaseFonctionnement,
+            total: total,
+            facteur: energie.facteur
+          });
+          
+          return {
+            id: energie.id,
+            nom: energie.nom,
+            identifiant: energie.identifiant,
+            facteur: energie.facteur,
+            description: energie.description,
+            unite: energie.unite || 'L',
+            phase_amont: phaseAmont,
+            phase_fonctionnement: phaseFonctionnement,
+            total: total,
+            donnees_supplementaires: energie.donnees_supplementaires || {}
+          };
+        });
         
         console.log('✅ Énergies mappées avec succès:', energies);
       } else {
@@ -515,8 +526,15 @@ function showFacteursModal(energieId) {
   document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'L'}`;
   
   // Remplir le formulaire des facteurs avec les valeurs existantes
-  document.getElementById('facteur-phase-amont').value = energie.phase_amont || 0;
-  document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || 0;
+  const phaseAmont = energie.phase_amont || 0;
+  const phaseFonctionnement = energie.phase_fonctionnement || 0;
+  
+  document.getElementById('facteur-phase-amont').value = phaseAmont;
+  document.getElementById('facteur-phase-fonctionnement').value = phaseFonctionnement;
+  
+  console.log('📊 Valeurs chargées depuis la base:');
+  console.log('- Phase amont:', phaseAmont);
+  console.log('- Phase fonctionnement:', phaseFonctionnement);
   
   // Calculer automatiquement le total et le facteur global
   calculateTotalFacteur();
@@ -577,8 +595,15 @@ function showFacteursModalFromEnergieForm() {
       document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'L'}`;
       
       // Remplir avec les valeurs existantes
-      document.getElementById('facteur-phase-amont').value = energie.phase_amont || 0;
-      document.getElementById('facteur-phase-fonctionnement').value = energie.phase_fonctionnement || 0;
+      const phaseAmont = energie.phase_amont || 0;
+      const phaseFonctionnement = energie.phase_fonctionnement || 0;
+      
+      document.getElementById('facteur-phase-amont').value = phaseAmont;
+      document.getElementById('facteur-phase-fonctionnement').value = phaseFonctionnement;
+      
+      console.log('📊 Valeurs chargées pour modification:');
+      console.log('- Phase amont:', phaseAmont);
+      console.log('- Phase fonctionnement:', phaseFonctionnement);
       
       // Calculer automatiquement le total et le facteur global
       calculateTotalFacteur();
