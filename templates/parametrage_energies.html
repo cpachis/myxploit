@@ -101,108 +101,107 @@
 
   <!-- Modal des facteurs d'émission détaillés -->
   <div id="facteurs-modal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content facteurs-modal-content">
       <div class="modal-header">
         <h2 id="facteurs-modal-title">Configurer les Facteurs d'Émission</h2>
         <button class="close-btn" onclick="closeFacteursModal()">&times;</button>
       </div>
       
       <div class="facteurs-content">
-        <div class="energie-info">
+        <!-- En-tête compact -->
+        <div class="energie-info-compact">
           <h3 id="energie-nom-facteurs"></h3>
-          <p id="energie-unite-facteurs"></p>
+          <span class="energie-unite-badge" id="energie-unite-facteurs"></span>
         </div>
 
-        <!-- Section 1: Valeurs de calcul (Phase amont, Phase fonctionnement) -->
-        <div class="section-title">
-          <h4>📊 Valeurs de Calcul</h4>
-          <p>Ces valeurs sont utilisées pour le calcul automatique des émissions de transport</p>
-        </div>
+        <!-- Layout en 2 colonnes -->
+        <div class="facteurs-layout">
+          <!-- Colonne gauche : Valeurs de calcul -->
+          <div class="facteurs-column">
+            <div class="section-title-compact">
+              <h4>📊 Valeurs de Calcul</h4>
+              <p>Calcul automatique des émissions</p>
+            </div>
 
-        <form id="facteurs-form" class="facteurs-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="facteur-phase-amont">Phase amont (kg éq. CO₂/unité) *</label>
-              <input type="number" id="facteur-phase-amont" name="phase_amont" required step="0.001" min="0" placeholder="Ex: 0.66">
-              <small class="form-help">Émissions en phase amont par unité d'énergie</small>
-            </div>
-            <div class="form-group">
-              <label for="facteur-phase-fonctionnement">Phase de fonctionnement (kg éq. CO₂/unité) *</label>
-              <input type="number" id="facteur-phase-fonctionnement" name="phase_fonctionnement" required step="0.001" min="0" placeholder="Ex: 2.51">
-              <small class="form-help">Émissions en phase de fonctionnement par unité d'énergie</small>
-            </div>
+            <form id="facteurs-form" class="facteurs-form-compact">
+              <div class="form-group-compact">
+                <label for="facteur-phase-amont">Phase amont *</label>
+                <input type="number" id="facteur-phase-amont" name="phase_amont" required step="0.001" min="0" placeholder="0.66">
+                <small class="form-help-compact">kg éq. CO₂/unité</small>
+              </div>
+              
+              <div class="form-group-compact">
+                <label for="facteur-phase-fonctionnement">Phase fonctionnement *</label>
+                <input type="number" id="facteur-phase-fonctionnement" name="phase_fonctionnement" required step="0.001" min="0" placeholder="2.51">
+                <small class="form-help-compact">kg éq. CO₂/unité</small>
+              </div>
+
+              <div class="form-group-compact total-group">
+                <label for="facteur-total">Total calculé</label>
+                <input type="number" id="facteur-total" name="total" step="0.001" min="0" placeholder="Calculé automatiquement" readonly>
+                <small class="form-help-compact">kg éq. CO₂/unité</small>
+              </div>
+              
+              <div class="form-group-compact">
+                <label for="energie-facteur-modal">Facteur Global</label>
+                <input type="number" id="energie-facteur-modal" name="facteur_global" step="0.001" min="0" placeholder="Calculé automatiquement" readonly>
+                <small class="form-help-compact">kg éq. CO₂/unité</small>
+              </div>
+            </form>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="facteur-total">Total (kg éq. CO₂/unité)</label>
-              <input type="number" id="facteur-total" name="total" step="0.001" min="0" placeholder="Calculé automatiquement" readonly>
-              <small class="form-help">Total des émissions (Phase amont + Phase de fonctionnement)</small>
+          <!-- Colonne droite : Valeurs supplémentaires -->
+          <div class="facteurs-column">
+            <div class="section-title-compact">
+              <h4>➕ Valeurs Supplémentaires</h4>
+              <p>Valeurs personnalisées</p>
             </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="energie-facteur-modal">Facteur Global (kg éq. CO₂/unité)</label>
-              <input type="number" id="energie-facteur-modal" name="facteur_global" step="0.001" min="0" placeholder="Calculé automatiquement" readonly>
-              <small class="form-help">Facteur global calculé automatiquement (Phase amont + Phase fonctionnement)</small>
-            </div>
-          </div>
-        </form>
 
-        <!-- Section 2: Valeurs supplémentaires -->
-        <div class="section-title">
-          <h4>➕ Valeurs Supplémentaires</h4>
-          <p>Ajoutez des valeurs personnalisées pour des calculs spécifiques</p>
-        </div>
+            <!-- Bouton pour ajouter une nouvelle valeur -->
+            <div class="add-value-section-compact">
+              <button type="button" class="btn-add-value-compact" onclick="showAddValueForm()">
+                <span class="btn-icon">➕</span>
+                Ajouter une Valeur
+              </button>
+            </div>
 
-        <!-- Bouton pour ajouter une nouvelle valeur -->
-        <div class="add-value-section">
-          <button type="button" class="btn-add-value" onclick="showAddValueForm()">
-            <span class="btn-icon">➕</span>
-            Ajouter une Valeur
-          </button>
-        </div>
+            <!-- Formulaire d'ajout de valeur (caché par défaut) -->
+            <div id="add-value-form" class="add-value-form-compact" style="display: none;">
+              <h5>Nouvelle Valeur</h5>
+              <div class="form-group-compact">
+                <label for="new-value-name">Nom *</label>
+                <input type="text" id="new-value-name" placeholder="Émissions indirectes">
+              </div>
+              <div class="form-group-compact">
+                <label for="new-value-valeur">Valeur *</label>
+                <input type="number" id="new-value-valeur" step="0.001" min="0" placeholder="0.85">
+              </div>
+              <div class="form-group-compact">
+                <label for="new-value-unite">Unité</label>
+                <input type="text" id="new-value-unite" value="kg éq. CO₂">
+              </div>
+              <div class="form-group-compact">
+                <label for="new-value-description">Description</label>
+                <input type="text" id="new-value-description" placeholder="Description">
+              </div>
+              <div class="form-actions-inline-compact">
+                <button type="button" class="btn-save-compact" onclick="addNewValue()">💾 Ajouter</button>
+                <button type="button" class="btn-cancel-compact" onclick="hideAddValueForm()">❌ Annuler</button>
+              </div>
+            </div>
 
-        <!-- Formulaire d'ajout de valeur (caché par défaut) -->
-        <div id="add-value-form" class="add-value-form" style="display: none;">
-          <h5>Nouvelle Valeur</h5>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="new-value-name">Nom de la valeur *</label>
-              <input type="text" id="new-value-name" placeholder="Ex: Émissions indirectes">
+            <!-- Liste des valeurs supplémentaires -->
+            <div class="values-list-section-compact">
+              <h5>Valeurs Configurées</h5>
+              <div id="values-list" class="values-list-compact">
+                <!-- Les valeurs seront chargées dynamiquement -->
+              </div>
             </div>
-            <div class="form-group">
-              <label for="new-value-valeur">Valeur (kg éq. CO₂/unité) *</label>
-              <input type="number" id="new-value-valeur" step="0.001" min="0" placeholder="Ex: 0.85">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="new-value-unite">Unité</label>
-              <input type="text" id="new-value-unite" value="kg éq. CO₂" placeholder="kg éq. CO₂">
-            </div>
-            <div class="form-group">
-              <label for="new-value-description">Description</label>
-              <input type="text" id="new-value-description" placeholder="Description de cette valeur">
-            </div>
-          </div>
-          <div class="form-actions-inline">
-            <button type="button" class="btn-save" onclick="addNewValue()">💾 Ajouter</button>
-            <button type="button" class="btn-cancel" onclick="hideAddValueForm()">❌ Annuler</button>
-          </div>
-        </div>
-
-        <!-- Liste des valeurs supplémentaires -->
-        <div class="values-list-section">
-          <h5>Valeurs Configurées</h5>
-          <div id="values-list" class="values-list">
-            <!-- Les valeurs seront chargées dynamiquement -->
           </div>
         </div>
 
         <!-- Actions principales -->
-        <div class="form-actions">
+        <div class="form-actions-compact">
           <button type="submit" form="facteurs-form" class="btn-save">💾 Sauvegarder Tout</button>
           <button type="button" class="btn-cancel" onclick="closeFacteursModal()">❌ Annuler</button>
         </div>
@@ -666,19 +665,19 @@ function displayEnergieValues(values) {
   }
   
   container.innerHTML = Object.entries(values).map(([name, data]) => `
-    <div class="value-item" data-name="${name}">
-      <div class="value-info">
-        <div class="value-name">${name}</div>
-        <div class="value-details">
-          <span class="value-valeur">${data.valeur} ${data.unite || 'kg éq. CO₂'}</span>
-          ${data.description ? `<span class="value-description">${data.description}</span>` : ''}
+    <div class="value-item-compact" data-name="${name}">
+      <div class="value-info-compact">
+        <div class="value-name-compact">${name}</div>
+        <div class="value-details-compact">
+          <span class="value-valeur-compact">${data.valeur} ${data.unite || 'kg éq. CO₂'}</span>
+          ${data.description ? `<span class="value-description-compact">${data.description}</span>` : ''}
         </div>
       </div>
-      <div class="value-actions">
-        <button class="btn-edit-small" onclick="editValue('${name}')" title="Modifier">
+      <div class="value-actions-compact">
+        <button class="btn-edit-small-compact" onclick="editValue('${name}')" title="Modifier">
           ✏️
         </button>
-        <button class="btn-delete-small" onclick="deleteValue('${name}')" title="Supprimer">
+        <button class="btn-delete-small-compact" onclick="deleteValue('${name}')" title="Supprimer">
           🗑️
         </button>
       </div>
@@ -1786,6 +1785,296 @@ function showNotification(message, type) {
   border: 2px dashed #d1d5db;
 }
 
+/* Styles pour le modal des facteurs compact */
+.facteurs-modal-content {
+  max-width: 1000px;
+  max-height: 85vh;
+}
+
+.energie-info-compact {
+  text-align: center;
+  margin-bottom: 15px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.energie-info-compact h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.2rem;
+}
+
+.energie-unite-badge {
+  padding: 4px 12px;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.facteurs-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-bottom: 20px;
+}
+
+.facteurs-column {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid #e2e8f0;
+}
+
+.section-title-compact {
+  margin: 0 0 15px 0;
+  padding: 10px;
+  background: white;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+}
+
+.section-title-compact h4 {
+  margin: 0 0 5px 0;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.section-title-compact p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.facteurs-form-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group-compact label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.form-group-compact input {
+  padding: 8px 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.form-group-compact input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.form-group-compact input[readonly] {
+  background-color: #f7fafc;
+  color: #4a5568;
+  cursor: not-allowed;
+}
+
+.form-help-compact {
+  font-size: 0.75rem;
+  color: #718096;
+  font-style: italic;
+}
+
+.total-group {
+  background: #f0f9ff;
+  border-radius: 6px;
+  padding: 10px;
+  border-left: 3px solid #3b82f6;
+}
+
+.total-group input {
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.add-value-section-compact {
+  text-align: center;
+  margin: 15px 0;
+}
+
+.btn-add-value-compact {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-add-value-compact:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.add-value-form-compact {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.add-value-form-compact h5 {
+  margin: 0 0 15px 0;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.form-actions-inline-compact {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.btn-save-compact, .btn-cancel-compact {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-save-compact {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+}
+
+.btn-cancel-compact {
+  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+  color: white;
+}
+
+.values-list-section-compact {
+  margin: 15px 0;
+}
+
+.values-list-section-compact h5 {
+  margin: 0 0 15px 0;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.values-list-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.value-item-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.value-item-compact:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.1);
+}
+
+.value-info-compact {
+  flex: 1;
+}
+
+.value-name-compact {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.9rem;
+  margin-bottom: 3px;
+}
+
+.value-details-compact {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.value-valeur-compact {
+  font-weight: 500;
+  color: #059669;
+  background: #d1fae5;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.value-description-compact {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.value-actions-compact {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-edit-small-compact, .btn-delete-small-compact {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.btn-edit-small-compact:hover {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.btn-delete-small-compact:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.form-actions-compact {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e2e8f0;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .page-header {
@@ -1833,6 +2122,22 @@ function showNotification(message, type) {
   
   .value-actions {
     align-self: flex-end;
+  }
+  
+  /* Responsive pour le modal des facteurs */
+  .facteurs-layout {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .facteurs-modal-content {
+    max-width: 95%;
+    max-height: 90vh;
+  }
+  
+  .energie-info-compact {
+    flex-direction: column;
+    gap: 10px;
   }
 }
 </style>
