@@ -1016,6 +1016,46 @@ def recalculer_emissions():
             'error': f'Erreur serveur: {str(e)}'
         }), 500
 
+@app.route('/api/transports/liste-mise-a-jour')
+def liste_transports_mise_a_jour():
+    """Endpoint pour récupérer la liste des transports avec les émissions mises à jour"""
+    try:
+        logger.info("Récupération de la liste des transports mise à jour")
+        
+        # Récupérer tous les transports
+        transports = Transport.query.all()
+        transports_data = []
+        
+        for transport in transports:
+            transports_data.append({
+                'ref': transport.ref,
+                'emis_kg': transport.emis_kg or 0,
+                'emis_tkm': transport.emis_tkm or 0,
+                'type_transport': transport.type_transport,
+                'niveau_calcul': transport.niveau_calcul,
+                'type_vehicule': transport.type_vehicule,
+                'energie': transport.energie,
+                'poids_tonnes': transport.poids_tonnes,
+                'distance_km': transport.distance_km,
+                'created_at': transport.created_at.isoformat() if transport.created_at else None,
+                'updated_at': transport.updated_at.isoformat() if transport.updated_at else None
+            })
+        
+        logger.info(f"Liste mise à jour: {len(transports_data)} transports")
+        
+        return jsonify({
+            'success': True,
+            'transports': transports_data,
+            'total': len(transports_data)
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de la liste des transports: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'Erreur serveur: {str(e)}'
+        }), 500
+
 @app.route('/logout')
 def logout():
     """Déconnexion"""
