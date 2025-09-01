@@ -251,7 +251,7 @@ document.getElementById('facteur-phase-fonctionnement').addEventListener('invali
 function calculateTotalFacteur() {
   const phaseAmont = parseFloat(document.getElementById('facteur-phase-amont').value) || 0;
   const phaseFonctionnement = parseFloat(document.getElementById('facteur-phase-fonctionnement').value) || 0;
-  const total = phaseAmont + phaseFonctionnement;
+  const total = Math.round((phaseAmont + phaseFonctionnement) * 1000) / 1000; // Arrondir à 3 décimales
   
   console.log('🧮 Calcul des facteurs d\'émission:');
   console.log('- Phase amont:', phaseAmont);
@@ -340,8 +340,8 @@ function loadEnergies() {
           // Si les phases ne sont pas configurées mais qu'il y a un facteur global,
           // répartir le facteur global entre les deux phases (80% fonctionnement, 20% amont)
           if (phaseAmont === 0 && phaseFonctionnement === 0 && energie.facteur && energie.facteur > 0) {
-            phaseFonctionnement = energie.facteur * 0.8; // 80% pour la phase fonctionnement
-            phaseAmont = energie.facteur * 0.2; // 20% pour la phase amont
+            phaseFonctionnement = Math.round((energie.facteur * 0.8) * 1000) / 1000; // 80% pour la phase fonctionnement
+            phaseAmont = Math.round((energie.facteur * 0.2) * 1000) / 1000; // 20% pour la phase amont
             console.log(`🔄 Répartition automatique du facteur ${energie.facteur} pour ${energie.nom}:`, {
               phase_amont: phaseAmont,
               phase_fonctionnement: phaseFonctionnement
@@ -539,8 +539,8 @@ function showFacteursModal(energieId) {
   document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'L'}`;
   
   // Remplir le formulaire des facteurs avec les valeurs existantes
-  const phaseAmont = energie.phase_amont || 0;
-  const phaseFonctionnement = energie.phase_fonctionnement || 0;
+  const phaseAmont = Math.round((energie.phase_amont || 0) * 1000) / 1000;
+  const phaseFonctionnement = Math.round((energie.phase_fonctionnement || 0) * 1000) / 1000;
   
   document.getElementById('facteur-phase-amont').value = phaseAmont;
   document.getElementById('facteur-phase-fonctionnement').value = phaseFonctionnement;
@@ -608,8 +608,8 @@ function showFacteursModalFromEnergieForm() {
       document.getElementById('energie-unite-facteurs').textContent = `Unité: ${energie.unite || 'L'}`;
       
       // Remplir avec les valeurs existantes
-      const phaseAmont = energie.phase_amont || 0;
-      const phaseFonctionnement = energie.phase_fonctionnement || 0;
+      const phaseAmont = Math.round((energie.phase_amont || 0) * 1000) / 1000;
+      const phaseFonctionnement = Math.round((energie.phase_fonctionnement || 0) * 1000) / 1000;
       
       document.getElementById('facteur-phase-amont').value = phaseAmont;
       document.getElementById('facteur-phase-fonctionnement').value = phaseFonctionnement;
@@ -1032,8 +1032,8 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
   }
   
   // Récupérer les valeurs directement depuis les champs du formulaire
-  const phaseAmont = parseFloat(document.getElementById('facteur-phase-amont').value) || 0;
-  const phaseFonctionnement = parseFloat(document.getElementById('facteur-phase-fonctionnement').value) || 0;
+  const phaseAmont = Math.round((parseFloat(document.getElementById('facteur-phase-amont').value) || 0) * 1000) / 1000;
+  const phaseFonctionnement = Math.round((parseFloat(document.getElementById('facteur-phase-fonctionnement').value) || 0) * 1000) / 1000;
   
   // Vérifier que les deux phases sont renseignées
   if (phaseAmont === 0 && phaseFonctionnement === 0) {
@@ -1041,7 +1041,7 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
     return;
   }
   
-  const total = phaseAmont + phaseFonctionnement;
+  const total = Math.round((phaseAmont + phaseFonctionnement) * 1000) / 1000;
   
   console.log('📊 Valeurs du formulaire:');
   console.log('- Phase amont:', phaseAmont);
