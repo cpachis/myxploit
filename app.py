@@ -302,11 +302,17 @@ def api_vehicules():
             vehicules_data = []
             
             for v in vehicules:
+                # Récupérer le nom de l'énergie si elle existe
+                energie_nom = None
+                if v.energie_id and v.energie:
+                    energie_nom = v.energie.nom
+                
                 vehicules_data.append({
                     'id': v.id,
                     'nom': v.nom,
                     'type': v.type,
                     'energie_id': v.energie_id,
+                    'energie_nom': energie_nom,
                     'consommation': v.consommation,
                     'emissions': v.emissions,
                     'charge_utile': v.charge_utile,

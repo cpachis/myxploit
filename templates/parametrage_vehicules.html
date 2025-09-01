@@ -251,11 +251,11 @@ function displayVehicules(vehiculesToShow) {
       <div class="vehicule-details">
         <div class="detail-row">
           <span class="detail-label">Énergie:</span>
-          <span class="detail-value">${vehicule.energie || 'Non définie'}</span>
+          <span class="detail-value">${vehicule.energie_nom || 'Non définie'}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Capacité:</span>
-          <span class="detail-value">${vehicule.capacite || 0} tonnes</span>
+          <span class="detail-value">${vehicule.charge_utile || 0} tonnes</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Consommation:</span>
@@ -316,16 +316,19 @@ function showAddVehiculeModal() {
 
 // Afficher le modal de modification
 function editVehicule(vehiculeId) {
-  const vehicule = vehicules.find(v => v.id === vehiculeId);
-  if (!vehicule) return;
+  const vehicule = vehicules.find(v => v.id == vehiculeId);
+  if (!vehicule) {
+    console.error('Véhicule non trouvé:', vehiculeId);
+    return;
+  }
   
   currentEditId = vehiculeId;
-  document.getElementById('vehicule-modal-title').textContent = `Modifier le Type de Véhicule ${vehiculeId}`;
+  document.getElementById('vehicule-modal-title').textContent = `Modifier le Type de Véhicule`;
   
   // Remplir le formulaire
   document.getElementById('vehicule-nom').value = vehicule.nom || '';
-  document.getElementById('vehicule-energie').value = vehicule.energie || '';
-  document.getElementById('vehicule-capacite').value = vehicule.capacite || '';
+  document.getElementById('vehicule-energie').value = vehicule.energie_id || '';
+  document.getElementById('vehicule-capacite').value = vehicule.charge_utile || '';
   document.getElementById('vehicule-consommation').value = vehicule.consommation || '';
   document.getElementById('vehicule-emissions').value = vehicule.emissions || '';
   document.getElementById('vehicule-description').value = vehicule.description || '';
@@ -378,9 +381,8 @@ document.getElementById('vehicule-form').addEventListener('submit', function(e) 
   }
   
   const vehiculeData = {
-    id: vehiculeId,
     nom: formData.get('nom'),
-    energie: formData.get('energie'),
+    energie_id: formData.get('energie') ? parseInt(formData.get('energie')) : null,
     capacite: parseFloat(formData.get('capacite')) || 0,
     consommation: parseFloat(formData.get('consommation')) || 0,
     emissions: parseFloat(formData.get('emissions')) || 0,
