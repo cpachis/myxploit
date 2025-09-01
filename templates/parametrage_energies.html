@@ -386,49 +386,42 @@ function displayEnergies(energiesToShow) {
     return;
   }
   
-  container.innerHTML = energiesToShow.map(energie => `
-    <div class="energie-card" data-id="${energie.id}" data-energie-id="${energie.id}">
-      <div class="energie-header">
-        <div class="energie-info">
-          <h3>${energie.nom || 'Sans nom'}</h3>
-          <span class="energie-id">${energie.identifiant || energie.id}</span>
+  container.innerHTML = energiesToShow.map(energie => {
+    // Calculer le total des émissions
+    const total = (energie.phase_amont || 0) + (energie.phase_fonctionnement || 0) || energie.facteur || 0;
+    
+    return `
+      <div class="energie-card" data-id="${energie.id}" data-energie-id="${energie.id}">
+        <div class="energie-header">
+          <div class="energie-info">
+            <h3>${energie.nom || 'Sans nom'}</h3>
+            <span class="energie-id">${energie.identifiant || energie.id}</span>
+          </div>
+          <div class="energie-badge">
+            <span class="badge-unit">${energie.unite || 'N/A'}</span>
+          </div>
         </div>
-        <div class="energie-badge">
-          <span class="badge-unit">${energie.unite || 'N/A'}</span>
+        
+        <div class="energie-details">
+          <div class="detail-row total-emissions">
+            <span class="detail-label">Total des émissions:</span>
+            <span class="detail-value total-emissions-value">${total.toFixed(3)} kg éq. CO₂/unité</span>
+          </div>
+        </div>
+        
+        <div class="energie-actions">
+          <button class="btn-edit" onclick="editEnergie('${energie.id}')">
+            <span class="btn-icon">✏️</span>
+            Modifier
+          </button>
+          <button class="btn-delete" onclick="deleteEnergie('${energie.id}')">
+            <span class="btn-icon">🗑️</span>
+            Supprimer
+          </button>
         </div>
       </div>
-      
-      <div class="energie-details">
-        <div class="detail-row">
-          <span class="detail-label">Facteur global:</span>
-          <span class="detail-value facteur-global">${energie.facteur || 0} kg éq. CO₂/unité</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Phase amont:</span>
-          <span class="detail-value phase-amont">${energie.phase_amont || 0} kg éq. CO₂/unité</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Phase fonctionnement:</span>
-          <span class="detail-value phase-fonctionnement">${energie.phase_fonctionnement || 0} kg éq. CO₂/unité</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Total détaillé:</span>
-          <span class="detail-value total-detaille">${energie.total || energie.facteur || 0} kg éq. CO₂/unité</span>
-        </div>
-      </div>
-      
-      <div class="energie-actions">
-        <button class="btn-edit" onclick="editEnergie('${energie.id}')">
-          <span class="btn-icon">✏️</span>
-          Modifier
-        </button>
-        <button class="btn-delete" onclick="deleteEnergie('${energie.id}')">
-          <span class="btn-icon">🗑️</span>
-          Supprimer
-        </button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // Filtrer les énergies
@@ -1084,31 +1077,14 @@ function updateEnergieDisplay(energieId) {
     return;
   }
   
-  // Mettre à jour les valeurs affichées
-  const facteurGlobalElement = energieBlock.querySelector('.facteur-global');
-  const phaseAmontElement = energieBlock.querySelector('.phase-amont');
-  const phaseFonctionnementElement = energieBlock.querySelector('.phase-fonctionnement');
-  const totalDetailleElement = energieBlock.querySelector('.total-detaille');
+  // Calculer le total des émissions
+  const total = (energie.phase_amont || 0) + (energie.phase_fonctionnement || 0) || energie.facteur || 0;
   
-  if (facteurGlobalElement) {
-    facteurGlobalElement.textContent = `${energie.facteur || 0} kg éq. CO₂/unité`;
-    console.log(`✅ Facteur global mis à jour: ${energie.facteur}`);
-  }
-  
-  if (phaseAmontElement) {
-    phaseAmontElement.textContent = `${energie.phase_amont || 0} kg éq. CO₂/unité`;
-    console.log(`✅ Phase amont mise à jour: ${energie.phase_amont}`);
-  }
-  
-  if (phaseFonctionnementElement) {
-    phaseFonctionnementElement.textContent = `${energie.phase_fonctionnement || 0} kg éq. CO₂/unité`;
-    console.log(`✅ Phase fonctionnement mise à jour: ${energie.phase_fonctionnement}`);
-  }
-  
-  if (totalDetailleElement) {
-    const total = (energie.phase_amont || 0) + (energie.phase_fonctionnement || 0);
-    totalDetailleElement.textContent = `${total.toFixed(3)} kg éq. CO₂/unité`;
-    console.log(`✅ Total détaillé mis à jour: ${total}`);
+  // Mettre à jour la valeur du total des émissions
+  const totalEmissionsElement = energieBlock.querySelector('.total-emissions-value');
+  if (totalEmissionsElement) {
+    totalEmissionsElement.textContent = `${total.toFixed(3)} kg éq. CO₂/unité`;
+    console.log(`✅ Total des émissions mis à jour: ${total.toFixed(3)}`);
   }
   
   console.log(`✅ Affichage de l'énergie ${energieId} mis à jour avec succès`);
@@ -1372,6 +1348,20 @@ function showNotification(message, type) {
 
 .detail-value {
   color: #1f2937;
+}
+
+.total-emissions {
+  background: #f0f9ff;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 10px 0;
+  border-left: 4px solid #3b82f6;
+}
+
+.total-emissions-value {
+  font-weight: 700;
+  color: #1e40af;
+  font-size: 1.1rem;
 }
 
 .energie-actions {
