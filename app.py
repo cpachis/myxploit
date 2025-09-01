@@ -25,6 +25,18 @@ app = Flask(__name__)
 
 # Configuration
 config = get_config()
+
+# Forcer l'utilisation de la DATABASE_URL de Render en production
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Correction pour Render (postgres:// -> postgresql://)
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    config.SQLALCHEMY_DATABASE_URI = database_url
+    logger.info(f"🔧 Configuration forcée: Base PostgreSQL détectée - {database_url[:50]}...")
+else:
+    logger.warning("⚠️ DATABASE_URL non trouvée, utilisation de la configuration par défaut")
+
 app.config.from_object(config)
 
 # Initialisation des extensions
@@ -106,6 +118,17 @@ with app.app_context():
         logger.info("🚀 Démarrage de l'initialisation de la base de données...")
         db.create_all()
         logger.info("✅ Base de données initialisée avec succès")
+        
+        # Vérifier le type de base utilisée
+        db_url = str(db.engine.url)
+        logger.info(f"🔍 URL de la base de données: {db_url}")
+        
+        if 'postgresql' in db_url:
+            logger.info("🐘 Base PostgreSQL confirmée")
+        elif 'sqlite' in db_url:
+            logger.warning("⚠️ ATTENTION: Base SQLite détectée au lieu de PostgreSQL!")
+        else:
+            logger.info(f"📊 Type de base: {db_url}")
         
         # Migration automatique pour ajouter les colonnes manquantes
         try:
