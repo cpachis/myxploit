@@ -120,6 +120,60 @@ body {
   color: #2a7de1;
 }
 
+/* Sous-menu pour les paramètres */
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu-content {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  list-style: none;
+  min-width: 200px;
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 1002;
+  border: 1px solid #e1e8ed;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+}
+
+.dropdown-submenu:hover .dropdown-submenu-content {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.dropdown-submenu-content li {
+  margin: 0;
+}
+
+.dropdown-submenu-content li a {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: #333;
+  text-decoration: none;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+  font-size: 0.9rem;
+}
+
+.dropdown-submenu-content li:last-child a {
+  border-bottom: none;
+}
+
+.dropdown-submenu-content li a:hover {
+  background: #e3eaff;
+  color: #2a7de1;
+}
+
 /* Menu utilisateur */
 .user-menu .btn-logout {
   background: #e74c3c;

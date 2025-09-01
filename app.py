@@ -1367,6 +1367,24 @@ def debug_vehicules_page():
     """Page de debug spécifique pour les véhicules"""
     return render_template('debug_vehicules.html')
 
+@app.route('/parametrage_transporteurs')
+def parametrage_transporteurs():
+    """Page de paramétrage des transporteurs"""
+    try:
+        return render_template('parametrage_transporteurs.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des transporteurs: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/parametrage_dashboards')
+def parametrage_dashboards():
+    """Page de paramétrage des dashboards"""
+    try:
+        return render_template('parametrage_dashboards.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des dashboards: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
 @app.route('/debug/migrate')
 def force_migration():
     """Route pour forcer la migration des colonnes manquantes"""
