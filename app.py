@@ -304,6 +304,63 @@ def dashboard():
         logger.error(f"Erreur lors de l'affichage du dashboard: {str(e)}")
         return render_template('error.html', error=str(e)), 500
 
+@app.route('/api/dashboard', methods=['GET'])
+def api_dashboard():
+    """API pour récupérer les données du dashboard"""
+    try:
+        # Simulation de données de dashboard
+        dashboard_data = {
+            'statistiques': {
+                'total_transports': 25,
+                'transports_ce_mois': 8,
+                'emissions_total': 1250.5,
+                'emissions_ce_mois': 320.8,
+                'clients_actifs': 12,
+                'transporteurs_actifs': 6
+            },
+            'graphiques': {
+                'emissions_par_mois': [
+                    {'mois': 'Jan', 'emissions': 280.5},
+                    {'mois': 'Fév', 'emissions': 320.8},
+                    {'mois': 'Mar', 'emissions': 295.2},
+                    {'mois': 'Avr', 'emissions': 354.0}
+                ],
+                'transports_par_type': [
+                    {'type': 'Routier', 'nombre': 15},
+                    {'type': 'Ferroviaire', 'nombre': 5},
+                    {'type': 'Maritime', 'nombre': 3},
+                    {'type': 'Aérien', 'nombre': 2}
+                ]
+            },
+            'transports_recents': [
+                {
+                    'id': 1,
+                    'reference': 'TR-001',
+                    'date': '2024-01-15',
+                    'client': 'Client Test 1',
+                    'emissions': 45.5,
+                    'statut': 'terminé'
+                },
+                {
+                    'id': 2,
+                    'reference': 'TR-002',
+                    'date': '2024-01-16',
+                    'client': 'Client Test 2',
+                    'emissions': 78.2,
+                    'statut': 'en_cours'
+                }
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'dashboard': dashboard_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des données du dashboard: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/transports')
 def transports():
     """Liste des transports"""
@@ -1245,6 +1302,128 @@ def liste_transports_mise_a_jour():
             'error': f'Erreur serveur: {str(e)}'
         }), 500
 
+@app.route('/api/transports', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def api_transports():
+    """API pour gérer les transports"""
+    if request.method == 'GET':
+        try:
+            # Simulation de données transports pour le moment
+            transports_data = [
+                {
+                    'id': 1,
+                    'reference': 'TR-001',
+                    'date_transport': '2024-01-15',
+                    'client': 'Client Test 1',
+                    'transporteur': 'Transporteur Test 1',
+                    'vehicule': 'Camion 3.5T',
+                    'energie': 'Gazole',
+                    'distance': 150,
+                    'poids': 2.5,
+                    'emissions_co2': 45.5,
+                    'statut': 'terminé'
+                },
+                {
+                    'id': 2,
+                    'reference': 'TR-002',
+                    'date_transport': '2024-01-16',
+                    'client': 'Client Test 2',
+                    'transporteur': 'Transporteur Test 2',
+                    'vehicule': 'Camion 7.5T',
+                    'energie': 'Gazole',
+                    'distance': 200,
+                    'poids': 5.0,
+                    'emissions_co2': 78.2,
+                    'statut': 'en_cours'
+                }
+            ]
+            
+            return jsonify({
+                'success': True,
+                'transports': transports_data
+            })
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des transports: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+            
+            # Simulation de création d'un transport
+            nouveau_transport = {
+                'id': len(data) + 1,  # Simulation d'ID
+                'reference': f"TR-{len(data) + 1:03d}",
+                'date_transport': data.get('date_transport', ''),
+                'client': data.get('client', ''),
+                'transporteur': data.get('transporteur', ''),
+                'vehicule': data.get('vehicule', ''),
+                'energie': data.get('energie', ''),
+                'distance': data.get('distance', 0),
+                'poids': data.get('poids', 0),
+                'emissions_co2': data.get('emissions_co2', 0),
+                'statut': 'en_cours'
+            }
+            
+            logger.info(f"✅ Nouveau transport créé: {nouveau_transport['reference']}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Transport créé avec succès',
+                'transport': nouveau_transport
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la création du transport: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'PUT':
+        try:
+            data = request.get_json()
+            transport_id = data.get('id')
+            
+            # Simulation de mise à jour d'un transport
+            transport_modifie = {
+                'id': transport_id,
+                'reference': data.get('reference', ''),
+                'date_transport': data.get('date_transport', ''),
+                'client': data.get('client', ''),
+                'transporteur': data.get('transporteur', ''),
+                'vehicule': data.get('vehicule', ''),
+                'energie': data.get('energie', ''),
+                'distance': data.get('distance', 0),
+                'poids': data.get('poids', 0),
+                'emissions_co2': data.get('emissions_co2', 0),
+                'statut': data.get('statut', 'en_cours')
+            }
+            
+            logger.info(f"✅ Transport modifié: {transport_modifie['reference']}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Transport modifié avec succès',
+                'transport': transport_modifie
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la modification du transport: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'DELETE':
+        try:
+            data = request.get_json()
+            transport_id = data.get('id')
+            
+            logger.info(f"✅ Transport supprimé: ID {transport_id}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Transport supprimé avec succès'
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la suppression du transport: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/logout')
 def logout():
     """Déconnexion"""
@@ -1427,6 +1606,108 @@ def clients():
         logger.error(f"Erreur lors de l'affichage des clients: {str(e)}")
         return render_template('error.html', error=str(e)), 500
 
+@app.route('/api/clients', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def api_clients():
+    """API pour gérer les clients"""
+    if request.method == 'GET':
+        try:
+            # Simulation de données clients pour le moment
+            clients_data = [
+                {
+                    'id': 1,
+                    'nom': 'Client Test 1',
+                    'email': 'client1@test.com',
+                    'telephone': '01 23 45 67 89',
+                    'adresse': '123 Rue de la Paix, 75001 Paris',
+                    'statut': 'actif'
+                },
+                {
+                    'id': 2,
+                    'nom': 'Client Test 2',
+                    'email': 'client2@test.com',
+                    'telephone': '01 98 76 54 32',
+                    'adresse': '456 Avenue des Champs, 75008 Paris',
+                    'statut': 'actif'
+                }
+            ]
+            
+            return jsonify({
+                'success': True,
+                'clients': clients_data
+            })
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des clients: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+            
+            # Simulation de création d'un client
+            nouveau_client = {
+                'id': len(data) + 1,  # Simulation d'ID
+                'nom': data.get('nom', ''),
+                'email': data.get('email', ''),
+                'telephone': data.get('telephone', ''),
+                'adresse': data.get('adresse', ''),
+                'statut': 'actif'
+            }
+            
+            logger.info(f"✅ Nouveau client créé: {nouveau_client['nom']}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Client créé avec succès',
+                'client': nouveau_client
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la création du client: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'PUT':
+        try:
+            data = request.get_json()
+            client_id = data.get('id')
+            
+            # Simulation de mise à jour d'un client
+            client_modifie = {
+                'id': client_id,
+                'nom': data.get('nom', ''),
+                'email': data.get('email', ''),
+                'telephone': data.get('telephone', ''),
+                'adresse': data.get('adresse', ''),
+                'statut': data.get('statut', 'actif')
+            }
+            
+            logger.info(f"✅ Client modifié: {client_modifie['nom']}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Client modifié avec succès',
+                'client': client_modifie
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la modification du client: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'DELETE':
+        try:
+            data = request.get_json()
+            client_id = data.get('id')
+            
+            logger.info(f"✅ Client supprimé: ID {client_id}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Client supprimé avec succès'
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la suppression du client: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/transporteurs')
 def transporteurs():
     """Page de gestion des transporteurs (côté client)"""
@@ -1435,6 +1716,108 @@ def transporteurs():
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage des transporteurs: {str(e)}")
         return render_template('error.html', error=str(e)), 500
+
+@app.route('/api/transporteurs', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def api_transporteurs():
+    """API pour gérer les transporteurs"""
+    if request.method == 'GET':
+        try:
+            # Simulation de données transporteurs pour le moment
+            transporteurs_data = [
+                {
+                    'id': 1,
+                    'nom': 'Transporteur Test 1',
+                    'email': 'transporteur1@test.com',
+                    'telephone': '01 11 22 33 44',
+                    'adresse': '789 Boulevard de la République, 75011 Paris',
+                    'statut': 'actif'
+                },
+                {
+                    'id': 2,
+                    'nom': 'Transporteur Test 2',
+                    'email': 'transporteur2@test.com',
+                    'telephone': '01 55 66 77 88',
+                    'adresse': '321 Rue de Rivoli, 75001 Paris',
+                    'statut': 'actif'
+                }
+            ]
+            
+            return jsonify({
+                'success': True,
+                'transporteurs': transporteurs_data
+            })
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des transporteurs: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+            
+            # Simulation de création d'un transporteur
+            nouveau_transporteur = {
+                'id': len(data) + 1,  # Simulation d'ID
+                'nom': data.get('nom', ''),
+                'email': data.get('email', ''),
+                'telephone': data.get('telephone', ''),
+                'adresse': data.get('adresse', ''),
+                'statut': 'actif'
+            }
+            
+            logger.info(f"✅ Nouveau transporteur créé: {nouveau_transporteur['nom']}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Transporteur créé avec succès',
+                'transporteur': nouveau_transporteur
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la création du transporteur: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'PUT':
+        try:
+            data = request.get_json()
+            transporteur_id = data.get('id')
+            
+            # Simulation de mise à jour d'un transporteur
+            transporteur_modifie = {
+                'id': transporteur_id,
+                'nom': data.get('nom', ''),
+                'email': data.get('email', ''),
+                'telephone': data.get('telephone', ''),
+                'adresse': data.get('adresse', ''),
+                'statut': data.get('statut', 'actif')
+            }
+            
+            logger.info(f"✅ Transporteur modifié: {transporteur_modifie['nom']}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Transporteur modifié avec succès',
+                'transporteur': transporteur_modifie
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la modification du transporteur: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'DELETE':
+        try:
+            data = request.get_json()
+            transporteur_id = data.get('id')
+            
+            logger.info(f"✅ Transporteur supprimé: ID {transporteur_id}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Transporteur supprimé avec succès'
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la suppression du transporteur: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/parametrage_impact')
 def parametrage_impact():
