@@ -264,10 +264,11 @@ function calculateTotalFacteur() {
     console.log('🎯 Facteurs configurés détectés - flag activé');
   }
   
-  // Afficher avec 3 décimales pour plus de précision
+  // Afficher le total calculé (toujours basé sur les phases)
   const totalField = document.getElementById('facteur-total');
   if (totalField) {
     totalField.value = total.toFixed(3);
+    console.log('📊 Total affiché:', total.toFixed(3));
   }
   
   // Mettre à jour automatiquement le facteur global dans le formulaire principal
@@ -333,9 +334,21 @@ function loadEnergies() {
       if (result.success && result.energies) {
         // L'API retourne {success: true, energies: [...]}
         energies = result.energies.map(energie => {
-          const phaseAmont = parseFloat(energie.phase_amont) || 0;
-          const phaseFonctionnement = parseFloat(energie.phase_fonctionnement) || 0;
-          const total = phaseAmont + phaseFonctionnement || energie.facteur || 0;
+          let phaseAmont = parseFloat(energie.phase_amont) || 0;
+          let phaseFonctionnement = parseFloat(energie.phase_fonctionnement) || 0;
+          
+          // Si les phases ne sont pas configurées mais qu'il y a un facteur global,
+          // répartir le facteur global entre les deux phases (80% fonctionnement, 20% amont)
+          if (phaseAmont === 0 && phaseFonctionnement === 0 && energie.facteur && energie.facteur > 0) {
+            phaseFonctionnement = energie.facteur * 0.8; // 80% pour la phase fonctionnement
+            phaseAmont = energie.facteur * 0.2; // 20% pour la phase amont
+            console.log(`🔄 Répartition automatique du facteur ${energie.facteur} pour ${energie.nom}:`, {
+              phase_amont: phaseAmont,
+              phase_fonctionnement: phaseFonctionnement
+            });
+          }
+          
+          const total = phaseAmont + phaseFonctionnement;
           
           console.log(`📊 Mapping énergie ${energie.nom}:`, {
             phase_amont: phaseAmont,
@@ -605,11 +618,30 @@ function showFacteursModalFromEnergieForm() {
       console.log('- Phase amont:', phaseAmont);
       console.log('- Phase fonctionnement:', phaseFonctionnement);
       
+      // Stocker le facteur global existant dans les attributs data
+      const totalField = document.getElementById('facteur-total');
+      if (totalField) {
+        totalField.setAttribute('data-facteur-existant', energie.facteur || '0');
+      }
+      
       // Calculer automatiquement le total et le facteur global
       calculateTotalFacteur();
       
       // Mettre à jour le facteur global avec la valeur existante
-      document.getElementById('energie-facteur').value = energie.facteur || '';
+      const facteurGlobalField = document.getElementById('energie-facteur');
+      const facteurGlobalModal = document.getElementById('energie-facteur-modal');
+      
+      if (facteurGlobalField) {
+        facteurGlobalField.value = energie.facteur || '';
+        facteurGlobalField.setAttribute('data-facteur-existant', energie.facteur || '0');
+      }
+      
+      if (facteurGlobalModal) {
+        facteurGlobalModal.value = energie.facteur || '';
+        facteurGlobalModal.setAttribute('data-facteur-existant', energie.facteur || '0');
+      }
+      
+      console.log('💾 Facteur global existant sauvegardé:', energie.facteur);
       
       // Charger les valeurs supplémentaires existantes
       loadEnergieValues(energie.id);
@@ -866,6 +898,12 @@ document.getElementById('energie-form').addEventListener('submit', function(e) {
     unite: formData.get('unite')
   };
   
+  // Vérifier que le facteur global est renseigné
+  if (!energieData.facteur || energieData.facteur <= 0) {
+    showNotification('❌ Erreur: Le facteur global doit être renseigné et supérieur à 0', 'error');
+    return;
+  }
+  
   // Validation des données obligatoires
   if (!energieData.identifiant || !energieData.nom) {
     showNotification('Erreur: Identifiant et nom sont obligatoires', 'error');
@@ -996,6 +1034,13 @@ document.getElementById('facteurs-form').addEventListener('submit', function(e) 
   // Récupérer les valeurs directement depuis les champs du formulaire
   const phaseAmont = parseFloat(document.getElementById('facteur-phase-amont').value) || 0;
   const phaseFonctionnement = parseFloat(document.getElementById('facteur-phase-fonctionnement').value) || 0;
+  
+  // Vérifier que les deux phases sont renseignées
+  if (phaseAmont === 0 && phaseFonctionnement === 0) {
+    showNotification('❌ Erreur: Vous devez renseigner au moins une des deux phases (amont ou fonctionnement)', 'error');
+    return;
+  }
+  
   const total = phaseAmont + phaseFonctionnement;
   
   console.log('📊 Valeurs du formulaire:');
