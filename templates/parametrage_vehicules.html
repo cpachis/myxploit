@@ -137,8 +137,16 @@ document.addEventListener('DOMContentLoaded', function() {
 function formatVehiculeId(id) {
   if (!id) return 'ID non défini';
   
+  // Si c'est un nombre, retourner simplement "Véhicule #ID"
+  if (typeof id === 'number' || !isNaN(Number(id))) {
+    return `Véhicule #${id}`;
+  }
+  
+  // Si c'est une chaîne, appliquer le formatage
+  let formatted = String(id);
+  
   // Remplacer les underscores par des espaces
-  let formatted = id.replace(/_/g, ' ');
+  formatted = formatted.replace(/_/g, ' ');
   
   // Remplacer les caractères spéciaux
   formatted = formatted.replace(/__/g, ' - ');
