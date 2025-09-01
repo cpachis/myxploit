@@ -256,30 +256,142 @@ def transports():
         logger.error(f"Erreur lors de l'affichage des transports: {str(e)}")
         return render_template('error.html', error=str(e)), 500
 
-@app.route('/api/vehicules')
+@app.route('/api/vehicules', methods=['GET', 'POST'])
 def api_vehicules():
-    """API pour récupérer les véhicules"""
-    try:
-        vehicules = Vehicule.query.all()
-        vehicules_data = []
-        
-        for v in vehicules:
-            vehicules_data.append({
-                'id': v.id,
-                'nom': v.nom,
-                'type': v.type,
-                'consommation': v.consommation,
-                'emissions': v.emissions,
-                'charge_utile': v.charge_utile
+    """API pour récupérer et créer des véhicules"""
+    if request.method == 'GET':
+        try:
+            vehicules = Vehicule.query.all()
+            vehicules_data = []
+            
+            for v in vehicules:
+                vehicules_data.append({
+                    'id': v.id,
+                    'nom': v.nom,
+                    'type': v.type,
+                    'energie_id': v.energie_id,
+                    'consommation': v.consommation,
+                    'emissions': v.emissions,
+                    'charge_utile': v.charge_utile,
+                    'description': v.description
+                })
+            
+            return jsonify({
+                'success': True,
+                'vehicules': vehicules_data
             })
         
-        return jsonify({
-            'success': True,
-            'vehicules': vehicules_data
-        })
+        except Exception as e:
+            logger.error(f"Erreur API véhicules GET: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+    
+    elif request.method == 'POST':
+        """Créer un nouveau véhicule"""
+        try:
+            logger.info("=== CRÉATION DE VÉHICULE ===")
+            
+            data = request.get_json()
+            logger.info(f"📥 Données reçues: {data}")
+            
+            # Validation des données
+            if not data:
+                return jsonify({'success': False, 'error': 'Données JSON manquantes'}), 400
+                
+            if not data.get('nom'):
+                return jsonify({'success': False, 'error': 'Nom du véhicule requis'}), 400
+            
+            # Créer le véhicule
+            nouveau_vehicule = Vehicule(
+                nom=data['nom'],
+                type=data.get('type', 'PORTEUR'),
+                energie_id=data.get('energie_id'),
+                charge_utile=float(data.get('capacite', 0)),
+                consommation=float(data.get('consommation', 0)),
+                emissions=float(data.get('emissions', 0)),
+                description=data.get('description', '')
+            )
+            
+            db.session.add(nouveau_vehicule)
+            db.session.commit()
+            
+            logger.info(f"✅ Véhicule créé avec succès: {nouveau_vehicule.id}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Véhicule créé avec succès',
+                'vehicule': {
+                    'id': nouveau_vehicule.id,
+                    'nom': nouveau_vehicule.nom,
+                    'type': nouveau_vehicule.type,
+                    'energie_id': nouveau_vehicule.energie_id,
+                    'consommation': nouveau_vehicule.consommation,
+                    'emissions': nouveau_vehicule.emissions,
+                    'charge_utile': nouveau_vehicule.charge_utile,
+                    'description': nouveau_vehicule.description
+                }
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur création véhicule: {str(e)}")
+            db.session.rollback()
+            return jsonify({
+                'success': False,
+                'error': f'Erreur lors de la création: {str(e)}'
+            }), 500
+
+@app.route('/api/vehicules/<int:vehicule_id>', methods=['PUT', 'DELETE'])
+def api_vehicule_detail(vehicule_id):
+    """API pour modifier et supprimer un véhicule spécifique"""
+    try:
+        vehicule = Vehicule.query.get(vehicule_id)
+        if not vehicule:
+            return jsonify({'success': False, 'error': 'Véhicule non trouvé'}), 404
+        
+        if request.method == 'PUT':
+            """Modifier un véhicule"""
+            data = request.get_json()
+            logger.info(f"📝 Modification véhicule {vehicule_id}: {data}")
+            
+            if data.get('nom'):
+                vehicule.nom = data['nom']
+            if data.get('type'):
+                vehicule.type = data['type']
+            if data.get('energie_id') is not None:
+                vehicule.energie_id = data['energie_id']
+            if data.get('capacite') is not None:
+                vehicule.charge_utile = float(data['capacite'])
+            if data.get('consommation') is not None:
+                vehicule.consommation = float(data['consommation'])
+            if data.get('emissions') is not None:
+                vehicule.emissions = float(data['emissions'])
+            if data.get('description') is not None:
+                vehicule.description = data['description']
+            
+            db.session.commit()
+            logger.info(f"✅ Véhicule {vehicule_id} modifié avec succès")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Véhicule modifié avec succès'
+            })
+        
+        elif request.method == 'DELETE':
+            """Supprimer un véhicule"""
+            db.session.delete(vehicule)
+            db.session.commit()
+            logger.info(f"✅ Véhicule {vehicule_id} supprimé avec succès")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Véhicule supprimé avec succès'
+            })
     
     except Exception as e:
-        logger.error(f"Erreur API véhicules: {str(e)}")
+        logger.error(f"Erreur API véhicule {vehicule_id}: {str(e)}")
+        db.session.rollback()
         return jsonify({
             'success': False,
             'error': str(e)
