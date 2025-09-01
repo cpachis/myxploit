@@ -246,6 +246,24 @@ def index():
         </html>
         """, 500
 
+@app.route('/myxploit')
+def myxploit_home():
+    """Page d'accueil MyXploit (côté client)"""
+    try:
+        return render_template('myxploit_home.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage de l'accueil MyXploit: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/administration')
+def administration_home():
+    """Page d'accueil Administration (côté admin)"""
+    try:
+        return render_template('administration_home.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage de l'accueil Administration: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
 @app.route('/dashboard')
 def dashboard():
     """Dashboard principal"""

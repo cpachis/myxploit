@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block title %}MyXploit - Administration{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="welcome-section">
+        <h1>⚙️ Administration MyXploit</h1>
+        <p class="subtitle">Gestion de la plateforme et configuration système</p>
+    </div>
+
+    <div class="quick-stats">
+        <div class="stat-card">
+            <div class="stat-icon">🚛</div>
+            <div class="stat-content">
+                <h3>Types de Véhicules</h3>
+                <p class="stat-number">0</p>
+                <p class="stat-label">véhicules configurés</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-content">
+                <h3>Énergies</h3>
+                <p class="stat-number">0</p>
+                <p class="stat-label">énergies gérées</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🌱</div>
+            <div class="stat-content">
+                <h3>Impact Environnemental</h3>
+                <p class="stat-number">0</p>
+                <p class="stat-label">facteurs configurés</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🔧</div>
+            <div class="stat-content">
+                <h3>Système</h3>
+                <p class="stat-number">OK</p>
+                <p class="stat-label">statut opérationnel</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-grid">
+        <div class="action-card">
+            <div class="action-icon">🚛</div>
+            <h3>Types de Véhicules</h3>
+            <p>Configurez les différents types de véhicules et leurs caractéristiques techniques.</p>
+            <a href="{{ url_for('parametrage_vehicules') }}" class="action-button">Gérer les Véhicules</a>
+        </div>
+        
+        <div class="action-card">
+            <div class="action-icon">⚡</div>
+            <h3>Gestion des Énergies</h3>
+            <p>Définissez les énergies et leurs facteurs d'émission pour les calculs environnementaux.</p>
+            <a href="{{ url_for('parametrage_energies') }}" class="action-button">Gérer les Énergies</a>
+        </div>
+        
+        <div class="action-card">
+            <div class="action-icon">🌱</div>
+            <h3>Configuration de l'Impact</h3>
+            <p>Paramétrez les facteurs d'impact environnemental et les seuils d'alerte.</p>
+            <a href="{{ url_for('parametrage_impact') }}" class="action-button">Configurer l'Impact</a>
+        </div>
+        
+        <div class="action-card">
+            <div class="action-icon">⚙️</div>
+            <h3>Paramètres Système</h3>
+            <p>Gérez les paramètres globaux de l'application et la configuration système.</p>
+            <a href="{{ url_for('parametrage_systeme') }}" class="action-button">Paramètres Système</a>
+        </div>
+    </div>
+
+    <div class="admin-tools">
+        <h2>🛠️ Outils d'Administration</h2>
+        <div class="tools-grid">
+            <div class="tool-card">
+                <div class="tool-icon">🔧</div>
+                <h4>Debug</h4>
+                <p>Outils de diagnostic et de débogage de l'application</p>
+                <a href="{{ url_for('debug_page') }}" class="tool-button">Accéder au Debug</a>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-icon">📊</div>
+                <h4>Statistiques</h4>
+                <p>Vue d'ensemble des performances et de l'utilisation</p>
+                <a href="{{ url_for('dashboard') }}" class="tool-button">Voir les Stats</a>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-icon">💾</div>
+                <h4>Sauvegarde</h4>
+                <p>Gestion des sauvegardes et de la récupération de données</p>
+                <button class="tool-button" onclick="showBackupInfo()">Sauvegarder</button>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-icon">🔒</div>
+                <h4>Sécurité</h4>
+                <p>Configuration des paramètres de sécurité et d'accès</p>
+                <button class="tool-button" onclick="showSecurityInfo()">Configurer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="system-info">
+        <h2>📋 Informations Système</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Version de l'application :</span>
+                <span class="info-value">1.0.0</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Base de données :</span>
+                <span class="info-value">PostgreSQL</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Statut du serveur :</span>
+                <span class="info-value status-ok">Opérationnel</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Dernière maintenance :</span>
+                <span class="info-value">Aujourd'hui</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.welcome-section {
+    text-align: center;
+    margin: 2rem 0 3rem 0;
+    padding: 2rem;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.welcome-section h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-right: 1rem;
+    width: 60px;
+    text-align: center;
+}
+
+.stat-content h3 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.stat-label {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.action-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+}
+
+.action-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.action-card h3 {
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.action-card p {
+    color: #666;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.action-button {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(44, 62, 80, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.admin-tools {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+}
+
+.admin-tools h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+}
+
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.tool-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+}
+
+.tool-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.tool-card h4 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.tool-card p {
+    color: #666;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.tool-button {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.tool-button:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+.system-info {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.system-info h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.info-value {
+    color: #666;
+    font-weight: 500;
+}
+
+.status-ok {
+    color: #27ae60 !important;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .welcome-section h1 {
+        font-size: 2rem;
+    }
+    
+    .quick-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tools-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+</style>
+
+<script>
+function showBackupInfo() {
+    alert('Fonctionnalité de sauvegarde en cours de développement');
+}
+
+function showSecurityInfo() {
+    alert('Configuration de sécurité en cours de développement');
+}
+</script>
+{% endblock %}
