@@ -201,19 +201,24 @@ function loadVehicules() {
 function loadEnergies() {
   fetch('/api/energies')
     .then(response => response.json())
-    .then(energies => {
+    .then(data => {
       const energieSelect = document.getElementById('vehicule-energie');
       energieSelect.innerHTML = '<option value="">Sélectionner l\'énergie</option>';
       
-      Object.entries(energies).forEach(([energieId, energieData]) => {
-        const option = document.createElement('option');
-        option.value = energieId;
-        option.textContent = `${energieId} - ${energieData.nom}`;
-        energieSelect.appendChild(option);
-      });
+      if (data.success && data.energies) {
+        data.energies.forEach(energie => {
+          const option = document.createElement('option');
+          option.value = energie.id;
+          option.textContent = energie.nom;
+          energieSelect.appendChild(option);
+        });
+      } else {
+        console.error('Format de données incorrect:', data);
+      }
     })
     .catch(error => {
       console.error('Erreur lors du chargement des énergies:', error);
+      showNotification('❌ Erreur lors du chargement des énergies', 'error');
     });
 }
 
