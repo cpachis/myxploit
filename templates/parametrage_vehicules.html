@@ -14,6 +14,10 @@
         <span class="btn-icon">➕</span>
         Ajouter un Type de Véhicule
       </button>
+      <a href="/debug/vehicules" class="btn-primary" style="margin-left: 10px;">
+        <span class="btn-icon">🔧</span>
+        Debug
+      </a>
     </div>
   </div>
 
@@ -398,10 +402,99 @@ document.getElementById('vehicule-form').addEventListener('submit', function(e) 
 
 
 
-// Fonction de notification
-function showNotification(message, type) {
-  // Implémentation simple de notification
-  alert(`${type.toUpperCase()}: ${message}`);
+// Système de notifications modernes avec fade
+function showNotification(message, type = 'info') {
+  // Supprimer les notifications existantes
+  const existingNotifications = document.querySelectorAll('.modern-notification');
+  existingNotifications.forEach(notif => notif.remove());
+  
+  // Créer la nouvelle notification
+  const notification = document.createElement('div');
+  notification.className = `modern-notification modern-notification-${type}`;
+  
+  // Icônes selon le type
+  let icon, bgColor, borderColor;
+  switch(type) {
+    case 'success':
+      icon = '✅';
+      bgColor = '#d4edda';
+      borderColor = '#28a745';
+      break;
+    case 'error':
+      icon = '❌';
+      bgColor = '#f8d7da';
+      borderColor = '#dc3545';
+      break;
+    case 'warning':
+      icon = '⚠️';
+      bgColor = '#fff3cd';
+      borderColor = '#ffc107';
+      break;
+    default:
+      icon = 'ℹ️';
+      bgColor = '#d1ecf1';
+      borderColor = '#17a2b8';
+  }
+  
+  notification.innerHTML = `
+    <div class="notification-icon">${icon}</div>
+    <div class="notification-message">${message}</div>
+  `;
+  
+  // Styles inline pour garantir l'apparence
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${bgColor};
+    border: 2px solid ${borderColor};
+    border-radius: 10px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    max-width: 350px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+  `;
+  
+  // Styles pour l'icône et le message
+  const iconElement = notification.querySelector('.notification-icon');
+  iconElement.style.cssText = `
+    font-size: 20px;
+    flex-shrink: 0;
+  `;
+  
+  const messageElement = notification.querySelector('.notification-message');
+  messageElement.style.cssText = `
+    color: #333;
+    font-weight: 500;
+    line-height: 1.4;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animation d'entrée
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+    notification.style.opacity = '1';
+  }, 10);
+  
+  // Auto-suppression avec fade out
+  setTimeout(() => {
+    notification.style.transform = 'translateX(400px)';
+    notification.style.opacity = '0';
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 300);
+  }, 4000);
 }
 
 

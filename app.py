@@ -1150,16 +1150,34 @@ def debug_database():
                 # Vérifier les données existantes
                 try:
                     energie_count = Energie.query.count()
+                    vehicule_count = Vehicule.query.count()
                     sample_energies = Energie.query.limit(3).all()
-                    sample_data = []
+                    sample_vehicules = Vehicule.query.limit(3).all()
+                    
+                    sample_data = {
+                        'energies': [],
+                        'vehicules': []
+                    }
+                    
                     for e in sample_energies:
-                        sample_data.append({
+                        sample_data['energies'].append({
                             'id': e.id,
                             'nom': e.nom,
                             'has_phase_amont': hasattr(e, 'phase_amont'),
                             'has_phase_fonctionnement': hasattr(e, 'phase_fonctionnement'),
                             'has_donnees_supplementaires': hasattr(e, 'donnees_supplementaires')
                         })
+                    
+                    for v in sample_vehicules:
+                        sample_data['vehicules'].append({
+                            'id': v.id,
+                            'nom': v.nom,
+                            'type': v.type,
+                            'consommation': v.consommation,
+                            'emissions': v.emissions,
+                            'charge_utile': v.charge_utile
+                        })
+                        
                 except Exception as model_error:
                     sample_data = f"Erreur modèles: {str(model_error)}"
                 
@@ -1194,6 +1212,11 @@ def debug_database():
 def debug_page():
     """Page de debug pour diagnostiquer la base de données"""
     return render_template('debug.html')
+
+@app.route('/debug/vehicules')
+def debug_vehicules_page():
+    """Page de debug spécifique pour les véhicules"""
+    return render_template('debug_vehicules.html')
 
 @app.route('/debug/migrate')
 def force_migration():
