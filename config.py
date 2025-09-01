@@ -50,7 +50,7 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     """Configuration de test"""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///myxploit_test.db'  # Base de données persistante pour les tests
     WTF_CSRF_ENABLED = False
 
 # Dictionnaire des configurations
