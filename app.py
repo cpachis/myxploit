@@ -1737,6 +1737,61 @@ def debug_page():
     """Page de debug pour diagnostiquer la base de données"""
     return render_template('debug.html')
 
+@app.route('/debug/invitations')
+def debug_invitations():
+    """Debug spécifique pour les invitations"""
+    try:
+        # Vérifier les modèles
+        invitations_count = Invitation.query.count()
+        clients_count = Client.query.count() if 'Client' in globals() else 0
+        transporteurs_count = Transporteur.query.count() if 'Transporteur' in globals() else 0
+        
+        # Vérifier les templates
+        import os
+        template_folder = app.template_folder
+        invitations_template = os.path.join(template_folder, 'invitations.html')
+        base_template = os.path.join(template_folder, 'base.html')
+        
+        debug_info = {
+            'status': 'OK',
+            'models': {
+                'invitations_count': invitations_count,
+                'clients_count': clients_count,
+                'transporteurs_count': transporteurs_count
+            },
+            'templates': {
+                'template_folder': template_folder,
+                'invitations_template_exists': os.path.exists(invitations_template),
+                'base_template_exists': os.path.exists(base_template),
+                'invitations_template_path': invitations_template,
+                'base_template_path': base_template
+            },
+            'routes': {
+                '/invitations': 'invitations()',
+                '/api/invitations': 'api_invitations()',
+                '/invitation/<token>': 'invitation_accept(token)'
+            }
+        }
+        
+        return jsonify(debug_info)
+        
+    except Exception as e:
+        logger.error(f"Erreur debug invitations: {str(e)}")
+        return jsonify({
+            'status': 'ERROR',
+            'error': str(e),
+            'error_type': type(e).__name__
+        }), 500
+
+@app.route('/test-invitations')
+def test_invitations_page():
+    """Page de test pour diagnostiquer les problèmes d'invitations"""
+    try:
+        return render_template('test_invitations.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage de la page de test invitations: {str(e)}")
+        return f"Erreur page de test: {str(e)}", 500
+
 @app.route('/debug/vehicules')
 def debug_vehicules_page():
     """Page de debug spécifique pour les véhicules"""
@@ -2209,9 +2264,20 @@ def force_migration():
 def invitations():
     """Page de gestion des invitations de clients"""
     try:
+        logger.info("🔍 Tentative d'accès à la page invitations")
+        
+        # Vérifier si le template existe
+        import os
+        template_path = os.path.join(app.template_folder, 'invitations.html')
+        if not os.path.exists(template_path):
+            logger.error(f"❌ Template non trouvé: {template_path}")
+            return f"Template non trouvé: {template_path}", 404
+        
+        logger.info("✅ Template trouvé, rendu de la page")
         return render_template('invitations.html')
+        
     except Exception as e:
-        logger.error(f"Erreur lors de l'affichage des invitations: {str(e)}")
+        logger.error(f"❌ Erreur lors de l'affichage des invitations: {str(e)}")
         return render_template('error.html', error=str(e)), 500
 
 @app.route('/api/invitations', methods=['GET', 'POST'])

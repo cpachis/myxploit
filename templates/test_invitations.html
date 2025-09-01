@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Invitations - MyXploit</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Test Page Invitations</h1>
+            <p>Page de diagnostic pour les invitations MyXploit</p>
+        </div>
+
+        <div class="test-section info">
+            <h3>📋 Informations de base</h3>
+            <p><strong>URL actuelle :</strong> <span id="current-url"></span></p>
+            <p><strong>Timestamp :</strong> <span id="timestamp"></span></p>
+            <p><strong>User Agent :</strong> <span id="user-agent"></span></p>
+        </div>
+
+        <div class="test-section">
+            <h3>🔗 Test des routes</h3>
+            <button onclick="testRoute('/invitations')">Test /invitations</button>
+            <button onclick="testRoute('/api/invitations')">Test /api/invitations</button>
+            <button onclick="testRoute('/debug/invitations')">Test /debug/invitations</button>
+            <div id="route-result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📧 Test d'envoi d'invitation</h3>
+            <input type="email" id="test-email" placeholder="Email de test" value="test@example.com" style="padding: 8px; margin: 5px; width: 200px;">
+            <button onclick="testSendInvitation()">Envoyer invitation test</button>
+            <div id="invitation-result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Test de chargement des invitations</h3>
+            <button onclick="testLoadInvitations()">Charger les invitations</button>
+            <div id="load-result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📁 Test des templates</h3>
+            <button onclick="testTemplates()">Vérifier les templates</button>
+            <div id="template-result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Afficher les informations de base
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+
+        async function testRoute(route) {
+            const resultDiv = document.getElementById('route-result');
+            resultDiv.textContent = `Test de ${route}...`;
+            
+            try {
+                const response = await fetch(route);
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    resultDiv.textContent = `✅ ${route} - Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    const text = await response.text();
+                    resultDiv.textContent = `✅ ${route} - Status: ${response.status}\nContenu: ${text.substring(0, 200)}...`;
+                    resultDiv.className = 'result success';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ ${route} - Erreur: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testSendInvitation() {
+            const email = document.getElementById('test-email').value;
+            const resultDiv = document.getElementById('invitation-result');
+            
+            if (!email) {
+                resultDiv.textContent = '❌ Veuillez entrer un email';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = 'Envoi de l\'invitation...';
+            
+            try {
+                const response = await fetch('/api/invitations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        message_personnalise: 'Test automatique depuis la page de diagnostic'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.textContent = `✅ Invitation envoyée avec succès!\n${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = `❌ Erreur: ${data.error}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ Erreur réseau: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testLoadInvitations() {
+            const resultDiv = document.getElementById('load-result');
+            resultDiv.textContent = 'Chargement des invitations...';
+            
+            try {
+                const response = await fetch('/api/invitations');
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.textContent = `✅ ${data.invitations.length} invitation(s) chargée(s)\n${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = `❌ Erreur: ${data.error}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ Erreur réseau: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testTemplates() {
+            const resultDiv = document.getElementById('template-result');
+            resultDiv.textContent = 'Vérification des templates...';
+            
+            try {
+                const response = await fetch('/debug/invitations');
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    resultDiv.textContent = `✅ Templates vérifiés\n${JSON.stringify(data.templates, null, 2)}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = `❌ Erreur: ${data.error}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ Erreur réseau: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+    </script>
+</body>
+</html>
