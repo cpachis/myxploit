@@ -166,13 +166,13 @@
         </div>
 
         <div class="form-section">
-          <h3>📊 Calculs automatiques</h3>
+          <h3>📊 Distance et calculs</h3>
           
           <div class="form-row">
             <div class="form-group">
-              <label for="transport-distance">Distance (km)</label>
-              <input type="number" id="transport-distance" name="distance_km" step="0.1" min="0" readonly>
-              <small class="form-help">Calculée automatiquement</small>
+              <label for="transport-distance">Distance (km) *</label>
+              <input type="number" id="transport-distance" name="distance_km" step="0.1" min="0" placeholder="Ex: 150.5" required>
+              <small class="form-help">Distance à saisir manuellement</small>
             </div>
             <div class="form-group">
               <label for="transport-emissions">Émissions CO₂e (kg)</label>
@@ -188,9 +188,9 @@
               <small class="form-help">Calculées automatiquement</small>
             </div>
             <div class="form-group">
-              <button type="button" class="btn-calculate" onclick="calculateDistanceAndEmissions()">
+              <button type="button" class="btn-calculate" onclick="calculateEmissions()">
                 <span class="btn-icon">🧮</span>
-                Recalculer
+                Calculer les émissions
               </button>
             </div>
           </div>
@@ -449,8 +449,7 @@ function initAutocomplete(inputId) {
     input.value = suggestion.value;
     hideSuggestions();
     
-    // Déclencher l'événement de changement pour le calcul de distance
-    input.dispatchEvent(new Event('change'));
+    // Note: Le calcul de distance est maintenant manuel via le bouton "Calculer les émissions"
   }
   
   function hideSuggestions() {
@@ -574,15 +573,19 @@ function filterTransports() {
   displayTransports(filtered);
 }
 
-// Calculer la distance et les émissions
-function calculateDistanceAndEmissions() {
-  const lieuCollecte = document.getElementById('transport-lieu-collecte').value;
-  const lieuLivraison = document.getElementById('transport-lieu-livraison').value;
+// Calculer les émissions uniquement
+function calculateEmissions() {
+  const distance = parseFloat(document.getElementById('transport-distance').value) || 0;
   const poids = parseFloat(document.getElementById('transport-poids').value) || 0;
   const typeTransport = document.getElementById('transport-type').value;
   
-  if (!lieuCollecte || !lieuLivraison) {
-    showNotification('⚠️ Veuillez saisir les lieux de collecte et de livraison', 'warning');
+  if (!distance || distance <= 0) {
+    showNotification('⚠️ Veuillez saisir une distance valide', 'warning');
+    return;
+  }
+  
+  if (!poids || poids <= 0) {
+    showNotification('⚠️ Veuillez saisir un poids valide', 'warning');
     return;
   }
   
@@ -592,37 +595,21 @@ function calculateDistanceAndEmissions() {
   calculateBtn.innerHTML = '<span class="btn-icon">⏳</span> Calcul...';
   calculateBtn.disabled = true;
   
-  fetch('/api/transports/calculate-distance', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      lieu_depart: lieuCollecte,
-      lieu_arrivee: lieuLivraison,
-      poids_tonnes: poids,
-      type_transport: typeTransport
-    })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      document.getElementById('transport-distance').value = data.distance_km;
-      document.getElementById('transport-emissions').value = data.emis_kg;
-      document.getElementById('transport-emissions-tkm').value = data.emis_tkm;
-      showNotification('✅ Distance et émissions calculées avec succès', 'success');
-    } else {
-      showNotification(`❌ Erreur: ${data.error}`, 'error');
-    }
-  })
-  .catch(error => {
-    console.error('Erreur:', error);
-    showNotification('❌ Erreur lors du calcul', 'error');
-  })
-  .finally(() => {
+  // Calcul simple des émissions (formule basique)
+  // Facteur d'émission moyen pour le transport routier : 0.1 kg CO2e/t.km
+  const facteurEmission = 0.1; // kg CO2e par tonne-kilomètre
+  const emisKg = distance * poids * facteurEmission;
+  const emisTkm = facteurEmission;
+  
+  // Simuler un délai pour l'UX
+  setTimeout(() => {
+    document.getElementById('transport-emissions').value = emisKg.toFixed(2);
+    document.getElementById('transport-emissions-tkm').value = emisTkm.toFixed(3);
+    showNotification('✅ Émissions calculées avec succès', 'success');
+    
     calculateBtn.innerHTML = originalText;
     calculateBtn.disabled = false;
-  });
+  }, 500);
 }
 
 // Afficher le modal d'ajout
