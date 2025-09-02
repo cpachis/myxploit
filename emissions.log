@@ -198,3 +198,7 @@ FROM vehicules]
 [SQL: SELECT vehicules.id AS vehicules_id, vehicules.nom AS vehicules_nom, vehicules.type AS vehicules_type, vehicules.energie_id AS vehicules_energie_id, vehicules.consommation AS vehicules_consommation, vehicules.emissions AS vehicules_emissions, vehicules.charge_utile AS vehicules_charge_utile, vehicules.description AS vehicules_description, vehicules.created_at AS vehicules_created_at 
 FROM vehicules]
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-09-02 15:53:04,823 - app - ERROR - Erreur lors de la récupération des types de véhicules: (sqlite3.OperationalError) no such column: vehicules.energie_id
+[SQL: SELECT vehicules.id AS vehicules_id, vehicules.nom AS vehicules_nom, vehicules.type AS vehicules_type, vehicules.energie_id AS vehicules_energie_id, vehicules.consommation AS vehicules_consommation, vehicules.emissions AS vehicules_emissions, vehicules.charge_utile AS vehicules_charge_utile, vehicules.description AS vehicules_description, vehicules.created_at AS vehicules_created_at 
+FROM vehicules]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)

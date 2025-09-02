@@ -276,11 +276,21 @@ function populateVehiculeTypes() {
   // Vider le select (garder l'option par défaut)
   select.innerHTML = '<option value="">Sélectionnez le type de véhicule</option>';
   
-  // Ajouter les types de véhicules
+  // Si aucun véhicule n'est configuré
+  if (typesVehicules.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Aucun véhicule configuré - Allez dans Administration > Types de Véhicules';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
+  
+  // Ajouter les types de véhicules configurés
   typesVehicules.forEach(type => {
     const option = document.createElement('option');
     option.value = type.value;
-    option.textContent = `${type.label} - ${type.nom}`;
+    option.textContent = type.label; // Utiliser seulement le nom du véhicule
     select.appendChild(option);
   });
 }
