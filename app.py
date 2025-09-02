@@ -4074,34 +4074,6 @@ def update_client():
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/energies', methods=['GET'])
-def api_energies():
-    """API pour récupérer la liste des énergies configurées"""
-    try:
-        # Récupérer toutes les énergies depuis la base de données
-        energies = Energie.query.all()
-        
-        # Convertir en liste de dictionnaires
-        energies_list = []
-        for energie in energies:
-            energies_list.append({
-                'id': energie.id,
-                'nom': energie.nom,
-                'identifiant': energie.identifiant,
-                'unite': energie.unite,
-                'facteur': energie.facteur,
-                'description': energie.description
-            })
-        
-        return jsonify({
-            'success': True,
-            'energies': energies_list
-        })
-        
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des énergies: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
 @app.errorhandler(404)
 def not_found(error):
     """Gestion des erreurs 404"""
