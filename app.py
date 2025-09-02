@@ -2941,6 +2941,50 @@ def api_calculate_distance():
         logger.error(f"Erreur lors du calcul de distance: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/vehicules/types', methods=['GET'])
+def api_vehicules_types():
+    """API pour récupérer les types de véhicules disponibles"""
+    try:
+        # Types de véhicules par défaut (toujours disponibles)
+        types_vehicules = [
+            {'value': 'PORTEUR', 'label': 'Porteur', 'nom': 'Camion porteur'},
+            {'value': 'TRACTEUR', 'label': 'Tracteur', 'nom': 'Tracteur routier'},
+            {'value': 'REMORQUE', 'label': 'Remorque', 'nom': 'Remorque'},
+            {'value': 'CAMION_BENNE', 'label': 'Camion benne', 'nom': 'Camion benne'},
+            {'value': 'CAMION_FRIGO', 'label': 'Camion frigorifique', 'nom': 'Camion frigorifique'},
+            {'value': 'CAMION_CITERNE', 'label': 'Camion citerne', 'nom': 'Camion citerne'},
+            {'value': 'CAMION_PLATEAU', 'label': 'Camion plateau', 'nom': 'Camion plateau'},
+            {'value': 'CAMION_GRUE', 'label': 'Camion grue', 'nom': 'Camion grue'},
+            {'value': 'CAMION_4X4', 'label': 'Camion 4x4', 'nom': 'Camion 4x4'},
+            {'value': 'CAMION_ELECTRIQUE', 'label': 'Camion électrique', 'nom': 'Camion électrique'},
+            {'value': 'CAMION_HYBRIDE', 'label': 'Camion hybride', 'nom': 'Camion hybride'},
+            {'value': 'CAMION_GAZ', 'label': 'Camion gaz', 'nom': 'Camion gaz'}
+        ]
+        
+        # Essayer de récupérer les véhicules de la base de données (optionnel)
+        try:
+            vehicules = Vehicule.query.all()
+            # Ajouter les types personnalisés s'ils existent
+            for vehicule in vehicules:
+                if vehicule.type and vehicule.type not in [t['value'] for t in types_vehicules]:
+                    types_vehicules.append({
+                        'value': vehicule.type,
+                        'label': vehicule.type.replace('_', ' ').title(),
+                        'nom': vehicule.nom
+                    })
+        except Exception as db_error:
+            logger.warning(f"Impossible de récupérer les véhicules de la base: {str(db_error)}")
+            # Continuer avec les types par défaut
+        
+        return jsonify({
+            'success': True,
+            'types_vehicules': types_vehicules
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des types de véhicules: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/parametrage_impact')
 def parametrage_impact():
     """Page de configuration de l'impact environnemental"""

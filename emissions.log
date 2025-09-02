@@ -194,3 +194,7 @@ FROM vehicules]
 2025-09-02 10:57:02,852 - werkzeug - INFO -  * Debugger PIN: 123-518-053
 2025-09-02 10:57:31,113 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
 2025-09-02 10:57:31,241 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 15:47:46,235 - app - WARNING - Impossible de récupérer les véhicules de la base: (sqlite3.OperationalError) no such column: vehicules.energie_id
+[SQL: SELECT vehicules.id AS vehicules_id, vehicules.nom AS vehicules_nom, vehicules.type AS vehicules_type, vehicules.energie_id AS vehicules_energie_id, vehicules.consommation AS vehicules_consommation, vehicules.emissions AS vehicules_emissions, vehicules.charge_utile AS vehicules_charge_utile, vehicules.description AS vehicules_description, vehicules.created_at AS vehicules_created_at 
+FROM vehicules]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)

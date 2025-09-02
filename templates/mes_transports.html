@@ -126,6 +126,26 @@
               </select>
             </div>
           </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-type-vehicule">Type de véhicule</label>
+              <select id="transport-type-vehicule" name="type_vehicule">
+                <option value="">Sélectionnez le type de véhicule</option>
+                <!-- Les options seront chargées dynamiquement -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="transport-niveau-calcul">Type de calcul</label>
+              <select id="transport-niveau-calcul" name="niveau_calcul">
+                <option value="">Sélectionnez le niveau de calcul</option>
+                <option value="niveau1">📊 Niveau 1 - Valeurs agrégées (données moyennes)</option>
+                <option value="niveau2">📈 Niveau 2 - Données spécifiques (facteurs d'émission)</option>
+                <option value="niveau3">📋 Niveau 3 - Données détaillées (consommation réelle)</option>
+                <option value="niveau4">🔬 Niveau 4 - Données précises (mesures directes)</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div class="form-section">
@@ -200,10 +220,12 @@
 // Variables globales
 let transports = [];
 let currentEditId = null;
+let typesVehicules = [];
 
 // Charger les transports au démarrage
 document.addEventListener('DOMContentLoaded', function() {
   loadTransports();
+  loadTypesVehicules();
   
   // Définir la date d'aujourd'hui par défaut
   const today = new Date().toISOString().split('T')[0];
@@ -227,6 +249,40 @@ function loadTransports() {
       console.error('Erreur:', error);
       showNotification('❌ Erreur de connexion', 'error');
     });
+}
+
+// Charger les types de véhicules depuis l'API
+function loadTypesVehicules() {
+  fetch('/api/vehicules/types')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        typesVehicules = data.types_vehicules || [];
+        populateVehiculeTypes();
+      } else {
+        console.error('Erreur lors du chargement des types de véhicules:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement des types de véhicules:', error);
+    });
+}
+
+// Peupler le select des types de véhicules
+function populateVehiculeTypes() {
+  const select = document.getElementById('transport-type-vehicule');
+  if (!select) return;
+  
+  // Vider le select (garder l'option par défaut)
+  select.innerHTML = '<option value="">Sélectionnez le type de véhicule</option>';
+  
+  // Ajouter les types de véhicules
+  typesVehicules.forEach(type => {
+    const option = document.createElement('option');
+    option.value = type.value;
+    option.textContent = `${type.label} - ${type.nom}`;
+    select.appendChild(option);
+  });
 }
 
 // Afficher la liste des transports
@@ -279,6 +335,8 @@ function displayTransports(transportsToShow) {
           <span class="detail-label">🌱 Émissions:</span>
           <span class="detail-value">${transport.emis_kg} kg CO₂e (${transport.emis_tkm} kg/t.km)</span>
         </div>
+        ${transport.type_vehicule ? `<div class="detail-row"><span class="detail-label">🚛 Type véhicule:</span><span class="detail-value">${transport.type_vehicule.replace('_', ' ').toUpperCase()}</span></div>` : ''}
+        ${transport.niveau_calcul ? `<div class="detail-row"><span class="detail-label">📊 Niveau calcul:</span><span class="detail-value">${transport.niveau_calcul.replace('niveau', 'Niveau ').toUpperCase()}</span></div>` : ''}
         ${transport.client ? `<div class="detail-row"><span class="detail-label">👤 Client:</span><span class="detail-value">${transport.client}</span></div>` : ''}
         ${transport.transporteur ? `<div class="detail-row"><span class="detail-label">🚚 Transporteur:</span><span class="detail-value">${transport.transporteur}</span></div>` : ''}
         ${transport.description ? `<div class="detail-row"><span class="detail-label">📝 Description:</span><span class="detail-value">${transport.description}</span></div>` : ''}
@@ -394,21 +452,29 @@ function calculateDistanceAndEmissions() {
 
 // Afficher le modal d'ajout
 function showAddTransportModal() {
-  currentEditId = null;
-  document.getElementById('transport-modal-title').textContent = 'Nouveau Transport';
-  document.getElementById('transport-form').reset();
-  
-  // Définir la date d'aujourd'hui
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('transport-date').value = today;
-  
+  resetTransportForm();
   document.getElementById('transport-modal').style.display = 'block';
 }
 
 // Fermer le modal
 function closeTransportModal() {
   document.getElementById('transport-modal').style.display = 'none';
+  resetTransportForm();
+}
+
+// Réinitialiser le formulaire
+function resetTransportForm() {
+  document.getElementById('transport-form').reset();
+  document.getElementById('transport-modal-title').textContent = 'Nouveau Transport';
   currentEditId = null;
+  
+  // Définir la date d'aujourd'hui par défaut
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('transport-date').value = today;
+  
+  // Réinitialiser les nouveaux champs
+  document.getElementById('transport-type-vehicule').value = '';
+  document.getElementById('transport-niveau-calcul').value = '';
 }
 
 // Éditer un transport
@@ -426,6 +492,8 @@ function editTransport(id) {
   document.getElementById('transport-lieu-livraison').value = transport.lieu_livraison;
   document.getElementById('transport-poids').value = transport.poids_tonnes;
   document.getElementById('transport-type').value = transport.type_transport;
+  document.getElementById('transport-type-vehicule').value = transport.type_vehicule || '';
+  document.getElementById('transport-niveau-calcul').value = transport.niveau_calcul || '';
   document.getElementById('transport-distance').value = transport.distance_km;
   document.getElementById('transport-emissions').value = transport.emis_kg;
   document.getElementById('transport-emissions-tkm').value = transport.emis_tkm;
