@@ -4134,5 +4134,3 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error(f"❌ Erreur au démarrage: {str(e)}")
         raise
-# Test - Fichier corrigé localement
-sh 
