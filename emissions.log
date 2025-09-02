@@ -113,3 +113,70 @@
 2025-09-02 10:29:50,926 - werkzeug - INFO -  * Debugger PIN: 123-518-053
 2025-09-02 10:35:43,567 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
 2025-09-02 10:35:43,757 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:40:59,690 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-02 10:40:59,690 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-02 10:40:59,691 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:41:00,399 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:41:00,401 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:41:00,423 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:00] "GET /clients HTTP/1.1" 200 -
+2025-09-02 10:41:00,444 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:00] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:00,479 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:00] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:41:00,927 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:00] "GET /api/clients HTTP/1.1" 200 -
+2025-09-02 10:41:03,124 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:03] "GET /myxploit HTTP/1.1" 200 -
+2025-09-02 10:41:03,429 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:03] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:41:03,461 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:03] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:07,286 - __main__ - ERROR - Erreur lors de l'affichage des transporteurs: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'.
+2025-09-02 10:41:07,287 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:07] "[35m[1mGET /transporteurs HTTP/1.1[0m" 500 -
+2025-09-02 10:41:07,412 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:07] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:41:07,537 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:07] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:08,881 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:08] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:09,203 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:09] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:09,203 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:09] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:41:14,348 - __main__ - ERROR - Erreur lors de l'affichage des paramètres système: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'.
+2025-09-02 10:41:14,349 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:14] "[35m[1mGET /parametrage_systeme HTTP/1.1[0m" 500 -
+2025-09-02 10:41:14,659 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:14] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:41:14,704 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:14] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:16,333 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:16] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:16,586 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:16] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:21,075 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:21] "GET /administration HTTP/1.1" 200 -
+2025-09-02 10:41:21,390 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:21] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:41:21,405 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:21] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:25,503 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:25] "GET /parametrage_energies HTTP/1.1" 200 -
+2025-09-02 10:41:25,614 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:25] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:41:25,745 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:25] "GET /api/energies HTTP/1.1" 200 -
+2025-09-02 10:41:25,836 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:25] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:28,549 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:28] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:28,866 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:28] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:41:28,867 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:28] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:30,662 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:30] "GET /parametrage_vehicules HTTP/1.1" 200 -
+2025-09-02 10:41:30,969 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:30] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:41:30,994 - __main__ - ERROR - Erreur API véhicules GET: (sqlite3.OperationalError) no such column: vehicules.energie_id
+[SQL: SELECT vehicules.id AS vehicules_id, vehicules.nom AS vehicules_nom, vehicules.type AS vehicules_type, vehicules.energie_id AS vehicules_energie_id, vehicules.consommation AS vehicules_consommation, vehicules.emissions AS vehicules_emissions, vehicules.charge_utile AS vehicules_charge_utile, vehicules.description AS vehicules_description, vehicules.created_at AS vehicules_created_at 
+FROM vehicules]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-09-02 10:41:30,995 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:30] "[35m[1mGET /api/vehicules HTTP/1.1[0m" 500 -
+2025-09-02 10:41:31,301 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:31] "GET /api/energies HTTP/1.1" 200 -
+2025-09-02 10:41:31,301 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:31] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:32,958 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:32] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:41:33,219 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:41:33] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-09-02 10:46:57,930 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:46:58,092 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:46:58,920 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:46:58,922 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:47:01,965 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:47:02,128 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:47:02,891 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:47:02,893 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:47:15,009 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:47:15,150 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:47:16,102 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:47:16,104 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:47:28,237 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:47:28,395 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:47:29,200 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:47:29,201 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:47:41,315 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:47:41,444 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:47:42,211 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:47:42,212 - werkzeug - INFO -  * Debugger PIN: 123-518-053

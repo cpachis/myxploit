@@ -2172,7 +2172,7 @@ def transporteurs():
         logger.error(f"Erreur lors de l'affichage des transporteurs: {str(e)}")
         return render_template('error.html', error=str(e)), 500
 
-@app.route('/api/transporteurs', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@app.route('/api/transporteurs', methods=['GET', 'POST'])
 def api_transporteurs():
     """API pour gérer les transporteurs"""
     if request.method == 'GET':
@@ -2258,14 +2258,13 @@ def api_transporteurs():
             logger.error(f"Erreur lors de la création du transporteur: {str(e)}")
             db.session.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
-    
-    elif request.method == 'PUT':
+
+@app.route('/api/transporteurs/<int:transporteur_id>', methods=['PUT', 'DELETE'])
+def api_transporteur_individual(transporteur_id):
+    """API pour modifier ou supprimer un transporteur spécifique"""
+    if request.method == 'PUT':
         try:
             data = request.get_json()
-            transporteur_id = data.get('id')
-            
-            if not transporteur_id:
-                return jsonify({'success': False, 'error': 'ID du transporteur manquant'}), 400
             
             transporteur = Transporteur.query.get(transporteur_id)
             if not transporteur:
@@ -2318,12 +2317,6 @@ def api_transporteurs():
     
     elif request.method == 'DELETE':
         try:
-            data = request.get_json()
-            transporteur_id = data.get('id')
-            
-            if not transporteur_id:
-                return jsonify({'success': False, 'error': 'ID du transporteur manquant'}), 400
-            
             transporteur = Transporteur.query.get(transporteur_id)
             if not transporteur:
                 return jsonify({'success': False, 'error': 'Transporteur non trouvé'}), 404
@@ -2343,6 +2336,123 @@ def api_transporteurs():
             logger.error(f"Erreur lors de la suppression du transporteur: {str(e)}")
             db.session.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/transporteurs/invite', methods=['POST'])
+def invite_transporteur():
+    """API pour inviter un transporteur par email"""
+    try:
+        data = request.get_json()
+        transporteur_id = data.get('transporteur_id')
+        message_personnalise = data.get('message', '')
+        
+        if not transporteur_id:
+            return jsonify({'success': False, 'error': 'ID du transporteur manquant'}), 400
+        
+        transporteur = Transporteur.query.get(transporteur_id)
+        if not transporteur:
+            return jsonify({'success': False, 'error': 'Transporteur non trouvé'}), 404
+        
+        if not transporteur.email:
+            return jsonify({'success': False, 'error': 'Aucun email configuré pour ce transporteur'}), 400
+        
+        # Créer le contenu de l'email d'invitation
+        sujet = f"Invitation à rejoindre MyXploit - {transporteur.nom}"
+        
+        contenu_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Invitation MyXploit</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: #f8fafc; padding: 30px; border-radius: 0 0 10px 10px; }}
+                .btn {{ display: inline-block; background: #48bb78; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }}
+                .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 0.9em; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🚚 Invitation MyXploit</h1>
+                    <p>Rejoignez notre plateforme de gestion des transports</p>
+                </div>
+                <div class="content">
+                    <h2>Bonjour {transporteur.nom},</h2>
+                    <p>Vous avez été invité à rejoindre la plateforme <strong>MyXploit</strong> pour gérer vos transports et optimiser votre empreinte carbone.</p>
+                    
+                    {f'<p><em>"{message_personnalise}"</em></p>' if message_personnalise else ''}
+                    
+                    <h3>🎯 Avantages de MyXploit :</h3>
+                    <ul>
+                        <li>📊 Suivi en temps réel de vos émissions CO₂</li>
+                        <li>📈 Tableaux de bord et rapports détaillés</li>
+                        <li>🚛 Gestion complète de votre flotte</li>
+                        <li>🌱 Optimisation de votre impact environnemental</li>
+                        <li>📱 Interface moderne et intuitive</li>
+                    </ul>
+                    
+                    <p>Cliquez sur le bouton ci-dessous pour accéder à votre espace :</p>
+                    <a href="https://myxploit-transports.onrender.com/login" class="btn">Accéder à MyXploit</a>
+                    
+                    <p>Si vous avez des questions, n'hésitez pas à nous contacter.</p>
+                    
+                    <p>Cordialement,<br>L'équipe MyXploit</p>
+                </div>
+                <div class="footer">
+                    <p>Cet email a été envoyé automatiquement par MyXploit</p>
+                    <p>Si vous ne souhaitez plus recevoir ces emails, vous pouvez nous le signaler.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        contenu_texte = f"""
+        Invitation MyXploit
+        
+        Bonjour {transporteur.nom},
+        
+        Vous avez été invité à rejoindre la plateforme MyXploit pour gérer vos transports et optimiser votre empreinte carbone.
+        
+        {f'Message personnalisé: "{message_personnalise}"' if message_personnalise else ''}
+        
+        Avantages de MyXploit :
+        - Suivi en temps réel de vos émissions CO₂
+        - Tableaux de bord et rapports détaillés
+        - Gestion complète de votre flotte
+        - Optimisation de votre impact environnemental
+        - Interface moderne et intuitive
+        
+        Accédez à votre espace : https://myxploit-transports.onrender.com/login
+        
+        Si vous avez des questions, n'hésitez pas à nous contacter.
+        
+        Cordialement,
+        L'équipe MyXploit
+        """
+        
+        # Envoyer l'email
+        email_envoye = envoyer_email(transporteur.email, sujet, contenu_html, contenu_texte)
+        
+        if email_envoye:
+            logger.info(f"📧 Invitation envoyée à {transporteur.nom} ({transporteur.email})")
+            return jsonify({
+                'success': True,
+                'message': f'Invitation envoyée avec succès à {transporteur.email}'
+            })
+        else:
+            logger.warning(f"⚠️ Échec de l'envoi d'invitation à {transporteur.email}")
+            return jsonify({
+                'success': False,
+                'error': 'Erreur lors de l\'envoi de l\'email'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de l'invitation du transporteur: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/parametrage_impact')
 def parametrage_impact():
