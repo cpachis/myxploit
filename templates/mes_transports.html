@@ -1,0 +1,1124 @@
+{% extends "base.html" %}
+{% block title %}Mes Transports — MyXploit{% endblock %}
+
+{% block content %}
+<div class="transports-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>🚛 Mes Transports</h1>
+      <p class="header-subtitle">Gérez vos transports et suivez vos émissions carbone</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" onclick="showAddTransportModal()">
+        <span class="btn-icon">➕</span>
+        Nouveau Transport
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-section">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-number" id="total-transports">0</div>
+        <div class="stat-label">Transports</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🌱</div>
+      <div class="stat-content">
+        <div class="stat-number" id="total-emissions">0</div>
+        <div class="stat-label">kg CO₂e</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📏</div>
+      <div class="stat-content">
+        <div class="stat-number" id="total-distance">0</div>
+        <div class="stat-label">km parcourus</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚖️</div>
+      <div class="stat-content">
+        <div class="stat-number" id="total-poids">0</div>
+        <div class="stat-label">tonnes transportées</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input type="text" id="search-transports" placeholder="Rechercher un transport..." onkeyup="filterTransports()">
+      <span class="search-icon">🔍</span>
+    </div>
+    <div class="filter-options">
+      <select id="filter-type" onchange="filterTransports()">
+        <option value="">Tous les types</option>
+        <option value="direct">🚛 Direct</option>
+        <option value="indirect">🔄 Indirect</option>
+      </select>
+      <input type="date" id="filter-date" onchange="filterTransports()" placeholder="Filtrer par date">
+      <select id="filter-sort" onchange="filterTransports()">
+        <option value="date-desc">Date (récent)</option>
+        <option value="date-asc">Date (ancien)</option>
+        <option value="emissions-desc">Émissions (élevées)</option>
+        <option value="emissions-asc">Émissions (faibles)</option>
+        <option value="distance-desc">Distance (longue)</option>
+        <option value="distance-asc">Distance (courte)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Liste des transports -->
+  <div class="transports-list" id="transports-list">
+    <!-- Les transports seront chargés dynamiquement -->
+  </div>
+
+  <!-- Modal d'ajout/modification de transport -->
+  <div id="transport-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="transport-modal-title">Nouveau Transport</h2>
+        <button class="close-btn" onclick="closeTransportModal()">&times;</button>
+      </div>
+      
+      <form id="transport-form" class="transport-form">
+        <div class="form-section">
+          <h3>📋 Informations de base</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-ref">Référence du transport *</label>
+              <input type="text" id="transport-ref" name="ref" required placeholder="Ex: T001">
+            </div>
+            <div class="form-group">
+              <label for="transport-date">Date du transport *</label>
+              <input type="date" id="transport-date" name="date" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-lieu-collecte">Lieu de collecte *</label>
+              <input type="text" id="transport-lieu-collecte" name="lieu_collecte" required placeholder="Ex: Paris, France">
+            </div>
+            <div class="form-group">
+              <label for="transport-lieu-livraison">Lieu de livraison *</label>
+              <input type="text" id="transport-lieu-livraison" name="lieu_livraison" required placeholder="Ex: Lyon, France">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-poids">Poids (tonnes) *</label>
+              <input type="number" id="transport-poids" name="poids_tonnes" step="0.001" min="0" required placeholder="Ex: 2.5">
+            </div>
+            <div class="form-group">
+              <label for="transport-type">Type de transport *</label>
+              <select id="transport-type" name="type_transport" required>
+                <option value="">Sélectionnez le type</option>
+                <option value="direct">🚛 Direct - Transport direct du point A au point B</option>
+                <option value="indirect">🔄 Indirect - Transport avec étapes intermédiaires</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>📊 Calculs automatiques</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-distance">Distance (km)</label>
+              <input type="number" id="transport-distance" name="distance_km" step="0.1" min="0" readonly>
+              <small class="form-help">Calculée automatiquement</small>
+            </div>
+            <div class="form-group">
+              <label for="transport-emissions">Émissions CO₂e (kg)</label>
+              <input type="number" id="transport-emissions" name="emis_kg" step="0.01" min="0" readonly>
+              <small class="form-help">Calculées automatiquement</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-emissions-tkm">Émissions par t.km (kg CO₂e/t.km)</label>
+              <input type="number" id="transport-emissions-tkm" name="emis_tkm" step="0.001" min="0" readonly>
+              <small class="form-help">Calculées automatiquement</small>
+            </div>
+            <div class="form-group">
+              <button type="button" class="btn-calculate" onclick="calculateDistanceAndEmissions()">
+                <span class="btn-icon">🧮</span>
+                Recalculer
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>ℹ️ Informations complémentaires</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-client">Client</label>
+              <input type="text" id="transport-client" name="client" placeholder="Nom du client">
+            </div>
+            <div class="form-group">
+              <label for="transport-transporteur">Transporteur</label>
+              <input type="text" id="transport-transporteur" name="transporteur" placeholder="Nom du transporteur">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label for="transport-description">Description</label>
+              <textarea id="transport-description" name="description" rows="3" placeholder="Informations complémentaires sur le transport..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-success">
+            <span class="btn-icon">💾</span>
+            Sauvegarder
+          </button>
+          <button type="button" class="btn-cancel" onclick="closeTransportModal()">
+            <span class="btn-icon">❌</span>
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// Variables globales
+let transports = [];
+let currentEditId = null;
+
+// Charger les transports au démarrage
+document.addEventListener('DOMContentLoaded', function() {
+  loadTransports();
+  
+  // Définir la date d'aujourd'hui par défaut
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('transport-date').value = today;
+});
+
+// Charger les transports depuis l'API
+function loadTransports() {
+  fetch('/api/transports')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        transports = data.transports || [];
+        displayTransports(transports);
+        updateStats();
+      } else {
+        showNotification('❌ Erreur lors du chargement des transports', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Erreur:', error);
+      showNotification('❌ Erreur de connexion', 'error');
+    });
+}
+
+// Afficher la liste des transports
+function displayTransports(transportsToShow) {
+  const container = document.getElementById('transports-list');
+  
+  if (transportsToShow.length === 0) {
+    container.innerHTML = '<div class="no-transports">Aucun transport trouvé</div>';
+    return;
+  }
+  
+  container.innerHTML = transportsToShow.map(transport => `
+    <div class="transport-card" data-id="${transport.id}">
+      <div class="transport-header">
+        <div class="transport-info">
+          <h3>${transport.ref}</h3>
+          <div class="transport-badges">
+            <span class="transport-type ${transport.type_transport}">
+              ${transport.type_transport === 'direct' ? '🚛 Direct' : '🔄 Indirect'}
+            </span>
+            <span class="transport-date">📅 ${new Date(transport.date).toLocaleDateString('fr-FR')}</span>
+          </div>
+        </div>
+        <div class="transport-actions">
+          <button class="btn-edit" onclick="editTransport(${transport.id})" title="Modifier">
+            <span class="btn-icon">✏️</span>
+            Modifier
+          </button>
+          <button class="btn-delete" onclick="deleteTransport(${transport.id})" title="Supprimer">
+            <span class="btn-icon">🗑️</span>
+            Supprimer
+          </button>
+        </div>
+      </div>
+      
+      <div class="transport-details">
+        <div class="detail-row">
+          <span class="detail-label">📍 Trajet:</span>
+          <span class="detail-value">${transport.lieu_collecte} → ${transport.lieu_livraison}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">📏 Distance:</span>
+          <span class="detail-value">${transport.distance_km} km</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">⚖️ Poids:</span>
+          <span class="detail-value">${transport.poids_tonnes} tonnes</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">🌱 Émissions:</span>
+          <span class="detail-value">${transport.emis_kg} kg CO₂e (${transport.emis_tkm} kg/t.km)</span>
+        </div>
+        ${transport.client ? `<div class="detail-row"><span class="detail-label">👤 Client:</span><span class="detail-value">${transport.client}</span></div>` : ''}
+        ${transport.transporteur ? `<div class="detail-row"><span class="detail-label">🚚 Transporteur:</span><span class="detail-value">${transport.transporteur}</span></div>` : ''}
+        ${transport.description ? `<div class="detail-row"><span class="detail-label">📝 Description:</span><span class="detail-value">${transport.description}</span></div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// Mettre à jour les statistiques
+function updateStats() {
+  const totalTransports = transports.length;
+  const totalEmissions = transports.reduce((sum, t) => sum + (t.emis_kg || 0), 0);
+  const totalDistance = transports.reduce((sum, t) => sum + (t.distance_km || 0), 0);
+  const totalPoids = transports.reduce((sum, t) => sum + (t.poids_tonnes || 0), 0);
+  
+  document.getElementById('total-transports').textContent = totalTransports;
+  document.getElementById('total-emissions').textContent = Math.round(totalEmissions);
+  document.getElementById('total-distance').textContent = Math.round(totalDistance);
+  document.getElementById('total-poids').textContent = Math.round(totalPoids * 10) / 10;
+}
+
+// Filtrer les transports
+function filterTransports() {
+  const searchTerm = document.getElementById('search-transports').value.toLowerCase();
+  const typeFilter = document.getElementById('filter-type').value;
+  const dateFilter = document.getElementById('filter-date').value;
+  const sortFilter = document.getElementById('filter-sort').value;
+  
+  let filtered = transports.filter(transport => {
+    const matchesSearch = transport.ref.toLowerCase().includes(searchTerm) ||
+                         transport.lieu_collecte.toLowerCase().includes(searchTerm) ||
+                         transport.lieu_livraison.toLowerCase().includes(searchTerm) ||
+                         (transport.client && transport.client.toLowerCase().includes(searchTerm));
+    const matchesType = !typeFilter || transport.type_transport === typeFilter;
+    const matchesDate = !dateFilter || transport.date === dateFilter;
+    
+    return matchesSearch && matchesType && matchesDate;
+  });
+  
+  // Trier les résultats
+  filtered.sort((a, b) => {
+    switch(sortFilter) {
+      case 'date-desc':
+        return new Date(b.date) - new Date(a.date);
+      case 'date-asc':
+        return new Date(a.date) - new Date(b.date);
+      case 'emissions-desc':
+        return (b.emis_kg || 0) - (a.emis_kg || 0);
+      case 'emissions-asc':
+        return (a.emis_kg || 0) - (b.emis_kg || 0);
+      case 'distance-desc':
+        return (b.distance_km || 0) - (a.distance_km || 0);
+      case 'distance-asc':
+        return (a.distance_km || 0) - (b.distance_km || 0);
+      default:
+        return 0;
+    }
+  });
+  
+  displayTransports(filtered);
+}
+
+// Calculer la distance et les émissions
+function calculateDistanceAndEmissions() {
+  const lieuCollecte = document.getElementById('transport-lieu-collecte').value;
+  const lieuLivraison = document.getElementById('transport-lieu-livraison').value;
+  const poids = parseFloat(document.getElementById('transport-poids').value) || 0;
+  const typeTransport = document.getElementById('transport-type').value;
+  
+  if (!lieuCollecte || !lieuLivraison) {
+    showNotification('⚠️ Veuillez saisir les lieux de collecte et de livraison', 'warning');
+    return;
+  }
+  
+  // Afficher un indicateur de chargement
+  const calculateBtn = document.querySelector('.btn-calculate');
+  const originalText = calculateBtn.innerHTML;
+  calculateBtn.innerHTML = '<span class="btn-icon">⏳</span> Calcul...';
+  calculateBtn.disabled = true;
+  
+  fetch('/api/transports/calculate-distance', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      lieu_depart: lieuCollecte,
+      lieu_arrivee: lieuLivraison,
+      poids_tonnes: poids,
+      type_transport: typeTransport
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('transport-distance').value = data.distance_km;
+      document.getElementById('transport-emissions').value = data.emis_kg;
+      document.getElementById('transport-emissions-tkm').value = data.emis_tkm;
+      showNotification('✅ Distance et émissions calculées avec succès', 'success');
+    } else {
+      showNotification(`❌ Erreur: ${data.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    showNotification('❌ Erreur lors du calcul', 'error');
+  })
+  .finally(() => {
+    calculateBtn.innerHTML = originalText;
+    calculateBtn.disabled = false;
+  });
+}
+
+// Afficher le modal d'ajout
+function showAddTransportModal() {
+  currentEditId = null;
+  document.getElementById('transport-modal-title').textContent = 'Nouveau Transport';
+  document.getElementById('transport-form').reset();
+  
+  // Définir la date d'aujourd'hui
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('transport-date').value = today;
+  
+  document.getElementById('transport-modal').style.display = 'block';
+}
+
+// Fermer le modal
+function closeTransportModal() {
+  document.getElementById('transport-modal').style.display = 'none';
+  currentEditId = null;
+}
+
+// Éditer un transport
+function editTransport(id) {
+  const transport = transports.find(t => t.id == id);
+  if (!transport) return;
+  
+  currentEditId = id;
+  document.getElementById('transport-modal-title').textContent = 'Modifier le Transport';
+  
+  // Remplir le formulaire
+  document.getElementById('transport-ref').value = transport.ref;
+  document.getElementById('transport-date').value = transport.date;
+  document.getElementById('transport-lieu-collecte').value = transport.lieu_collecte;
+  document.getElementById('transport-lieu-livraison').value = transport.lieu_livraison;
+  document.getElementById('transport-poids').value = transport.poids_tonnes;
+  document.getElementById('transport-type').value = transport.type_transport;
+  document.getElementById('transport-distance').value = transport.distance_km;
+  document.getElementById('transport-emissions').value = transport.emis_kg;
+  document.getElementById('transport-emissions-tkm').value = transport.emis_tkm;
+  document.getElementById('transport-client').value = transport.client || '';
+  document.getElementById('transport-transporteur').value = transport.transporteur || '';
+  document.getElementById('transport-description').value = transport.description || '';
+  
+  document.getElementById('transport-modal').style.display = 'block';
+}
+
+// Supprimer un transport
+function deleteTransport(id) {
+  const transport = transports.find(t => t.id == id);
+  if (!transport) return;
+  
+  if (!confirm(`Êtes-vous sûr de vouloir supprimer le transport "${transport.ref}" ?`)) return;
+  
+  fetch(`/api/transports/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification('✅ Transport supprimé avec succès', 'success');
+      loadTransports();
+    } else {
+      showNotification(`❌ Erreur: ${data.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    showNotification('❌ Erreur lors de la suppression', 'error');
+  });
+}
+
+// Gérer la soumission du formulaire
+document.getElementById('transport-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  const transportData = {
+    ref: formData.get('ref'),
+    date: formData.get('date'),
+    lieu_collecte: formData.get('lieu_collecte'),
+    lieu_livraison: formData.get('lieu_livraison'),
+    poids_tonnes: parseFloat(formData.get('poids_tonnes')),
+    type_transport: formData.get('type_transport'),
+    distance_km: parseFloat(formData.get('distance_km')) || 0,
+    emis_kg: parseFloat(formData.get('emis_kg')) || 0,
+    emis_tkm: parseFloat(formData.get('emis_tkm')) || 0,
+    client: formData.get('client'),
+    transporteur: formData.get('transporteur'),
+    description: formData.get('description')
+  };
+  
+  const url = currentEditId ? `/api/transports/${currentEditId}` : '/api/transports';
+  const method = currentEditId ? 'PUT' : 'POST';
+  
+  // Ajouter l'ID pour la modification
+  if (currentEditId) {
+    transportData.id = currentEditId;
+  }
+  
+  fetch(url, {
+    method: method,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(transportData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification('✅ Transport sauvegardé avec succès', 'success');
+      closeTransportModal();
+      loadTransports();
+    } else {
+      showNotification(`❌ Erreur: ${data.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur lors de la sauvegarde:', error);
+    showNotification('❌ Erreur lors de la sauvegarde', 'error');
+  });
+});
+
+// Système de notifications modernes
+function showNotification(message, type = 'info') {
+  // Supprimer les notifications existantes
+  const existingNotifications = document.querySelectorAll('.modern-notification');
+  existingNotifications.forEach(notif => notif.remove());
+  
+  // Créer la nouvelle notification
+  const notification = document.createElement('div');
+  notification.className = `modern-notification modern-notification-${type}`;
+  
+  // Icônes selon le type
+  let icon, bgColor, borderColor;
+  switch(type) {
+    case 'success':
+      icon = '✅';
+      bgColor = '#d4edda';
+      borderColor = '#28a745';
+      break;
+    case 'error':
+      icon = '❌';
+      bgColor = '#f8d7da';
+      borderColor = '#dc3545';
+      break;
+    case 'warning':
+      icon = '⚠️';
+      bgColor = '#fff3cd';
+      borderColor = '#ffc107';
+      break;
+    default:
+      icon = 'ℹ️';
+      bgColor = '#d1ecf1';
+      borderColor = '#17a2b8';
+  }
+  
+  notification.innerHTML = `
+    <div class="notification-icon">${icon}</div>
+    <div class="notification-message">${message}</div>
+  `;
+  
+  // Styles inline pour garantir l'apparence
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${bgColor};
+    border: 2px solid ${borderColor};
+    border-radius: 10px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    max-width: 350px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+  `;
+  
+  // Styles pour l'icône et le message
+  const iconElement = notification.querySelector('.notification-icon');
+  iconElement.style.cssText = `
+    font-size: 20px;
+    flex-shrink: 0;
+  `;
+  
+  const messageElement = notification.querySelector('.notification-message');
+  messageElement.style.cssText = `
+    color: #333;
+    font-weight: 500;
+    line-height: 1.4;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animation d'entrée
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+    notification.style.opacity = '1';
+  }, 10);
+  
+  // Auto-suppression avec fade out
+  setTimeout(() => {
+    notification.style.transform = 'translateX(400px)';
+    notification.style.opacity = '0';
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 300);
+  }, 4000);
+}
+</script>
+
+<!-- Styles CSS -->
+<style>
+.transports-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  color: white;
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.header-subtitle {
+  margin: 5px 0 0 0;
+  opacity: 0.9;
+}
+
+.btn-primary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.stat-icon {
+  font-size: 2rem;
+  opacity: 0.8;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  color: #718096;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.filters-section {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+}
+
+.filter-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-options select,
+.filter-options input {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+}
+
+.transport-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.transport-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.transport-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.transport-info h3 {
+  margin: 0 0 8px 0;
+  color: #2d3748;
+  font-size: 1.25rem;
+}
+
+.transport-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.transport-type {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.transport-type.direct {
+  background: #d4edda;
+  color: #155724;
+}
+
+.transport-type.indirect {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.transport-date {
+  background: #e3eaff;
+  color: #2a7de1;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.transport-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-edit, .btn-delete {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-edit {
+  background: #4299e1;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #3182ce;
+}
+
+.btn-delete {
+  background: #f56565;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #e53e3e;
+}
+
+.transport-details {
+  margin-bottom: 20px;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 8px;
+  align-items: flex-start;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 120px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  color: #2d3748;
+  flex: 1;
+}
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 2% auto;
+  padding: 0;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 95vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.transport-form {
+  padding: 20px;
+}
+
+.form-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.form-section h3 {
+  margin: 0 0 20px 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2d3748;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input[readonly] {
+  background-color: #f8fafc;
+  color: #6b7280;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-help {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 5px;
+}
+
+.btn-calculate {
+  background: #48bb78;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  margin-top: 25px;
+}
+
+.btn-calculate:hover {
+  background: #38a169;
+}
+
+.btn-calculate:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-success, .btn-cancel {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-success {
+  background: #48bb78;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #38a169;
+}
+
+.btn-cancel {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn-cancel:hover {
+  background: #cbd5e0;
+}
+
+.no-transports {
+  text-align: center;
+  padding: 60px 20px;
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .filters-section {
+    flex-direction: column;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .transport-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .transport-actions {
+    justify-content: flex-start;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .detail-label {
+    min-width: auto;
+  }
+  
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}

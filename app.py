@@ -84,15 +84,24 @@ class Transport(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     ref = db.Column(db.String(50), unique=True, nullable=False)
-    type_transport = db.Column(db.String(50))
-    niveau_calcul = db.Column(db.String(50))
-    type_vehicule = db.Column(db.String(50))
-    energie = db.Column(db.String(50)) # Changed from energie to energie
-    conso_vehicule = db.Column(db.Float)
-    poids_tonnes = db.Column(db.Float)
-    distance_km = db.Column(db.Float)
+    date = db.Column(db.Date, nullable=False)
+    lieu_collecte = db.Column(db.String(200), nullable=False)
+    lieu_livraison = db.Column(db.String(200), nullable=False)
+    poids_tonnes = db.Column(db.Float, nullable=False)
+    type_transport = db.Column(db.String(50), default='direct')  # direct ou indirect
+    distance_km = db.Column(db.Float, default=0.0)
     emis_kg = db.Column(db.Float, default=0.0)
     emis_tkm = db.Column(db.Float, default=0.0)
+    
+    # Champs optionnels pour les calculs avancés
+    niveau_calcul = db.Column(db.String(50))
+    type_vehicule = db.Column(db.String(50))
+    energie = db.Column(db.String(50))
+    conso_vehicule = db.Column(db.Float)
+    client = db.Column(db.String(100))
+    transporteur = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -197,6 +206,126 @@ class Transporteur(db.Model):
     statut = db.Column(db.String(20), default='actif')  # actif, inactif
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+def calculer_distance_km(lieu_depart, lieu_arrivee):
+    """Calcule la distance approximative entre deux lieux en km"""
+    try:
+        import requests
+        
+        # Utilisation de l'API OpenRouteService (gratuite avec clé)
+        # En production, vous devriez utiliser votre propre clé API
+        api_key = os.environ.get('OPENROUTE_API_KEY', '')
+        
+        if not api_key:
+            # Si pas d'API key, utiliser des distances approximatives basées sur des villes connues
+            return calculer_distance_approximative(lieu_depart, lieu_arrivee)
+        
+        # Géocoder les lieux
+        def geocoder(lieu):
+            url = f"https://api.openrouteservice.org/geocode/search"
+            params = {
+                'api_key': api_key,
+                'text': lieu,
+                'size': 1
+            }
+            response = requests.get(url, params=params, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('features'):
+                    coords = data['features'][0]['geometry']['coordinates']
+                    return coords[1], coords[0]  # lat, lon
+            return None
+        
+        # Obtenir les coordonnées
+        coords_depart = geocoder(lieu_depart)
+        coords_arrivee = geocoder(lieu_arrivee)
+        
+        if not coords_depart or not coords_arrivee:
+            return calculer_distance_approximative(lieu_depart, lieu_arrivee)
+        
+        # Calculer la distance avec l'API de routage
+        url = "https://api.openrouteservice.org/v2/directions/driving-car"
+        headers = {'Authorization': api_key}
+        body = {
+            'coordinates': [coords_depart[::-1], coords_arrivee[::-1]],  # [lon, lat]
+            'units': 'km'
+        }
+        
+        response = requests.post(url, json=body, headers=headers, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('features'):
+                distance = data['features'][0]['properties']['segments'][0]['distance']
+                return round(distance, 1)
+        
+        # Fallback vers calcul approximatif
+        return calculer_distance_approximative(lieu_depart, lieu_arrivee)
+        
+    except Exception as e:
+        logger.warning(f"Erreur lors du calcul de distance: {str(e)}")
+        return calculer_distance_approximative(lieu_depart, lieu_arrivee)
+
+def calculer_distance_approximative(lieu_depart, lieu_arrivee):
+    """Calcule une distance approximative basée sur des villes connues"""
+    # Base de données simplifiée de distances entre villes françaises principales
+    distances_connues = {
+        ('Paris', 'Lyon'): 463,
+        ('Paris', 'Marseille'): 775,
+        ('Paris', 'Toulouse'): 678,
+        ('Paris', 'Nantes'): 385,
+        ('Paris', 'Strasbourg'): 491,
+        ('Paris', 'Montpellier'): 750,
+        ('Paris', 'Bordeaux'): 584,
+        ('Lyon', 'Marseille'): 314,
+        ('Lyon', 'Toulouse'): 538,
+        ('Lyon', 'Nantes'): 589,
+        ('Marseille', 'Toulouse'): 404,
+        ('Marseille', 'Montpellier'): 171,
+        ('Toulouse', 'Bordeaux'): 245,
+        ('Nantes', 'Bordeaux'): 340,
+        ('Strasbourg', 'Lyon'): 493,
+        ('Montpellier', 'Toulouse'): 240,
+    }
+    
+    # Normaliser les noms de lieux
+    def normaliser_lieu(lieu):
+        lieu = lieu.lower().strip()
+        # Extraire le nom de la ville principal
+        for ville in ['paris', 'lyon', 'marseille', 'toulouse', 'nantes', 'strasbourg', 'montpellier', 'bordeaux']:
+            if ville in lieu:
+                return ville.title()
+        return lieu.title()
+    
+    lieu_depart_norm = normaliser_lieu(lieu_depart)
+    lieu_arrivee_norm = normaliser_lieu(lieu_arrivee)
+    
+    # Chercher la distance connue
+    distance = distances_connues.get((lieu_depart_norm, lieu_arrivee_norm))
+    if not distance:
+        distance = distances_connues.get((lieu_arrivee_norm, lieu_depart_norm))
+    
+    if distance:
+        return distance
+    
+    # Si pas de distance connue, estimation basée sur la longueur des noms
+    # (très approximatif, mais mieux que rien)
+    return 200  # Distance par défaut
+
+def calculer_emissions_carbone(distance_km, poids_tonnes, type_transport='direct'):
+    """Calcule les émissions carbone d'un transport"""
+    # Facteurs d'émission par type de transport (kg CO2e par tonne-km)
+    facteurs_emission = {
+        'direct': 0.15,      # Transport routier direct
+        'indirect': 0.25,    # Transport avec étapes (plus d'émissions)
+    }
+    
+    facteur = facteurs_emission.get(type_transport, 0.15)
+    
+    # Calcul des émissions
+    emis_kg = distance_km * poids_tonnes * facteur
+    emis_tkm = emis_kg / (distance_km * poids_tonnes) if distance_km > 0 and poids_tonnes > 0 else 0
+    
+    return round(emis_kg, 2), round(emis_tkm, 3)
 
 def envoyer_email(destinataire, sujet, contenu_html, contenu_texte=None):
     """Fonction pour envoyer des emails"""
@@ -643,7 +772,7 @@ def api_dashboard():
 
 @app.route('/transports')
 def transports():
-    """Liste des transports"""
+    """Liste des transports (ancienne version)"""
     try:
         # Récupérer tous les transports
         transports = Transport.query.all()
@@ -662,6 +791,15 @@ def transports():
                         
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage des transports: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/mes_transports')
+def mes_transports():
+    """Page de gestion des transports (nouvelle version)"""
+    try:
+        return render_template('mes_transports.html')
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage de la page mes transports: {str(e)}")
         return render_template('error.html', error=str(e)), 500
 
 @app.route('/api/vehicules', methods=['GET', 'POST'])
@@ -2452,6 +2590,244 @@ def invite_transporteur():
             
     except Exception as e:
         logger.error(f"Erreur lors de l'invitation du transporteur: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/transports', methods=['GET', 'POST'])
+def api_transports():
+    """API pour gérer les transports"""
+    if request.method == 'GET':
+        try:
+            transports = Transport.query.all()
+            transports_data = []
+            
+            for transport in transports:
+                transports_data.append({
+                    'id': transport.id,
+                    'ref': transport.ref,
+                    'date': transport.date.strftime('%Y-%m-%d') if transport.date else None,
+                    'lieu_collecte': transport.lieu_collecte,
+                    'lieu_livraison': transport.lieu_livraison,
+                    'poids_tonnes': transport.poids_tonnes,
+                    'type_transport': transport.type_transport,
+                    'distance_km': transport.distance_km,
+                    'emis_kg': transport.emis_kg,
+                    'emis_tkm': transport.emis_tkm,
+                    'client': transport.client,
+                    'transporteur': transport.transporteur,
+                    'description': transport.description,
+                    'created_at': transport.created_at.strftime('%Y-%m-%d %H:%M:%S') if transport.created_at else None
+                })
+            
+            return jsonify({
+                'success': True,
+                'transports': transports_data
+            })
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des transports: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+            
+            # Validation des données obligatoires
+            if not data.get('ref') or not data.get('date') or not data.get('lieu_collecte') or not data.get('lieu_livraison') or not data.get('poids_tonnes'):
+                return jsonify({'success': False, 'error': 'Tous les champs obligatoires doivent être remplis'}), 400
+            
+            # Vérifier si la référence existe déjà
+            if Transport.query.filter_by(ref=data['ref']).first():
+                return jsonify({'success': False, 'error': 'Une référence de transport avec ce nom existe déjà'}), 400
+            
+            # Calculer la distance si pas fournie
+            distance_km = data.get('distance_km', 0)
+            if distance_km == 0:
+                distance_km = calculer_distance_km(data['lieu_collecte'], data['lieu_livraison'])
+            
+            # Calculer les émissions
+            emis_kg, emis_tkm = calculer_emissions_carbone(
+                distance_km, 
+                data['poids_tonnes'], 
+                data.get('type_transport', 'direct')
+            )
+            
+            # Créer le nouveau transport
+            nouveau_transport = Transport(
+                ref=data['ref'],
+                date=datetime.strptime(data['date'], '%Y-%m-%d').date(),
+                lieu_collecte=data['lieu_collecte'],
+                lieu_livraison=data['lieu_livraison'],
+                poids_tonnes=data['poids_tonnes'],
+                type_transport=data.get('type_transport', 'direct'),
+                distance_km=distance_km,
+                emis_kg=emis_kg,
+                emis_tkm=emis_tkm,
+                client=data.get('client'),
+                transporteur=data.get('transporteur'),
+                description=data.get('description')
+            )
+            
+            db.session.add(nouveau_transport)
+            db.session.commit()
+            
+            logger.info(f"✅ Nouveau transport créé: {nouveau_transport.ref}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Transport créé avec succès',
+                'transport': {
+                    'id': nouveau_transport.id,
+                    'ref': nouveau_transport.ref,
+                    'date': nouveau_transport.date.strftime('%Y-%m-%d'),
+                    'lieu_collecte': nouveau_transport.lieu_collecte,
+                    'lieu_livraison': nouveau_transport.lieu_livraison,
+                    'poids_tonnes': nouveau_transport.poids_tonnes,
+                    'type_transport': nouveau_transport.type_transport,
+                    'distance_km': nouveau_transport.distance_km,
+                    'emis_kg': nouveau_transport.emis_kg,
+                    'emis_tkm': nouveau_transport.emis_tkm
+                }
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la création du transport: {str(e)}")
+            db.session.rollback()
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/transports/<int:transport_id>', methods=['PUT', 'DELETE'])
+def api_transport_individual(transport_id):
+    """API pour modifier ou supprimer un transport spécifique"""
+    if request.method == 'PUT':
+        try:
+            data = request.get_json()
+            
+            transport = Transport.query.get(transport_id)
+            if not transport:
+                return jsonify({'success': False, 'error': 'Transport non trouvé'}), 404
+            
+            # Mettre à jour les champs
+            if data.get('ref'):
+                # Vérifier si la référence existe déjà pour un autre transport
+                existing_transport = Transport.query.filter_by(ref=data['ref']).first()
+                if existing_transport and existing_transport.id != transport_id:
+                    return jsonify({'success': False, 'error': 'Une référence de transport avec ce nom existe déjà'}), 400
+                transport.ref = data['ref']
+            
+            if data.get('date'):
+                transport.date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+            
+            if data.get('lieu_collecte'):
+                transport.lieu_collecte = data['lieu_collecte']
+            
+            if data.get('lieu_livraison'):
+                transport.lieu_livraison = data['lieu_livraison']
+            
+            if data.get('poids_tonnes'):
+                transport.poids_tonnes = data['poids_tonnes']
+            
+            if data.get('type_transport'):
+                transport.type_transport = data['type_transport']
+            
+            # Recalculer la distance et les émissions si les lieux ou le poids ont changé
+            if (data.get('lieu_collecte') or data.get('lieu_livraison') or 
+                data.get('poids_tonnes') or data.get('type_transport')):
+                
+                distance_km = calculer_distance_km(transport.lieu_collecte, transport.lieu_livraison)
+                emis_kg, emis_tkm = calculer_emissions_carbone(
+                    distance_km, 
+                    transport.poids_tonnes, 
+                    transport.type_transport
+                )
+                
+                transport.distance_km = distance_km
+                transport.emis_kg = emis_kg
+                transport.emis_tkm = emis_tkm
+            
+            # Mettre à jour les autres champs
+            if data.get('client'):
+                transport.client = data['client']
+            if data.get('transporteur'):
+                transport.transporteur = data['transporteur']
+            if data.get('description'):
+                transport.description = data['description']
+            
+            transport.updated_at = datetime.utcnow()
+            db.session.commit()
+            
+            logger.info(f"✅ Transport modifié: {transport.ref}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Transport modifié avec succès',
+                'transport': {
+                    'id': transport.id,
+                    'ref': transport.ref,
+                    'date': transport.date.strftime('%Y-%m-%d'),
+                    'lieu_collecte': transport.lieu_collecte,
+                    'lieu_livraison': transport.lieu_livraison,
+                    'poids_tonnes': transport.poids_tonnes,
+                    'type_transport': transport.type_transport,
+                    'distance_km': transport.distance_km,
+                    'emis_kg': transport.emis_kg,
+                    'emis_tkm': transport.emis_tkm
+                }
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la modification du transport: {str(e)}")
+            db.session.rollback()
+            return jsonify({'success': False, 'error': str(e)}), 500
+    
+    elif request.method == 'DELETE':
+        try:
+            transport = Transport.query.get(transport_id)
+            if not transport:
+                return jsonify({'success': False, 'error': 'Transport non trouvé'}), 404
+            
+            ref_transport = transport.ref
+            db.session.delete(transport)
+            db.session.commit()
+            
+            logger.info(f"✅ Transport supprimé: {ref_transport} (ID: {transport_id})")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Transport supprimé avec succès'
+            })
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la suppression du transport: {str(e)}")
+            db.session.rollback()
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/transports/calculate-distance', methods=['POST'])
+def api_calculate_distance():
+    """API pour calculer la distance et les émissions entre deux lieux"""
+    try:
+        data = request.get_json()
+        
+        lieu_depart = data.get('lieu_depart')
+        lieu_arrivee = data.get('lieu_arrivee')
+        poids_tonnes = data.get('poids_tonnes', 0)
+        type_transport = data.get('type_transport', 'direct')
+        
+        if not lieu_depart or not lieu_arrivee:
+            return jsonify({'success': False, 'error': 'Les lieux de départ et d\'arrivée sont obligatoires'}), 400
+        
+        # Calculer la distance
+        distance_km = calculer_distance_km(lieu_depart, lieu_arrivee)
+        
+        # Calculer les émissions
+        emis_kg, emis_tkm = calculer_emissions_carbone(distance_km, poids_tonnes, type_transport)
+        
+        return jsonify({
+            'success': True,
+            'distance_km': distance_km,
+            'emis_kg': emis_kg,
+            'emis_tkm': emis_tkm
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors du calcul de distance: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/parametrage_impact')

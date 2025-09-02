@@ -180,3 +180,17 @@ FROM vehicules]
 2025-09-02 10:47:41,444 - werkzeug - INFO -  * Restarting with stat
 2025-09-02 10:47:42,211 - werkzeug - WARNING -  * Debugger is active!
 2025-09-02 10:47:42,212 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:53:50,603 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:53:50,751 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:53:51,431 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:53:51,432 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:54:13,615 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:54:13,765 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:54:14,440 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:54:14,441 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:57:01,753 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:57:02,001 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:57:02,850 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:57:02,852 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:57:31,113 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:57:31,241 - werkzeug - INFO -  * Restarting with stat
