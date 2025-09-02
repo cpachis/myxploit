@@ -2941,6 +2941,237 @@ def api_calculate_distance():
         logger.error(f"Erreur lors du calcul de distance: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/lieux/autocomplete', methods=['GET'])
+def api_lieux_autocomplete():
+    """API pour l'autocomplétion des lieux (codes postaux et villes)"""
+    try:
+        query = request.args.get('q', '').strip()
+        limit = int(request.args.get('limit', 10))
+        
+        if len(query) < 2:
+            return jsonify({
+                'success': True,
+                'suggestions': []
+            })
+        
+        # Base de données des principales villes françaises avec codes postaux
+        villes_france = [
+            # Paris et région parisienne
+            {"nom": "Paris", "code_postal": "75001", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75002", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75003", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75004", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75005", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75006", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75007", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75008", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75009", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75010", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75011", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75012", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75013", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75014", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75015", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75016", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75017", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75018", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75019", "departement": "75", "region": "Île-de-France"},
+            {"nom": "Paris", "code_postal": "75020", "departement": "75", "region": "Île-de-France"},
+            
+            # Autres grandes villes
+            {"nom": "Lyon", "code_postal": "69001", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Lyon", "code_postal": "69002", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Lyon", "code_postal": "69003", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Lyon", "code_postal": "69004", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Lyon", "code_postal": "69005", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Lyon", "code_postal": "69006", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Lyon", "code_postal": "69007", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Lyon", "code_postal": "69008", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Lyon", "code_postal": "69009", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            
+            {"nom": "Marseille", "code_postal": "13001", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13002", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13003", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13004", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13005", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13006", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13007", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13008", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13009", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13010", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13011", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13012", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13013", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13014", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13015", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Marseille", "code_postal": "13016", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            
+            {"nom": "Toulouse", "code_postal": "31000", "departement": "31", "region": "Occitanie"},
+            {"nom": "Toulouse", "code_postal": "31100", "departement": "31", "region": "Occitanie"},
+            {"nom": "Toulouse", "code_postal": "31200", "departement": "31", "region": "Occitanie"},
+            {"nom": "Toulouse", "code_postal": "31300", "departement": "31", "region": "Occitanie"},
+            {"nom": "Toulouse", "code_postal": "31400", "departement": "31", "region": "Occitanie"},
+            {"nom": "Toulouse", "code_postal": "31500", "departement": "31", "region": "Occitanie"},
+            
+            {"nom": "Nice", "code_postal": "06000", "departement": "06", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Nice", "code_postal": "06100", "departement": "06", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Nice", "code_postal": "06200", "departement": "06", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Nice", "code_postal": "06300", "departement": "06", "region": "Provence-Alpes-Côte d'Azur"},
+            
+            {"nom": "Nantes", "code_postal": "44000", "departement": "44", "region": "Pays de la Loire"},
+            {"nom": "Nantes", "code_postal": "44100", "departement": "44", "region": "Pays de la Loire"},
+            {"nom": "Nantes", "code_postal": "44200", "departement": "44", "region": "Pays de la Loire"},
+            {"nom": "Nantes", "code_postal": "44300", "departement": "44", "region": "Pays de la Loire"},
+            
+            {"nom": "Strasbourg", "code_postal": "67000", "departement": "67", "region": "Grand Est"},
+            {"nom": "Strasbourg", "code_postal": "67100", "departement": "67", "region": "Grand Est"},
+            
+            {"nom": "Montpellier", "code_postal": "34000", "departement": "34", "region": "Occitanie"},
+            {"nom": "Montpellier", "code_postal": "34070", "departement": "34", "region": "Occitanie"},
+            {"nom": "Montpellier", "code_postal": "34080", "departement": "34", "region": "Occitanie"},
+            {"nom": "Montpellier", "code_postal": "34090", "departement": "34", "region": "Occitanie"},
+            
+            {"nom": "Bordeaux", "code_postal": "33000", "departement": "33", "region": "Nouvelle-Aquitaine"},
+            {"nom": "Bordeaux", "code_postal": "33100", "departement": "33", "region": "Nouvelle-Aquitaine"},
+            {"nom": "Bordeaux", "code_postal": "33200", "departement": "33", "region": "Nouvelle-Aquitaine"},
+            {"nom": "Bordeaux", "code_postal": "33300", "departement": "33", "region": "Nouvelle-Aquitaine"},
+            
+            {"nom": "Lille", "code_postal": "59000", "departement": "59", "region": "Hauts-de-France"},
+            {"nom": "Lille", "code_postal": "59100", "departement": "59", "region": "Hauts-de-France"},
+            {"nom": "Lille", "code_postal": "59200", "departement": "59", "region": "Hauts-de-France"},
+            {"nom": "Lille", "code_postal": "59300", "departement": "59", "region": "Hauts-de-France"},
+            
+            {"nom": "Rennes", "code_postal": "35000", "departement": "35", "region": "Bretagne"},
+            {"nom": "Rennes", "code_postal": "35100", "departement": "35", "region": "Bretagne"},
+            {"nom": "Rennes", "code_postal": "35200", "departement": "35", "region": "Bretagne"},
+            
+            {"nom": "Reims", "code_postal": "51100", "departement": "51", "region": "Grand Est"},
+            {"nom": "Reims", "code_postal": "51200", "departement": "51", "region": "Grand Est"},
+            
+            {"nom": "Le Havre", "code_postal": "76600", "departement": "76", "region": "Normandie"},
+            {"nom": "Le Havre", "code_postal": "76610", "departement": "76", "region": "Normandie"},
+            {"nom": "Le Havre", "code_postal": "76620", "departement": "76", "region": "Normandie"},
+            
+            {"nom": "Saint-Étienne", "code_postal": "42000", "departement": "42", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Saint-Étienne", "code_postal": "42100", "departement": "42", "region": "Auvergne-Rhône-Alpes"},
+            
+            {"nom": "Toulon", "code_postal": "83000", "departement": "83", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Toulon", "code_postal": "83100", "departement": "83", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Toulon", "code_postal": "83200", "departement": "83", "region": "Provence-Alpes-Côte d'Azur"},
+            
+            {"nom": "Grenoble", "code_postal": "38000", "departement": "38", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Grenoble", "code_postal": "38100", "departement": "38", "region": "Auvergne-Rhône-Alpes"},
+            
+            {"nom": "Dijon", "code_postal": "21000", "departement": "21", "region": "Bourgogne-Franche-Comté"},
+            {"nom": "Dijon", "code_postal": "21100", "departement": "21", "region": "Bourgogne-Franche-Comté"},
+            
+            {"nom": "Angers", "code_postal": "49000", "departement": "49", "region": "Pays de la Loire"},
+            {"nom": "Angers", "code_postal": "49100", "departement": "49", "region": "Pays de la Loire"},
+            
+            {"nom": "Nîmes", "code_postal": "30000", "departement": "30", "region": "Occitanie"},
+            {"nom": "Nîmes", "code_postal": "30900", "departement": "30", "region": "Occitanie"},
+            
+            {"nom": "Villeurbanne", "code_postal": "69100", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Villeurbanne", "code_postal": "69120", "departement": "69", "region": "Auvergne-Rhône-Alpes"},
+            
+            {"nom": "Saint-Denis", "code_postal": "93200", "departement": "93", "region": "Île-de-France"},
+            {"nom": "Saint-Denis", "code_postal": "93210", "departement": "93", "region": "Île-de-France"},
+            
+            {"nom": "Le Mans", "code_postal": "72000", "departement": "72", "region": "Pays de la Loire"},
+            {"nom": "Le Mans", "code_postal": "72100", "departement": "72", "region": "Pays de la Loire"},
+            
+            {"nom": "Aix-en-Provence", "code_postal": "13100", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            {"nom": "Aix-en-Provence", "code_postal": "13290", "departement": "13", "region": "Provence-Alpes-Côte d'Azur"},
+            
+            {"nom": "Clermont-Ferrand", "code_postal": "63000", "departement": "63", "region": "Auvergne-Rhône-Alpes"},
+            {"nom": "Clermont-Ferrand", "code_postal": "63100", "departement": "63", "region": "Auvergne-Rhône-Alpes"},
+            
+            {"nom": "Brest", "code_postal": "29200", "departement": "29", "region": "Bretagne"},
+            {"nom": "Brest", "code_postal": "29210", "departement": "29", "region": "Bretagne"},
+            
+            {"nom": "Tours", "code_postal": "37000", "departement": "37", "region": "Centre-Val de Loire"},
+            {"nom": "Tours", "code_postal": "37100", "departement": "37", "region": "Centre-Val de Loire"},
+            
+            {"nom": "Limoges", "code_postal": "87000", "departement": "87", "region": "Nouvelle-Aquitaine"},
+            {"nom": "Limoges", "code_postal": "87100", "departement": "87", "region": "Nouvelle-Aquitaine"},
+            
+            {"nom": "Amiens", "code_postal": "80000", "departement": "80", "region": "Hauts-de-France"},
+            {"nom": "Amiens", "code_postal": "80080", "departement": "80", "region": "Hauts-de-France"},
+            
+            {"nom": "Perpignan", "code_postal": "66000", "departement": "66", "region": "Occitanie"},
+            {"nom": "Perpignan", "code_postal": "66100", "departement": "66", "region": "Occitanie"},
+            
+            {"nom": "Metz", "code_postal": "57000", "departement": "57", "region": "Grand Est"},
+            {"nom": "Metz", "code_postal": "57050", "departement": "57", "region": "Grand Est"},
+            
+            {"nom": "Besançon", "code_postal": "25000", "departement": "25", "region": "Bourgogne-Franche-Comté"},
+            {"nom": "Besançon", "code_postal": "25010", "departement": "25", "region": "Bourgogne-Franche-Comté"},
+            
+            {"nom": "Orléans", "code_postal": "45000", "departement": "45", "region": "Centre-Val de Loire"},
+            {"nom": "Orléans", "code_postal": "45100", "departement": "45", "region": "Centre-Val de Loire"},
+            
+            {"nom": "Mulhouse", "code_postal": "68100", "departement": "68", "region": "Grand Est"},
+            {"nom": "Mulhouse", "code_postal": "68200", "departement": "68", "region": "Grand Est"},
+            
+            {"nom": "Rouen", "code_postal": "76000", "departement": "76", "region": "Normandie"},
+            {"nom": "Rouen", "code_postal": "76100", "departement": "76", "region": "Normandie"},
+            
+            {"nom": "Caen", "code_postal": "14000", "departement": "14", "region": "Normandie"},
+            {"nom": "Caen", "code_postal": "14100", "departement": "14", "region": "Normandie"},
+            
+            {"nom": "Nancy", "code_postal": "54000", "departement": "54", "region": "Grand Est"},
+            {"nom": "Nancy", "code_postal": "54100", "departement": "54", "region": "Grand Est"},
+            
+            {"nom": "Saint-Denis (La Réunion)", "code_postal": "97400", "departement": "974", "region": "La Réunion"},
+            {"nom": "Saint-Pierre (La Réunion)", "code_postal": "97410", "departement": "974", "region": "La Réunion"},
+            
+            {"nom": "Fort-de-France", "code_postal": "97200", "departement": "972", "region": "Martinique"},
+            {"nom": "Pointe-à-Pitre", "code_postal": "97100", "departement": "971", "region": "Guadeloupe"},
+        ]
+        
+        # Filtrer les suggestions
+        suggestions = []
+        query_lower = query.lower()
+        
+        for ville in villes_france:
+            # Recherche par nom de ville
+            if query_lower in ville["nom"].lower():
+                suggestions.append({
+                    "value": f"{ville['nom']} ({ville['code_postal']})",
+                    "label": f"{ville['nom']} - {ville['code_postal']}",
+                    "nom": ville["nom"],
+                    "code_postal": ville["code_postal"],
+                    "departement": ville["departement"],
+                    "region": ville["region"],
+                    "type": "ville"
+                })
+            # Recherche par code postal
+            elif query in ville["code_postal"]:
+                suggestions.append({
+                    "value": f"{ville['nom']} ({ville['code_postal']})",
+                    "label": f"{ville['code_postal']} - {ville['nom']}",
+                    "nom": ville["nom"],
+                    "code_postal": ville["code_postal"],
+                    "departement": ville["departement"],
+                    "region": ville["region"],
+                    "type": "code_postal"
+                })
+        
+        # Limiter le nombre de résultats
+        suggestions = suggestions[:limit]
+        
+        return jsonify({
+            'success': True,
+            'suggestions': suggestions
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de l'autocomplétion des lieux: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'Erreur lors de l\'autocomplétion: {str(e)}'
+        })
+
 @app.route('/api/vehicules/types', methods=['GET'])
 def api_vehicules_types():
     """API pour récupérer les types de véhicules configurés dans l'administration"""

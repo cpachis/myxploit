@@ -104,11 +104,17 @@
           <div class="form-row">
             <div class="form-group">
               <label for="transport-lieu-collecte">Lieu de collecte *</label>
-              <input type="text" id="transport-lieu-collecte" name="lieu_collecte" required placeholder="Ex: Paris, France">
+              <div class="autocomplete-container">
+                <input type="text" id="transport-lieu-collecte" name="lieu_collecte" required placeholder="Ex: Paris, France ou 75001" autocomplete="off">
+                <div id="transport-lieu-collecte-suggestions" class="autocomplete-suggestions"></div>
+              </div>
             </div>
             <div class="form-group">
               <label for="transport-lieu-livraison">Lieu de livraison *</label>
-              <input type="text" id="transport-lieu-livraison" name="lieu_livraison" required placeholder="Ex: Lyon, France">
+              <div class="autocomplete-container">
+                <input type="text" id="transport-lieu-livraison" name="lieu_livraison" required placeholder="Ex: Lyon, France ou 69001" autocomplete="off">
+                <div id="transport-lieu-livraison-suggestions" class="autocomplete-suggestions"></div>
+              </div>
             </div>
           </div>
 
@@ -241,6 +247,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Définir la date d'aujourd'hui par défaut
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('transport-date').value = today;
+  
+  // Initialiser l'autocomplétion pour les lieux
+  initAutocomplete('transport-lieu-collecte');
+  initAutocomplete('transport-lieu-livraison');
 });
 
 // Charger les transports depuis l'API
@@ -321,6 +331,131 @@ function updateVehiculeConsumption() {
     consoInput.value = consumption;
   } else {
     consoInput.value = '';
+  }
+}
+
+// Fonctions d'autocomplétion pour les lieux
+function initAutocomplete(inputId) {
+  const input = document.getElementById(inputId);
+  const suggestionsContainer = document.getElementById(inputId + '-suggestions');
+  
+  if (!input || !suggestionsContainer) return;
+  
+  let currentSuggestions = [];
+  let selectedIndex = -1;
+  
+  // Événement de saisie
+  input.addEventListener('input', function(e) {
+    const query = e.target.value.trim();
+    
+    if (query.length < 2) {
+      hideSuggestions();
+      return;
+    }
+    
+    // Délai pour éviter trop de requêtes
+    clearTimeout(input.searchTimeout);
+    input.searchTimeout = setTimeout(() => {
+      searchPlaces(query, inputId);
+    }, 300);
+  });
+  
+  // Événements clavier
+  input.addEventListener('keydown', function(e) {
+    if (!suggestionsContainer.style.display || suggestionsContainer.style.display === 'none') {
+      return;
+    }
+    
+    switch(e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, currentSuggestions.length - 1);
+        updateSelection();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, -1);
+        updateSelection();
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && currentSuggestions[selectedIndex]) {
+          selectSuggestion(currentSuggestions[selectedIndex], inputId);
+        }
+        break;
+      case 'Escape':
+        hideSuggestions();
+        break;
+    }
+  });
+  
+  // Cacher les suggestions quand on clique ailleurs
+  document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+      hideSuggestions();
+    }
+  });
+  
+  function searchPlaces(query, inputId) {
+    fetch(`/api/lieux/autocomplete?q=${encodeURIComponent(query)}&limit=8`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          currentSuggestions = data.suggestions;
+          selectedIndex = -1;
+          displaySuggestions(data.suggestions, inputId);
+        }
+      })
+      .catch(error => {
+        console.error('Erreur lors de la recherche de lieux:', error);
+      });
+  }
+  
+  function displaySuggestions(suggestions, inputId) {
+    if (suggestions.length === 0) {
+      hideSuggestions();
+      return;
+    }
+    
+    suggestionsContainer.innerHTML = suggestions.map((suggestion, index) => `
+      <div class="autocomplete-suggestion" data-index="${index}">
+        <div class="suggestion-main">${suggestion.label}</div>
+        <div class="suggestion-details">
+          ${suggestion.departement} - ${suggestion.region}
+          <span class="suggestion-type ${suggestion.type}">${suggestion.type === 'ville' ? 'Ville' : 'Code postal'}</span>
+        </div>
+      </div>
+    `).join('');
+    
+    // Ajouter les événements de clic
+    suggestionsContainer.querySelectorAll('.autocomplete-suggestion').forEach((item, index) => {
+      item.addEventListener('click', () => {
+        selectSuggestion(suggestions[index], inputId);
+      });
+    });
+    
+    suggestionsContainer.style.display = 'block';
+  }
+  
+  function updateSelection() {
+    const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion');
+    suggestions.forEach((item, index) => {
+      item.classList.toggle('active', index === selectedIndex);
+    });
+  }
+  
+  function selectSuggestion(suggestion, inputId) {
+    const input = document.getElementById(inputId);
+    input.value = suggestion.value;
+    hideSuggestions();
+    
+    // Déclencher l'événement de changement pour le calcul de distance
+    input.dispatchEvent(new Event('change'));
+  }
+  
+  function hideSuggestions() {
+    suggestionsContainer.style.display = 'none';
+    selectedIndex = -1;
   }
 }
 
@@ -1229,6 +1364,89 @@ function showNotification(message, type = 'info') {
   .stats-section {
     grid-template-columns: 1fr;
   }
+}
+
+/* Styles pour l'autocomplétion des lieux */
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+}
+
+.autocomplete-suggestion {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+.autocomplete-suggestion:hover {
+  background-color: #f8fafc;
+}
+
+.autocomplete-suggestion:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-suggestion .suggestion-main {
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.autocomplete-suggestion .suggestion-details {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.autocomplete-suggestion .suggestion-type {
+  display: inline-block;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+
+.autocomplete-suggestion .suggestion-type.ville {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.autocomplete-suggestion .suggestion-type.code_postal {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.autocomplete-suggestion.active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.autocomplete-suggestion.active .suggestion-main,
+.autocomplete-suggestion.active .suggestion-details {
+  color: white;
+}
+
+.autocomplete-suggestion.active .suggestion-type {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 </style>
 {% endblock %}
