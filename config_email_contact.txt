@@ -1,0 +1,24 @@
+# Configuration email pour contact@myxploit.com
+# Copiez ce contenu dans un fichier .env dans le dossier myxploit/
+
+# Option 1: SendGrid (Recommandé pour contact@myxploit.com)
+SMTP_SERVER=smtp.sendgrid.net
+SMTP_PORT=587
+EMAIL_EMETTEUR=contact@myxploit.com
+EMAIL_PASSWORD=votre-cle-api-sendgrid
+
+# Option 2: Gmail (si vous avez configuré contact@myxploit.com comme alias)
+# SMTP_SERVER=smtp.gmail.com
+# SMTP_PORT=587
+# EMAIL_EMETTEUR=contact@myxploit.com
+# EMAIL_PASSWORD=votre-mot-de-passe-app-gmail
+
+# Option 3: Mailgun
+# SMTP_SERVER=smtp.mailgun.org
+# SMTP_PORT=587
+# EMAIL_EMETTEUR=contact@myxploit.com
+# EMAIL_PASSWORD=votre-cle-api-mailgun
+
+# Autres variables
+SECRET_KEY=votre-cle-secrete-tres-longue
+DATABASE_URL=sqlite:///instance/myxploit_dev.db
