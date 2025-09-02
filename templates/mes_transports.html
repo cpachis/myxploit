@@ -258,6 +258,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialiser l'autocomplétion pour les lieux
   initAutocomplete('transport-lieu-collecte');
   initAutocomplete('transport-lieu-livraison');
+  
+  // Gestionnaire pour le changement de niveau de calcul
+  document.getElementById('transport-niveau-calcul').addEventListener('change', function() {
+    updateConsumptionFieldState();
+  });
 });
 
 // Charger les transports depuis l'API
@@ -358,6 +363,27 @@ function loadEnergies() {
     });
 }
 
+// Mettre à jour l'état du champ consommation selon le niveau de calcul
+function updateConsumptionFieldState() {
+  const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
+  const consoField = document.getElementById('transport-conso-vehicule');
+  const consoLabel = consoField.previousElementSibling;
+  
+  if (niveauCalcul === 'niveau1') {
+    // Niveau 1 : consommation automatique depuis le véhicule
+    consoField.readOnly = true;
+    consoField.style.backgroundColor = '#f5f5f5';
+    consoField.style.cursor = 'not-allowed';
+    consoLabel.innerHTML = 'Consommation du véhicule (L/100km) <small style="color: #666;">(automatique)</small>';
+  } else {
+    // Niveaux 2-4 : consommation manuelle
+    consoField.readOnly = false;
+    consoField.style.backgroundColor = '';
+    consoField.style.cursor = '';
+    consoLabel.innerHTML = 'Consommation du véhicule (L/100km) <small style="color: #666;">(saisie manuelle)</small>';
+  }
+}
+
 // Peupler le select des énergies
 function populateEnergies() {
   const select = document.getElementById('transport-energie');
@@ -381,6 +407,7 @@ function populateEnergies() {
     const option = document.createElement('option');
     option.value = energie.identifiant || energie.id;
     option.textContent = `${energie.nom} (${energie.unite})`;
+    option.dataset.facteur = energie.facteur || 2.7; // Stocker le facteur d'émission
     select.appendChild(option);
   });
 }
@@ -625,11 +652,14 @@ function filterTransports() {
   displayTransports(filtered);
 }
 
-// Calculer les émissions uniquement
+// Calculer les émissions selon le niveau de calcul
 function calculateEmissions() {
   const distance = parseFloat(document.getElementById('transport-distance').value) || 0;
   const poids = parseFloat(document.getElementById('transport-poids').value) || 0;
-  const typeTransport = document.getElementById('transport-type').value;
+  const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
+  const typeVehicule = document.getElementById('transport-type-vehicule').value;
+  const energie = document.getElementById('transport-energie').value;
+  const consoVehicule = parseFloat(document.getElementById('transport-conso-vehicule').value) || 0;
   
   if (!distance || distance <= 0) {
     showNotification('⚠️ Veuillez saisir une distance valide', 'warning');
@@ -647,17 +677,87 @@ function calculateEmissions() {
   calculateBtn.innerHTML = '<span class="btn-icon">⏳</span> Calcul...';
   calculateBtn.disabled = true;
   
-  // Calcul simple des émissions (formule basique)
-  // Facteur d'émission moyen pour le transport routier : 0.1 kg CO2e/t.km
-  const facteurEmission = 0.1; // kg CO2e par tonne-kilomètre
-  const emisKg = distance * poids * facteurEmission;
-  const emisTkm = facteurEmission;
+  let emisKg = 0;
+  let emisTkm = 0;
+  
+  // Calcul selon le niveau
+  if (niveauCalcul === 'niveau1') {
+    // Niveau 1 : distance × consommation × facteur d'émission
+    // Seule l'énergie est modifiable, la consommation vient du véhicule
+    
+    if (!typeVehicule) {
+      showNotification('⚠️ Veuillez sélectionner un type de véhicule pour le niveau 1', 'warning');
+      calculateBtn.innerHTML = originalText;
+      calculateBtn.disabled = false;
+      return;
+    }
+    
+    if (!energie) {
+      showNotification('⚠️ Veuillez sélectionner une énergie pour le niveau 1', 'warning');
+      calculateBtn.innerHTML = originalText;
+      calculateBtn.disabled = false;
+      return;
+    }
+    
+    // Récupérer la consommation du véhicule sélectionné
+    const vehiculeSelect = document.getElementById('transport-type-vehicule');
+    const selectedOption = vehiculeSelect.options[vehiculeSelect.selectedIndex];
+    const consommationVehicule = parseFloat(selectedOption.dataset.consumption) || 0;
+    
+    if (!consommationVehicule) {
+      showNotification('⚠️ Consommation du véhicule non disponible', 'warning');
+      calculateBtn.innerHTML = originalText;
+      calculateBtn.disabled = false;
+      return;
+    }
+    
+    // Récupérer le facteur d'émission de l'énergie
+    const energieSelect = document.getElementById('transport-energie');
+    const selectedEnergieOption = energieSelect.options[energieSelect.selectedIndex];
+    const facteurEmission = parseFloat(selectedEnergieOption.dataset.facteur) || 2.7;
+    
+    // Calcul : distance × consommation × facteur d'émission
+    const consommationTotale = (distance / 100) * consommationVehicule; // L
+    emisKg = consommationTotale * facteurEmission; // kg CO2e
+    emisTkm = (emisKg / (poids * distance)); // kg CO2e/t.km
+    
+    // Mettre à jour le champ consommation avec la valeur du véhicule
+    document.getElementById('transport-conso-vehicule').value = consommationVehicule;
+    
+  } else {
+    // Niveaux 2, 3, 4 : calcul avec consommation manuelle
+    if (!consoVehicule || consoVehicule <= 0) {
+      showNotification('⚠️ Veuillez saisir la consommation du véhicule pour les niveaux 2-4', 'warning');
+      calculateBtn.innerHTML = originalText;
+      calculateBtn.disabled = false;
+      return;
+    }
+    
+    if (!energie) {
+      showNotification('⚠️ Veuillez sélectionner une énergie', 'warning');
+      calculateBtn.innerHTML = originalText;
+      calculateBtn.disabled = false;
+      return;
+    }
+    
+    // Récupérer le facteur d'émission de l'énergie
+    const energieSelect = document.getElementById('transport-energie');
+    const selectedEnergieOption = energieSelect.options[energieSelect.selectedIndex];
+    const facteurEmission = parseFloat(selectedEnergieOption.dataset.facteur) || 2.7;
+    
+    // Calcul : distance × consommation × facteur d'émission
+    const consommationTotale = (distance / 100) * consoVehicule; // L
+    emisKg = consommationTotale * facteurEmission; // kg CO2e
+    emisTkm = (emisKg / (poids * distance)); // kg CO2e/t.km
+  }
   
   // Simuler un délai pour l'UX
   setTimeout(() => {
     document.getElementById('transport-emissions').value = emisKg.toFixed(2);
     document.getElementById('transport-emissions-tkm').value = emisTkm.toFixed(3);
-    showNotification('✅ Émissions calculées avec succès', 'success');
+    
+    const niveauText = niveauCalcul === 'niveau1' ? 'Niveau 1 (valeurs agrégées)' : `Niveau ${niveauCalcul.replace('niveau', '')}`;
+    showNotification(`✅ Émissions calculées avec succès (${niveauText})`, 'success');
     
     calculateBtn.innerHTML = originalText;
     calculateBtn.disabled = false;
@@ -691,6 +791,9 @@ function resetTransportForm() {
   document.getElementById('transport-niveau-calcul').value = 'niveau1';
   document.getElementById('transport-conso-vehicule').value = '';
   document.getElementById('transport-energie').value = '';
+  
+  // Mettre à jour l'état du champ consommation
+  updateConsumptionFieldState();
 }
 
 // Éditer un transport
@@ -718,6 +821,9 @@ function editTransport(id) {
   document.getElementById('transport-client').value = transport.client || '';
   document.getElementById('transport-transporteur').value = transport.transporteur || '';
   document.getElementById('transport-description').value = transport.description || '';
+  
+  // Mettre à jour l'état du champ consommation selon le niveau
+  updateConsumptionFieldState();
   
   document.getElementById('transport-modal').style.display = 'block';
 }
