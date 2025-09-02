@@ -2091,6 +2091,50 @@ def api_clients():
             db.session.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/clients/<int:client_id>', methods=['DELETE'])
+def delete_client_by_id(client_id):
+    """Supprimer un client par son ID"""
+    try:
+        client = Client.query.get(client_id)
+        if not client:
+            return jsonify({'success': False, 'error': 'Client non trouvé'}), 404
+        
+        nom_client = client.nom
+        
+        # Vérifier s'il y a des transports associés à ce client
+        from sqlalchemy import text
+        transports_count = db.session.execute(
+            text("SELECT COUNT(*) FROM transports WHERE client_id = :client_id"),
+            {'client_id': client_id}
+        ).scalar()
+        
+        if transports_count > 0:
+            return jsonify({
+                'success': False, 
+                'error': f'Impossible de supprimer ce client car il a {transports_count} transport(s) associé(s). Supprimez d\'abord les transports.'
+            }), 400
+        
+        # Supprimer les invitations associées à ce client
+        invitations = Invitation.query.filter_by(email=client.email).all()
+        for invitation in invitations:
+            db.session.delete(invitation)
+        
+        # Supprimer le client
+        db.session.delete(client)
+        db.session.commit()
+        
+        logger.info(f"✅ Client supprimé: {nom_client} (ID: {client_id})")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Client "{nom_client}" supprimé avec succès'
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la suppression du client {client_id}: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/transporteurs')
 def transporteurs():
     """Page de gestion des transporteurs (côté client)"""
