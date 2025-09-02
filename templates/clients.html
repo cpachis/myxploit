@@ -106,6 +106,7 @@
 // Variables globales
 let clients = [];
 let currentEditId = null;
+let clientInvitations = {}; // Cache des statuts d'invitation
 
 // Charger les clients au démarrage
 document.addEventListener('DOMContentLoaded', function() {
@@ -119,7 +120,8 @@ function loadClients() {
     .then(data => {
       if (data.success) {
         clients = data.clients || [];
-        displayClients(clients);
+        // Charger les statuts d'invitation pour tous les clients
+        loadClientInvitationStatuses(clients);
       } else {
         showNotification('❌ Erreur lors du chargement des clients', 'error');
       }
@@ -128,6 +130,29 @@ function loadClients() {
       console.error('Erreur:', error);
       showNotification('❌ Erreur de connexion', 'error');
     });
+}
+
+// Charger les statuts d'invitation pour tous les clients
+function loadClientInvitationStatuses(clients) {
+  const promises = clients.map(client => {
+    if (client.email) {
+      return fetch(`/api/clients/${client.id}/invitation-status`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            clientInvitations[client.id] = data;
+          }
+        })
+        .catch(error => {
+          console.error(`Erreur pour le client ${client.id}:`, error);
+        });
+    }
+    return Promise.resolve();
+  });
+  
+  Promise.all(promises).then(() => {
+    displayClients(clients);
+  });
 }
 
 // Afficher la liste des clients
@@ -139,7 +164,11 @@ function displayClients(clientsToShow) {
     return;
   }
   
-  container.innerHTML = clientsToShow.map(client => `
+  container.innerHTML = clientsToShow.map(client => {
+    const invitationStatus = clientInvitations[client.id];
+    const invitationInfo = getInvitationDisplayInfo(invitationStatus);
+    
+    return `
     <div class="client-card" data-id="${client.id}">
       <div class="client-header">
         <div class="client-info">
@@ -152,6 +181,7 @@ function displayClients(clientsToShow) {
         ${client.email ? `<div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${client.email}</span></div>` : ''}
         ${client.telephone ? `<div class="detail-row"><span class="detail-label">Téléphone:</span><span class="detail-value">${client.telephone}</span></div>` : ''}
         ${client.description ? `<div class="detail-row"><span class="detail-label">Description:</span><span class="detail-value">${client.description}</span></div>` : ''}
+        ${invitationInfo.html ? `<div class="detail-row"><span class="detail-label">Invitation:</span><span class="detail-value">${invitationInfo.html}</span></div>` : ''}
       </div>
       
       <div class="client-actions">
@@ -159,13 +189,99 @@ function displayClients(clientsToShow) {
           <span class="btn-icon">✏️</span>
           Modifier
         </button>
+        ${invitationInfo.showResendButton ? `
+        <button class="btn-resend" onclick="resendInvitation('${client.id}', ${invitationInfo.invitationId})">
+          <span class="btn-icon">📧</span>
+          Relancer invitation
+        </button>
+        ` : ''}
         <button class="btn-delete" onclick="deleteClient('${client.id}')">
           <span class="btn-icon">🗑️</span>
           Supprimer
         </button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
+}
+
+// Obtenir les informations d'affichage pour l'invitation
+function getInvitationDisplayInfo(invitationStatus) {
+  if (!invitationStatus || !invitationStatus.has_invitation) {
+    return { html: '', showResendButton: false };
+  }
+  
+  const invitation = invitationStatus.invitation;
+  const statut = invitation.statut;
+  
+  let html = '';
+  let showResendButton = false;
+  
+  switch (statut) {
+    case 'en_attente':
+      html = `<span class="invitation-status pending">⏳ En attente (${invitation.date_invitation})</span>`;
+      showResendButton = true;
+      break;
+    case 'acceptee':
+      html = `<span class="invitation-status accepted">✅ Acceptée (${invitation.date_reponse})</span>`;
+      break;
+    case 'refusee':
+      html = `<span class="invitation-status rejected">❌ Refusée (${invitation.date_reponse})</span>`;
+      showResendButton = true;
+      break;
+    case 'expiree':
+      html = `<span class="invitation-status expired">⏰ Expirée</span>`;
+      showResendButton = true;
+      break;
+    default:
+      html = `<span class="invitation-status unknown">❓ ${statut}</span>`;
+      showResendButton = true;
+  }
+  
+  return {
+    html: html,
+    showResendButton: showResendButton,
+    invitationId: invitation.id
+  };
+}
+
+// Relancer une invitation
+function resendInvitation(clientId, invitationId) {
+  if (!confirm('Êtes-vous sûr de vouloir relancer cette invitation ?')) {
+    return;
+  }
+  
+  // Désactiver le bouton pendant l'envoi
+  const button = event.target.closest('.btn-resend');
+  const originalText = button.innerHTML;
+  button.innerHTML = '<span class="btn-icon">⏳</span> Envoi...';
+  button.disabled = true;
+  
+  fetch(`/api/invitations/${invitationId}/resend`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification(`✅ ${data.message}`, 'success');
+      // Recharger les statuts d'invitation pour ce client
+      loadClientInvitationStatuses([{ id: clientId, email: clients.find(c => c.id === clientId)?.email }]);
+    } else {
+      showNotification(`❌ Erreur: ${data.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    showNotification('❌ Erreur de connexion', 'error');
+  })
+  .finally(() => {
+    // Restaurer le bouton
+    button.innerHTML = originalText;
+    button.disabled = false;
+  });
 }
 
 // Filtrer les clients
@@ -751,6 +867,68 @@ function showNotification(message, type = 'info') {
   .client-actions {
     flex-direction: column;
   }
+}
+
+/* Styles pour les invitations */
+.btn-resend {
+  background: #38a169;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-resend:hover {
+  background: #2f855a;
+}
+
+.btn-resend:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+.invitation-status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.invitation-status.pending {
+  background: #fef5e7;
+  color: #d69e2e;
+  border: 1px solid #f6e05e;
+}
+
+.invitation-status.accepted {
+  background: #f0fff4;
+  color: #38a169;
+  border: 1px solid #9ae6b4;
+}
+
+.invitation-status.rejected {
+  background: #fed7d7;
+  color: #e53e3e;
+  border: 1px solid #feb2b2;
+}
+
+.invitation-status.expired {
+  background: #f7fafc;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.invitation-status.unknown {
+  background: #edf2f7;
+  color: #2d3748;
+  border: 1px solid #cbd5e0;
 }
 </style>
 {% endblock %}

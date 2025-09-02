@@ -2451,6 +2451,81 @@ def api_invitations():
             logger.error(f"Erreur lors de la création de l'invitation: {str(e)}")
             return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/invitations/<int:invitation_id>/resend', methods=['POST'])
+def resend_invitation(invitation_id):
+    """Relancer une invitation existante"""
+    try:
+        invitation = Invitation.query.get(invitation_id)
+        
+        if not invitation:
+            return jsonify({'success': False, 'error': 'Invitation non trouvée'}), 404
+        
+        if invitation.statut == 'acceptee':
+            return jsonify({'success': False, 'error': 'Cette invitation a déjà été acceptée'}), 400
+        
+        # Mettre à jour la date d'invitation
+        invitation.date_invitation = datetime.utcnow()
+        db.session.commit()
+        
+        # Renvoyer l'email d'invitation
+        try:
+            email_envoye = envoyer_email_invitation(invitation)
+            if email_envoye:
+                logger.info(f"📧 Email d'invitation relancé avec succès à {invitation.email}")
+                return jsonify({
+                    'success': True,
+                    'message': f'Invitation relancée à {invitation.email}'
+                })
+            else:
+                logger.warning(f"⚠️ Échec de l'envoi de l'email d'invitation relancé à {invitation.email}")
+                return jsonify({
+                    'success': False,
+                    'error': 'Échec de l\'envoi de l\'email'
+                }), 500
+        except Exception as e:
+            logger.error(f"❌ Erreur lors de l'envoi de l'email d'invitation relancé à {invitation.email}: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': f'Erreur lors de l\'envoi: {str(e)}'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de la relance de l'invitation {invitation_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/clients/<client_id>/invitation-status')
+def get_client_invitation_status(client_id):
+    """Récupérer le statut d'invitation d'un client"""
+    try:
+        # Récupérer le client
+        client = Client.query.get(client_id)
+        if not client:
+            return jsonify({'success': False, 'error': 'Client non trouvé'}), 404
+        
+        # Chercher une invitation pour cet email
+        invitation = Invitation.query.filter_by(email=client.email).first()
+        
+        if invitation:
+            return jsonify({
+                'success': True,
+                'has_invitation': True,
+                'invitation': {
+                    'id': invitation.id,
+                    'statut': invitation.statut,
+                    'date_invitation': invitation.date_invitation.strftime('%d/%m/%Y %H:%M') if invitation.date_invitation else None,
+                    'date_reponse': invitation.date_reponse.strftime('%d/%m/%Y %H:%M') if invitation.date_reponse else None
+                }
+            })
+        else:
+            return jsonify({
+                'success': True,
+                'has_invitation': False
+            })
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération du statut d'invitation pour le client {client_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/invitation/<token>')
 def invitation_accept(token):
     """Page pour accepter/refuser une invitation"""
