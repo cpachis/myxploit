@@ -3,20 +3,20 @@
 {% block title %}MyXploit - Invitations Clients{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="invitations-page">
     <div class="page-header">
         <h1>📧 Invitations Clients</h1>
         <p>Gérez les invitations envoyées aux clients pour rejoindre MyXploit</p>
     </div>
 
-    <div class="main-content">
-        <!-- Colonne gauche : Formulaire d'invitation -->
-        <div class="left-column">
-            <div class="card invitation-form-card">
-                <div class="card-header">
+    <div class="page-layout">
+        <!-- Formulaire d'invitation - Colonne gauche -->
+        <div class="form-section">
+            <div class="form-card">
+                <div class="form-header">
                     <h2>✉️ Envoyer une nouvelle invitation</h2>
                 </div>
-                <div class="card-body">
+                <div class="form-content">
                     <form id="invitation-form">
                         <div class="form-group">
                             <label for="email">Adresse email *</label>
@@ -41,10 +41,10 @@
             </div>
         </div>
 
-        <!-- Colonne droite : Liste des invitations -->
-        <div class="right-column">
-            <div class="card invitations-list-card">
-                <div class="card-header">
+        <!-- Liste des invitations - Colonne droite -->
+        <div class="list-section">
+            <div class="list-card">
+                <div class="list-header">
                     <h2>📋 Liste des invitations</h2>
                     <div class="header-actions">
                         <button id="refresh-btn" class="btn btn-secondary">
@@ -53,7 +53,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="list-content">
                     <div class="filters">
                         <div class="filter-group">
                             <label for="status-filter">Statut :</label>
@@ -82,108 +82,168 @@
 </div>
 
 <style>
-/* Layout principal */
-.container-fluid {
+/* Reset et base */
+.invitations-page {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 20px;
+    min-height: 100vh;
 }
 
+/* Header */
 .page-header {
     text-align: center;
-    margin-bottom: 2rem;
-    padding: 1.5rem;
+    margin-bottom: 30px;
+    padding: 30px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
 .page-header h1 {
-    margin-bottom: 0.5rem;
-    font-size: 2.2rem;
+    margin: 0 0 10px 0;
+    font-size: 2.5rem;
+    font-weight: 700;
 }
 
 .page-header p {
-    font-size: 1rem;
+    margin: 0;
+    font-size: 1.1rem;
     opacity: 0.9;
 }
 
-/* Mise en page en deux colonnes */
-.main-content {
+/* Layout principal - Deux colonnes */
+.page-layout {
     display: grid;
     grid-template-columns: 400px 1fr;
-    gap: 2rem;
-    min-height: calc(100vh - 200px);
+    gap: 30px;
+    align-items: start;
 }
 
-.left-column {
+/* Section formulaire */
+.form-section {
     position: sticky;
-    top: 2rem;
-    height: fit-content;
+    top: 20px;
 }
 
-.right-column {
+.form-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+}
+
+.form-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.form-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.form-content {
+    padding: 25px;
+}
+
+/* Section liste */
+.list-section {
     min-height: 600px;
 }
 
-/* Cartes */
-.card {
+.list-card {
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     overflow: hidden;
+    border: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
     height: 100%;
 }
 
-.invitation-form-card {
-    max-height: 500px;
-}
-
-.invitations-list-card {
-    display: flex;
-    flex-direction: column;
-}
-
-.card-header {
-    background: #f8f9fa;
-    padding: 1.2rem;
-    border-bottom: 1px solid #e9ecef;
+.list-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-shrink: 0;
 }
 
-.card-header h2 {
+.list-header h2 {
     margin: 0;
     color: #333;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    font-weight: 600;
 }
 
-.card-body {
-    padding: 1.5rem;
+.list-content {
+    padding: 25px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Filtres */
+.filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+/* Conteneur des invitations */
+#invitations-container {
     flex: 1;
     overflow-y: auto;
+    max-height: calc(100vh - 400px);
+    padding-right: 10px;
 }
 
+/* Éléments de formulaire */
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
     font-weight: 600;
     color: #333;
 }
 
 .form-control {
     width: 100%;
-    padding: 0.75rem;
+    padding: 12px 15px;
     border: 2px solid #e9ecef;
     border-radius: 8px;
     font-size: 1rem;
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
 .form-control:focus {
@@ -194,19 +254,20 @@
 
 .form-text {
     display: block;
-    margin-top: 0.25rem;
-    font-size: 0.875rem;
+    margin-top: 5px;
+    font-size: 0.85rem;
     color: #6c757d;
 }
 
 .form-actions {
-    margin-top: 2rem;
+    margin-top: 25px;
 }
 
+/* Boutons */
 .btn {
     display: inline-flex;
     align-items: center;
-    padding: 0.75rem 1.5rem;
+    padding: 12px 20px;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
@@ -214,6 +275,7 @@
     text-decoration: none;
     cursor: pointer;
     transition: all 0.3s ease;
+    gap: 8px;
 }
 
 .btn-primary {
@@ -223,7 +285,7 @@
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .btn-secondary {
@@ -237,59 +299,29 @@
 }
 
 .btn-icon {
-    margin-right: 0.5rem;
     font-size: 1.1rem;
 }
 
 .header-actions {
     display: flex;
-    gap: 1rem;
+    gap: 10px;
 }
 
-/* Filtres optimisés */
-.filters {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    flex-shrink: 0;
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.filter-group label {
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #333;
-    font-size: 0.9rem;
-}
-
-/* Liste des invitations optimisée */
-#invitations-container {
-    flex: 1;
-    overflow-y: auto;
-    max-height: calc(100vh - 400px);
-}
-
+/* Items d'invitation */
 .invitation-item {
     background: white;
     border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 1.2rem;
-    margin-bottom: 0.8rem;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
     transition: all 0.3s ease;
     border-left: 4px solid transparent;
+    position: relative;
 }
 
 .invitation-item:hover {
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    transform: translateY(-1px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
 }
 
 .invitation-item.status-en_attente {
@@ -312,21 +344,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.8rem;
+    margin-bottom: 15px;
 }
 
 .invitation-email {
     font-weight: 600;
     color: #333;
-    font-size: 1rem;
+    font-size: 1.1rem;
     flex: 1;
-    margin-right: 1rem;
+    margin-right: 15px;
 }
 
 .invitation-status {
-    padding: 0.2rem 0.6rem;
-    border-radius: 15px;
-    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -354,8 +386,8 @@
 .invitation-details {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.8rem;
-    margin-bottom: 0.8rem;
+    gap: 15px;
+    margin-bottom: 15px;
 }
 
 .detail-item {
@@ -364,180 +396,168 @@
 }
 
 .detail-label {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: #6c757d;
-    margin-bottom: 0.2rem;
+    margin-bottom: 4px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    font-weight: 500;
 }
 
 .detail-value {
     font-weight: 500;
     color: #333;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .invitation-message {
     background: #f8f9fa;
-    padding: 0.8rem;
-    border-radius: 6px;
-    margin-top: 0.8rem;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
     border-left: 3px solid #667eea;
 }
 
 .invitation-message .detail-label {
-    margin-bottom: 0.4rem;
+    margin-bottom: 8px;
 }
 
 .invitation-message .detail-value {
     font-style: italic;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
-.loading {
+/* États vides */
+.loading, .no-invitations {
     text-align: center;
-    padding: 2rem;
-    color: #6c757d;
-    font-style: italic;
-}
-
-.no-invitations {
-    text-align: center;
-    padding: 3rem;
+    padding: 40px 20px;
     color: #6c757d;
 }
 
 .no-invitations-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    font-size: 4rem;
+    margin-bottom: 20px;
     opacity: 0.5;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 1200px) {
-    .main-content {
+    .page-layout {
         grid-template-columns: 350px 1fr;
-        gap: 1.5rem;
+        gap: 25px;
     }
 }
 
 @media (max-width: 992px) {
-    .main-content {
+    .page-layout {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 25px;
     }
     
-    .left-column {
+    .form-section {
         position: static;
         order: 2;
     }
     
-    .right-column {
+    .list-section {
         order: 1;
     }
     
-    .invitation-form-card {
+    .form-card {
         max-height: none;
     }
 }
 
 @media (max-width: 768px) {
-    .container-fluid {
-        padding: 0 0.5rem;
+    .invitations-page {
+        padding: 0 15px;
     }
     
     .page-header {
-        padding: 1rem;
-        margin-bottom: 1rem;
+        padding: 20px;
+        margin-bottom: 20px;
     }
     
     .page-header h1 {
-        font-size: 1.8rem;
+        font-size: 2rem;
     }
     
     .page-header p {
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
     
-    .main-content {
-        gap: 1rem;
+    .page-layout {
+        gap: 20px;
     }
     
-    .card-header {
-        flex-direction: column;
-        gap: 0.8rem;
-        align-items: flex-start;
-        padding: 1rem;
+    .form-header, .list-header {
+        padding: 15px;
     }
     
-    .card-header h2 {
-        font-size: 1.1rem;
-    }
-    
-    .card-body {
-        padding: 1rem;
+    .form-content, .list-content {
+        padding: 20px;
     }
     
     .filters {
         grid-template-columns: 1fr;
-        gap: 0.8rem;
-        padding: 0.8rem;
+        gap: 12px;
+        padding: 15px;
     }
     
     .invitation-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.5rem;
+        gap: 10px;
     }
     
     .invitation-email {
         margin-right: 0;
-        margin-bottom: 0.5rem;
+        margin-bottom: 5px;
     }
     
     .invitation-details {
         grid-template-columns: 1fr;
-        gap: 0.6rem;
+        gap: 12px;
     }
     
     .invitation-item {
-        padding: 1rem;
+        padding: 15px;
     }
     
     #invitations-container {
-        max-height: calc(100vh - 300px);
+        max-height: calc(100vh - 350px);
     }
 }
 
 @media (max-width: 480px) {
     .page-header h1 {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
     }
     
-    .card-header h2 {
-        font-size: 1rem;
+    .form-header h2, .list-header h2 {
+        font-size: 1.1rem;
     }
     
     .btn {
-        padding: 0.6rem 1rem;
+        padding: 10px 15px;
         font-size: 0.9rem;
     }
     
     .form-control {
-        padding: 0.6rem;
+        padding: 10px 12px;
         font-size: 0.9rem;
     }
     
     .invitation-item {
-        padding: 0.8rem;
+        padding: 12px;
     }
     
     .invitation-email {
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
     
     .detail-value {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 }
 </style>
@@ -747,4 +767,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-

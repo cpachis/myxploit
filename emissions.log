@@ -36,3 +36,31 @@
 2025-09-02 09:48:13,540 - werkzeug - INFO -  * Restarting with stat
 2025-09-02 09:48:14,158 - werkzeug - WARNING -  * Debugger is active!
 2025-09-02 09:48:14,159 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:13:48,649 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.139:5000
+2025-09-02 10:13:48,649 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-02 10:13:48,650 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:13:49,271 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:13:49,272 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:13:59,447 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:13:59] "GET / HTTP/1.1" 200 -
+2025-09-02 10:13:59,497 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:13:59] "GET /static/styles.css HTTP/1.1" 200 -
+2025-09-02 10:13:59,708 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:13:59] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-02 10:14:01,626 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:14:01] "GET /myxploit HTTP/1.1" 200 -
+2025-09-02 10:14:01,718 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:14:01] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:14:08,401 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:14:08] "GET /invitations HTTP/1.1" 200 -
+2025-09-02 10:14:08,695 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:14:08] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:14:09,049 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:14:09] "GET /api/invitations HTTP/1.1" 200 -
+2025-09-02 10:15:16,147 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-02 10:15:16,147 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-02 10:15:16,148 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:15:16,677 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:15:16,679 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:15:19,134 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:15:19] "GET /invitations HTTP/1.1" 200 -
+2025-09-02 10:15:19,177 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:15:19] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:15:19,383 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:15:19] "GET /api/invitations HTTP/1.1" 200 -
+2025-09-02 10:18:26,076 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:18:26] "GET /invitations HTTP/1.1" 200 -
+2025-09-02 10:18:26,090 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:18:26] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-02 10:18:26,317 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 10:18:26] "GET /api/invitations HTTP/1.1" 200 -
