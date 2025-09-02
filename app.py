@@ -641,6 +641,66 @@ with app.app_context():
             logger.warning(f"⚠️ Migration automatique échouée (non critique): {str(migration_error)}")
             logger.info("ℹ️ L'application continuera sans les nouvelles colonnes")
         
+        # Migration pour ajouter les nouvelles colonnes au modèle Transport
+        try:
+            logger.info("🔧 Migration du modèle Transport...")
+            
+            # Vérifier si les nouvelles colonnes existent
+            result = db.session.execute(text("PRAGMA table_info(transports)"))
+            columns = [row[1] for row in result.fetchall()]
+            
+            # Ajouter les colonnes manquantes
+            if 'date' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN date DATE"))
+                logger.info("✅ Colonne 'date' ajoutée")
+            
+            if 'lieu_collecte' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN lieu_collecte VARCHAR(200)"))
+                logger.info("✅ Colonne 'lieu_collecte' ajoutée")
+            
+            if 'lieu_livraison' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN lieu_livraison VARCHAR(200)"))
+                logger.info("✅ Colonne 'lieu_livraison' ajoutée")
+            
+            if 'poids_tonnes' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN poids_tonnes FLOAT"))
+                logger.info("✅ Colonne 'poids_tonnes' ajoutée")
+            
+            if 'type_transport' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN type_transport VARCHAR(50) DEFAULT 'direct'"))
+                logger.info("✅ Colonne 'type_transport' ajoutée")
+            
+            if 'distance_km' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN distance_km FLOAT DEFAULT 0.0"))
+                logger.info("✅ Colonne 'distance_km' ajoutée")
+            
+            if 'emis_kg' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN emis_kg FLOAT DEFAULT 0.0"))
+                logger.info("✅ Colonne 'emis_kg' ajoutée")
+            
+            if 'emis_tkm' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN emis_tkm FLOAT DEFAULT 0.0"))
+                logger.info("✅ Colonne 'emis_tkm' ajoutée")
+            
+            if 'client' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN client VARCHAR(100)"))
+                logger.info("✅ Colonne 'client' ajoutée")
+            
+            if 'transporteur' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN transporteur VARCHAR(100)"))
+                logger.info("✅ Colonne 'transporteur' ajoutée")
+            
+            if 'description' not in columns:
+                db.session.execute(text("ALTER TABLE transports ADD COLUMN description TEXT"))
+                logger.info("✅ Colonne 'description' ajoutée")
+            
+            db.session.commit()
+            logger.info("✅ Migration du modèle Transport terminée avec succès")
+            
+        except Exception as e:
+            logger.error(f"❌ Erreur lors de la migration du modèle Transport: {str(e)}")
+            db.session.rollback()
+        
         logger.info("✅ Initialisation de la base de données terminée avec succès")
         
     except Exception as e:
@@ -791,7 +851,8 @@ def transports():
                         
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage des transports: {str(e)}")
-        return render_template('error.html', error=str(e)), 500
+        # Rediriger vers la nouvelle page si erreur avec l'ancienne
+        return redirect(url_for('mes_transports'))
 
 @app.route('/mes_transports')
 def mes_transports():
