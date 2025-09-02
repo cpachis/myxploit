@@ -2806,7 +2806,7 @@ def admin_clients_pending():
 # === API ENDPOINTS POUR L'ADMINISTRATION ===
 
 @app.route('/api/invitations/<int:invitation_id>/resend', methods=['POST'])
-def resend_invitation(invitation_id):
+def resend_invitation_admin(invitation_id):
     """Relancer une invitation"""
     try:
         invitation = Invitation.query.get(invitation_id)
