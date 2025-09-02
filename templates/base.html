@@ -15,7 +15,7 @@
       <ul>
         <li><a href="{{ url_for('index') }}">Accueil</a></li>
         <li class="dropdown">
-          <a href="#">MyXploit</a>
+          <a href="#" id="myxploit-menu-trigger">MyXploit</a>
           <ul class="dropdown-menu">
             <li><a href="{{ url_for('myxploit_home') }}">🏠 Accueil MyXploit</a></li>
             <li><a href="{{ url_for('clients') }}">👥 Mes Clients</a></li>
@@ -31,7 +31,7 @@
           </ul>
         </li>
         <li class="dropdown">
-          <a href="#">Administration</a>
+          <a href="#" id="admin-menu-trigger">Administration</a>
           <ul class="dropdown-menu">
             <li><a href="{{ url_for('administration_home') }}">🏠 Accueil Administration</a></li>
             <li class="dropdown-submenu">
@@ -56,6 +56,78 @@
     </div>
   </header>
 
+  <!-- Barre de sous-menu MyXploit -->
+  <nav class="submenu-bar" id="myxploit-submenu" style="display: none;">
+    <div class="submenu-container">
+      <a href="{{ url_for('myxploit_home') }}" class="submenu-item">
+        <span class="submenu-icon">🏠</span>
+        <span class="submenu-text">Accueil</span>
+      </a>
+      <a href="{{ url_for('clients') }}" class="submenu-item">
+        <span class="submenu-icon">👥</span>
+        <span class="submenu-text">Mes Clients</span>
+      </a>
+      <a href="{{ url_for('transporteurs') }}" class="submenu-item">
+        <span class="submenu-icon">🚚</span>
+        <span class="submenu-text">Mes Transporteurs</span>
+      </a>
+      <a href="{{ url_for('mes_transports') }}" class="submenu-item">
+        <span class="submenu-icon">📦</span>
+        <span class="submenu-text">Mes Transports</span>
+      </a>
+      <a href="{{ url_for('dashboard') }}" class="submenu-item">
+        <span class="submenu-icon">📊</span>
+        <span class="submenu-text">Mon Dashboard</span>
+      </a>
+      <a href="{{ url_for('mon_entreprise') }}" class="submenu-item">
+        <span class="submenu-icon">🏢</span>
+        <span class="submenu-text">Mon Entreprise</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Barre de sous-menu Administration -->
+  <nav class="submenu-bar" id="admin-submenu" style="display: none;">
+    <div class="submenu-container">
+      <a href="{{ url_for('administration_home') }}" class="submenu-item">
+        <span class="submenu-icon">🏠</span>
+        <span class="submenu-text">Accueil</span>
+      </a>
+      <a href="{{ url_for('admin_clients_list') }}" class="submenu-item">
+        <span class="submenu-icon">📋</span>
+        <span class="submenu-text">Liste des Clients</span>
+      </a>
+      <a href="{{ url_for('admin_invitations') }}" class="submenu-item">
+        <span class="submenu-icon">📧</span>
+        <span class="submenu-text">Invitations</span>
+      </a>
+      <a href="{{ url_for('admin_clients_pending') }}" class="submenu-item">
+        <span class="submenu-icon">⏳</span>
+        <span class="submenu-text">Clients en Attente</span>
+      </a>
+      <a href="{{ url_for('parametrage_vehicules') }}" class="submenu-item">
+        <span class="submenu-icon">🚛</span>
+        <span class="submenu-text">Types de Véhicules</span>
+      </a>
+      <a href="{{ url_for('parametrage_energies') }}" class="submenu-item">
+        <span class="submenu-icon">⚡</span>
+        <span class="submenu-text">Gestion des Énergies</span>
+      </a>
+      <a href="{{ url_for('parametrage_impact') }}" class="submenu-item">
+        <span class="submenu-icon">🌱</span>
+        <span class="submenu-text">Configuration de l'Impact</span>
+      </a>
+      <a href="{{ url_for('parametrage_systeme') }}" class="submenu-item">
+        <span class="submenu-icon">⚙️</span>
+        <span class="submenu-text">Paramètres Système</span>
+      </a>
+      <a href="{{ url_for('debug_page') }}" class="submenu-item">
+        <span class="submenu-icon">🔧</span>
+        <span class="submenu-text">Debug</span>
+      </a>
+    </div>
+  </nav>
+
   <main class="content">
     {% block content %}{% endblock %}
   </main>
@@ -63,6 +135,101 @@
   <footer class="main-footer">
     <p>&copy; 2025 Green Calc</p>
   </footer>
+
+  <script>
+    // Gestion des barres de sous-menu
+    document.addEventListener('DOMContentLoaded', function() {
+      const myxploitTrigger = document.getElementById('myxploit-menu-trigger');
+      const adminTrigger = document.getElementById('admin-menu-trigger');
+      const myxploitSubmenu = document.getElementById('myxploit-submenu');
+      const adminSubmenu = document.getElementById('admin-submenu');
+      
+      // Marquer l'élément actif selon la page courante
+      function markActiveMenuItem() {
+        const currentPath = window.location.pathname;
+        
+        // Supprimer toutes les classes active
+        document.querySelectorAll('.submenu-item').forEach(item => {
+          item.classList.remove('active');
+        });
+        
+        // Marquer l'élément actif selon le chemin
+        const activeItem = document.querySelector(`.submenu-item[href="${currentPath}"]`);
+        if (activeItem) {
+          activeItem.classList.add('active');
+        }
+      }
+      
+      // Fonction pour masquer toutes les barres de sous-menu
+      function hideAllSubmenus() {
+        myxploitSubmenu.style.display = 'none';
+        adminSubmenu.style.display = 'none';
+      }
+      
+      // Fonction pour afficher une barre de sous-menu
+      function showSubmenu(submenu) {
+        hideAllSubmenus();
+        submenu.style.display = 'block';
+      }
+      
+      // Marquer l'élément actif au chargement
+      markActiveMenuItem();
+      
+      // Gestion du survol sur MyXploit
+      if (myxploitTrigger) {
+        myxploitTrigger.addEventListener('mouseenter', function() {
+          showSubmenu(myxploitSubmenu);
+        });
+        
+        // Garder le sous-menu visible quand on survole la barre
+        myxploitSubmenu.addEventListener('mouseenter', function() {
+          showSubmenu(myxploitSubmenu);
+        });
+        
+        // Masquer quand on quitte la zone
+        myxploitSubmenu.addEventListener('mouseleave', function() {
+          hideAllSubmenus();
+        });
+      }
+      
+      // Gestion du survol sur Administration
+      if (adminTrigger) {
+        adminTrigger.addEventListener('mouseenter', function() {
+          showSubmenu(adminSubmenu);
+        });
+        
+        // Garder le sous-menu visible quand on survole la barre
+        adminSubmenu.addEventListener('mouseenter', function() {
+          showSubmenu(adminSubmenu);
+        });
+        
+        // Masquer quand on quitte la zone
+        adminSubmenu.addEventListener('mouseleave', function() {
+          hideAllSubmenus();
+        });
+      }
+      
+      // Masquer les sous-menus quand on clique ailleurs
+      document.addEventListener('click', function(e) {
+        if (!myxploitTrigger.contains(e.target) && 
+            !adminTrigger.contains(e.target) && 
+            !myxploitSubmenu.contains(e.target) && 
+            !adminSubmenu.contains(e.target)) {
+          hideAllSubmenus();
+        }
+      });
+      
+      // Masquer les sous-menus au scroll
+      window.addEventListener('scroll', function() {
+        hideAllSubmenus();
+      });
+      
+      // Marquer l'élément actif lors des changements de page (pour SPA)
+      window.addEventListener('popstate', function() {
+        markActiveMenuItem();
+      });
+    });
+  </script>
 
 </body>
 </html>
