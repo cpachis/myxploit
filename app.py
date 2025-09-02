@@ -12,6 +12,14 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+# Charger les variables d'environnement depuis .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("✅ Variables d'environnement chargées depuis .env")
+except ImportError:
+    print("⚠️ Module python-dotenv non installé - variables d'environnement système utilisées")
+
 # Configuration du logging
 logging.basicConfig(
     level=logging.INFO,
@@ -295,6 +303,93 @@ def envoyer_email_confirmation_transporteur(transporteur):
     """
     
     return envoyer_email(transporteur.email, sujet, contenu_html, contenu_texte)
+
+def envoyer_email_invitation(invitation):
+    """Envoyer un email d'invitation à un nouveau client"""
+    sujet = "Invitation à rejoindre MyXploit - Plateforme de gestion des transports"
+    
+    # URL de base pour l'acceptation de l'invitation
+    base_url = request.host_url.rstrip('/')
+    url_acceptation = f"{base_url}/invitation/{invitation.token}"
+    
+    contenu_html = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #2c3e50; margin-bottom: 10px;">🚛 MyXploit</h1>
+                <p style="color: #7f8c8d; font-size: 18px;">Plateforme de gestion des transports</p>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h2 style="color: #2c3e50; margin-top: 0;">🎉 Vous êtes invité à rejoindre MyXploit !</h2>
+                
+                <p>Bonjour,</p>
+                
+                <p>Vous avez été invité à rejoindre la plateforme <strong>MyXploit</strong>, notre solution de gestion des transports et de suivi des émissions CO2.</p>
+                
+                <p>Avec MyXploit, vous pourrez :</p>
+                <ul style="color: #2c3e50;">
+                    <li>📊 Suivre vos transports et émissions CO2</li>
+                    <li>📈 Analyser vos performances environnementales</li>
+                    <li>🤝 Collaborer avec vos partenaires logistiques</li>
+                    <li>📋 Gérer vos missions de transport efficacement</li>
+                </ul>
+                
+                {f'<p><strong>Message personnalisé :</strong><br><em style="color: #7f8c8d;">{invitation.message_personnalise}</em></p>' if invitation.message_personnalise else ''}
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{url_acceptation}" 
+                       style="background-color: #3498db; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                        ✅ Accepter l'invitation
+                    </a>
+                </div>
+                
+                <p style="font-size: 14px; color: #7f8c8d;">
+                    <strong>Note :</strong> Ce lien d'invitation est personnel et sécurisé. Ne le partagez pas avec d'autres personnes.
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ecf0f1;">
+                <p style="color: #7f8c8d; font-size: 14px;">
+                    Si vous ne souhaitez pas rejoindre MyXploit, vous pouvez ignorer cet email.
+                </p>
+                <p style="color: #7f8c8d; font-size: 12px; margin-top: 20px;">
+                    © 2025 MyXploit - Plateforme de gestion des transports
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    contenu_texte = f"""
+    INVITATION À REJOINDRE MYXPLOIT
+    
+    Bonjour,
+    
+    Vous avez été invité à rejoindre la plateforme MyXploit, notre solution de gestion des transports et de suivi des émissions CO2.
+    
+    Avec MyXploit, vous pourrez :
+    - Suivre vos transports et émissions CO2
+    - Analyser vos performances environnementales
+    - Collaborer avec vos partenaires logistiques
+    - Gérer vos missions de transport efficacement
+    
+    {f'Message personnalisé : {invitation.message_personnalise}' if invitation.message_personnalise else ''}
+    
+    Pour accepter cette invitation, cliquez sur le lien suivant :
+    {url_acceptation}
+    
+    Note : Ce lien d'invitation est personnel et sécurisé. Ne le partagez pas avec d'autres personnes.
+    
+    Si vous ne souhaitez pas rejoindre MyXploit, vous pouvez ignorer cet email.
+    
+    Cordialement,
+    L'équipe MyXploit
+    """
+    
+    return envoyer_email(invitation.email, sujet, contenu_html, contenu_texte)
 
 # Initialiser la base de données APRÈS la définition des modèles
 with app.app_context():
@@ -2336,9 +2431,15 @@ def api_invitations():
             db.session.add(invitation)
             db.session.commit()
             
-            # TODO: Envoyer l'email d'invitation
-            # Pour l'instant, on simule l'envoi
-            logger.info(f"📧 Invitation envoyée à {email} avec le token {token}")
+            # Envoyer l'email d'invitation
+            try:
+                email_envoye = envoyer_email_invitation(invitation)
+                if email_envoye:
+                    logger.info(f"📧 Email d'invitation envoyé avec succès à {email}")
+                else:
+                    logger.warning(f"⚠️ Échec de l'envoi de l'email d'invitation à {email}")
+            except Exception as e:
+                logger.error(f"❌ Erreur lors de l'envoi de l'email d'invitation à {email}: {str(e)}")
             
             return jsonify({
                 'success': True,

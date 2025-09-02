@@ -116,3 +116,4 @@ if __name__ == "__main__":
         print("\n✅ Migration réussie ! L'application devrait maintenant fonctionner correctement.")
     else:
         print("\n❌ Migration échouée. Vérifiez les logs pour plus de détails.")
+

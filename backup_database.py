@@ -164,3 +164,4 @@ if __name__ == "__main__":
         print("  python backup_database.py restore")
         print("  python backup_database.py restore backups/myxploit_dev_backup_20250101_120000.db")
         print("  python backup_database.py list")
+

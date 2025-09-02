@@ -24,3 +24,4 @@ EMAIL_PASSWORD = ''  # Mot de passe de l'email (à configurer dans Render)
 # SMTP_PORT = 587
 # EMAIL_EMETTEUR = 'noreply@myxploit.com'
 # EMAIL_PASSWORD = 'votre-clé-api-mailgun'
+
