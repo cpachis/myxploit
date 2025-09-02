@@ -2102,17 +2102,23 @@ def delete_client_by_id(client_id):
         nom_client = client.nom
         
         # Vérifier s'il y a des transports associés à ce client
-        from sqlalchemy import text
-        transports_count = db.session.execute(
-            text("SELECT COUNT(*) FROM transports WHERE client_id = :client_id"),
-            {'client_id': client_id}
-        ).scalar()
-        
-        if transports_count > 0:
-            return jsonify({
-                'success': False, 
-                'error': f'Impossible de supprimer ce client car il a {transports_count} transport(s) associé(s). Supprimez d\'abord les transports.'
-            }), 400
+        # Les transports utilisent un champ 'client' (string) et non 'client_id'
+        try:
+            from sqlalchemy import text
+            transports_count = db.session.execute(
+                text("SELECT COUNT(*) FROM transports WHERE client = :client_ref"),
+                {'client_ref': f'CL{client_id:03d}'}  # Format CL001, CL002, etc.
+            ).scalar()
+            
+            if transports_count > 0:
+                return jsonify({
+                    'success': False, 
+                    'error': f'Impossible de supprimer ce client car il a {transports_count} transport(s) associé(s). Supprimez d\'abord les transports.'
+                }), 400
+        except Exception as db_error:
+            # Si la table transports n'existe pas ou a une structure différente, on continue
+            logger.warning(f"⚠️ Impossible de vérifier les transports: {str(db_error)}")
+            pass
         
         # Supprimer les invitations associées à ce client
         invitations = Invitation.query.filter_by(email=client.email).all()

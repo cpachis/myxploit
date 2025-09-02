@@ -9,3 +9,30 @@
 2025-08-29 11:57:14,538 - app - INFO -    - unite: L
 2025-08-29 11:57:14,538 - app - INFO -    - facteur: 1.0
 2025-08-29 11:57:14,538 - app - INFO -    - description: Test de l'API
+2025-09-02 09:46:08,889 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.139:5000
+2025-09-02 09:46:08,889 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-02 09:46:08,891 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 09:46:09,670 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 09:46:09,672 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 09:46:31,380 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 09:46:31] "GET /api/clients HTTP/1.1" 200 -
+2025-09-02 09:46:42,526 - app - ERROR - Erreur lors de la création du client: 400 Bad Request: Failed to decode JSON object: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2025-09-02 09:46:42,526 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 09:46:42] "[35m[1mPOST /api/clients HTTP/1.1[0m" 500 -
+2025-09-02 09:47:05,947 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 09:47:05] "POST /api/clients HTTP/1.1" 200 -
+2025-09-02 09:47:31,368 - app - ERROR - Erreur lors de la suppression du client 1: (sqlite3.OperationalError) no such column: client_id
+[SQL: SELECT COUNT(*) FROM transports WHERE client_id = ?]
+[parameters: (1,)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-09-02 09:47:31,369 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 09:47:31] "[35m[1mDELETE /api/clients/1 HTTP/1.1[0m" 500 -
+2025-09-02 09:47:46,385 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 09:47:46,561 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 09:47:47,248 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 09:47:47,250 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 09:47:52,389 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 09:47:52] "DELETE /api/clients/1 HTTP/1.1" 200 -
+2025-09-02 09:48:01,158 - werkzeug - INFO - 127.0.0.1 - - [02/Sep/2025 09:48:01] "GET /api/clients HTTP/1.1" 200 -
+2025-09-02 09:48:13,449 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 09:48:13,540 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 09:48:14,158 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 09:48:14,159 - werkzeug - INFO -  * Debugger PIN: 123-518-053
