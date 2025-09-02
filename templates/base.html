@@ -34,11 +34,18 @@
           <a href="#">Administration</a>
           <ul class="dropdown-menu">
             <li><a href="{{ url_for('administration_home') }}">🏠 Accueil Administration</a></li>
+            <li class="dropdown-submenu">
+              <a href="#">👥 Clients</a>
+              <ul class="dropdown-submenu-content">
+                <li><a href="{{ url_for('admin_clients_list') }}">📋 Liste des Clients</a></li>
+                <li><a href="{{ url_for('admin_invitations') }}">📧 Invitations</a></li>
+                <li><a href="{{ url_for('admin_clients_pending') }}">⏳ Clients en Attente</a></li>
+              </ul>
+            </li>
             <li><a href="{{ url_for('parametrage_vehicules') }}">🚛 Types de Véhicules</a></li>
             <li><a href="{{ url_for('parametrage_energies') }}">⚡ Gestion des Énergies</a></li>
             <li><a href="{{ url_for('parametrage_impact') }}">🌱 Configuration de l'Impact</a></li>
             <li><a href="{{ url_for('parametrage_systeme') }}">⚙️ Paramètres Système</a></li>
-            <li><a href="{{ url_for('invitations') }}">📧 Invitations Clients</a></li>
             <li><a href="{{ url_for('debug_page') }}">🔧 Debug</a></li>
           </ul>
         </li>

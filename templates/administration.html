@@ -21,20 +21,20 @@
           <h2>Gestion des Clients</h2>
           <p>Gérez vos clients, leurs informations et leurs accès</p>
         </div>
-        <a href="{{ url_for('parametrage_clients') }}" class="btn-primary">Gérer les Clients</a>
+        <a href="{{ url_for('admin_clients_list') }}" class="btn-primary">Gérer les Clients</a>
       </div>
       <div class="section-actions">
-        <a href="{{ url_for('parametrage_clients') }}" class="action-link">
+        <a href="{{ url_for('admin_clients_list') }}" class="action-link">
           <span class="action-icon">📋</span>
           <span class="action-text">Liste des Clients</span>
         </a>
-        <a href="{{ url_for('parametrage_clients') }}" class="action-link">
-          <span class="action-icon">➕</span>
-          <span class="action-text">Ajouter un Client</span>
+        <a href="{{ url_for('admin_invitations') }}" class="action-link">
+          <span class="action-icon">📧</span>
+          <span class="action-text">Invitations</span>
         </a>
-        <a href="{{ url_for('parametrage_clients') }}" class="action-link">
-          <span class="action-icon">📊</span>
-          <span class="action-text">Statistiques Clients</span>
+        <a href="{{ url_for('admin_clients_pending') }}" class="action-link">
+          <span class="action-icon">⏳</span>
+          <span class="action-text">Clients en Attente</span>
         </a>
       </div>
     </div>

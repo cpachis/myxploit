@@ -107,3 +107,9 @@
 2025-09-02 10:27:18,522 - werkzeug - INFO -  * Restarting with stat
 2025-09-02 10:27:19,092 - werkzeug - WARNING -  * Debugger is active!
 2025-09-02 10:27:19,093 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:29:50,085 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:29:50,240 - werkzeug - INFO -  * Restarting with stat
+2025-09-02 10:29:50,925 - werkzeug - WARNING -  * Debugger is active!
+2025-09-02 10:29:50,926 - werkzeug - INFO -  * Debugger PIN: 123-518-053
+2025-09-02 10:35:43,567 - werkzeug - INFO -  * Detected change in 'D:\\PROJETS\\myxploit\\myxploit\\app.py', reloading
+2025-09-02 10:35:43,757 - werkzeug - INFO -  * Restarting with stat

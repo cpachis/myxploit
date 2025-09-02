@@ -1,0 +1,797 @@
+{% extends "base.html" %}
+
+{% block title %}Administration - Liste des Clients{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="page-header">
+        <h1>👥 Gestion des Clients</h1>
+        <p>Liste complète des clients et gestion de leurs comptes</p>
+    </div>
+
+    <div class="admin-actions">
+        <a href="{{ url_for('admin_invitations') }}" class="btn btn-primary">
+            <span class="btn-icon">📧</span>
+            Envoyer une invitation
+        </a>
+        <a href="{{ url_for('admin_clients_pending') }}" class="btn btn-secondary">
+            <span class="btn-icon">⏳</span>
+            Clients en attente
+        </a>
+    </div>
+
+    <div class="clients-table-container">
+        <div class="table-header">
+            <h2>📋 Liste des Clients</h2>
+            <div class="table-stats">
+                <span class="stat-item">
+                    <strong>{{ clients_data|length }}</strong> client(s) total
+                </span>
+                <span class="stat-item">
+                    <strong>{{ clients_data|selectattr('has_account')|list|length }}</strong> avec compte
+                </span>
+                <span class="stat-item">
+                    <strong>{{ clients_data|rejectattr('has_account')|list|length }}</strong> sans compte
+                </span>
+            </div>
+        </div>
+
+        {% if clients_data %}
+        <div class="table-responsive">
+            <table class="clients-table">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Statut</th>
+                        <th>Compte</th>
+                        <th>Date création</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in clients_data %}
+                    <tr class="client-row">
+                        <td class="client-info">
+                            <div class="client-name">{{ item.client.nom }}</div>
+                            {% if item.client.adresse %}
+                            <div class="client-address">{{ item.client.adresse }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="client-email">{{ item.client.email }}</td>
+                        <td class="client-phone">{{ item.client.telephone or 'N/A' }}</td>
+                        <td class="client-status">
+                            <span class="status-badge status-{{ item.client.statut }}">
+                                {{ item.client.statut|title }}
+                            </span>
+                        </td>
+                        <td class="account-status">
+                            {% if item.has_account %}
+                                <span class="account-badge account-active">
+                                    <span class="badge-icon">✅</span>
+                                    Actif
+                                </span>
+                                <div class="account-details">
+                                    <small>Connecté le {{ item.user.created_at.strftime('%d/%m/%Y') }}</small>
+                                </div>
+                            {% else %}
+                                <span class="account-badge account-inactive">
+                                    <span class="badge-icon">❌</span>
+                                    Aucun compte
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="client-date">
+                            {{ item.client.created_at.strftime('%d/%m/%Y') }}
+                        </td>
+                        <td class="client-actions">
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-edit" onclick="editClient({{ item.client.id }})">
+                                    <span class="btn-icon">✏️</span>
+                                    Modifier
+                                </button>
+                                {% if not item.has_account %}
+                                <button class="btn btn-sm btn-invite" onclick="sendInvitation('{{ item.client.email }}')">
+                                    <span class="btn-icon">📧</span>
+                                    Inviter
+                                </button>
+                                {% endif %}
+                                <button class="btn btn-sm btn-delete" onclick="deleteClient({{ item.client.id }})">
+                                    <span class="btn-icon">🗑️</span>
+                                    Supprimer
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h3>Aucun client trouvé</h3>
+            <p>Commencez par inviter vos premiers clients.</p>
+            <a href="{{ url_for('admin_invitations') }}" class="btn btn-primary">
+                <span class="btn-icon">📧</span>
+                Envoyer une invitation
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal d'édition de client -->
+<div id="edit-client-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>✏️ Modifier le client</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="edit-client-form">
+                <input type="hidden" id="edit-client-id" name="client_id">
+                
+                <div class="form-group">
+                    <label for="edit-nom">Nom *</label>
+                    <input type="text" id="edit-nom" name="nom" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-email">Email *</label>
+                    <input type="email" id="edit-email" name="email" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-telephone">Téléphone</label>
+                    <input type="tel" id="edit-telephone" name="telephone" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-adresse">Adresse</label>
+                    <textarea id="edit-adresse" name="adresse" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-siret">SIRET</label>
+                    <input type="text" id="edit-siret" name="siret" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-site-web">Site web</label>
+                    <input type="url" id="edit-site-web" name="site_web" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-description">Description</label>
+                    <textarea id="edit-description" name="description" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-statut">Statut</label>
+                    <select id="edit-statut" name="statut" class="form-control">
+                        <option value="actif">Actif</option>
+                        <option value="inactif">Inactif</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('edit-client-modal')">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-icon">💾</span>
+                        Sauvegarder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+}
+
+.page-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.page-header p {
+    margin: 0;
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.clients-table-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.table-header {
+    background: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.table-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.3rem;
+}
+
+.table-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.clients-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.clients-table th {
+    background: #f8f9fa;
+    padding: 15px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+}
+
+.clients-table td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: top;
+}
+
+.client-row:hover {
+    background: #f8f9fa;
+}
+
+.client-info {
+    min-width: 200px;
+}
+
+.client-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.client-address {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.client-email {
+    font-family: monospace;
+    color: #667eea;
+}
+
+.client-phone {
+    color: #6c757d;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-actif {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-inactif {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.account-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.account-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.account-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.badge-icon {
+    font-size: 0.9rem;
+}
+
+.account-details {
+    margin-top: 4px;
+}
+
+.account-details small {
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+
+.client-date {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.client-actions {
+    min-width: 200px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5a6fd8;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn-edit {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-edit:hover {
+    background: #e0a800;
+}
+
+.btn-invite {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-invite:hover {
+    background: #138496;
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+}
+
+.btn-icon {
+    font-size: 0.9rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.empty-state p {
+    margin: 0 0 20px 0;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    background: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.3rem;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 15px;
+    }
+    
+    .page-header {
+        padding: 20px;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .table-stats {
+        justify-content: flex-start;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// Fonctions pour la gestion des clients
+function editClient(clientId) {
+    // Récupérer les données du client
+    fetch(`/api/clients/${clientId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const client = data.client;
+                document.getElementById('edit-client-id').value = client.id;
+                document.getElementById('edit-nom').value = client.nom;
+                document.getElementById('edit-email').value = client.email;
+                document.getElementById('edit-telephone').value = client.telephone || '';
+                document.getElementById('edit-adresse').value = client.adresse || '';
+                document.getElementById('edit-siret').value = client.siret || '';
+                document.getElementById('edit-site-web').value = client.site_web || '';
+                document.getElementById('edit-description').value = client.description || '';
+                document.getElementById('edit-statut').value = client.statut;
+                
+                showModal('edit-client-modal');
+            } else {
+                showNotification('Erreur lors du chargement du client', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur lors du chargement du client', 'error');
+        });
+}
+
+function sendInvitation(email) {
+    if (confirm(`Envoyer une invitation à ${email} ?`)) {
+        fetch('/api/invitations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Invitation envoyée avec succès', 'success');
+            } else {
+                showNotification(data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur lors de l\'envoi de l\'invitation', 'error');
+        });
+    }
+}
+
+function deleteClient(clientId) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
+        fetch(`/api/clients/${clientId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Client supprimé avec succès', 'success');
+                location.reload();
+            } else {
+                showNotification(data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur lors de la suppression', 'error');
+        });
+    }
+}
+
+// Gestion du formulaire d'édition
+document.getElementById('edit-client-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const clientId = formData.get('client_id');
+    
+    const data = {
+        id: clientId,
+        nom: formData.get('nom'),
+        email: formData.get('email'),
+        telephone: formData.get('telephone'),
+        adresse: formData.get('adresse'),
+        siret: formData.get('siret'),
+        site_web: formData.get('site_web'),
+        description: formData.get('description'),
+        statut: formData.get('statut')
+    };
+    
+    fetch('/api/clients', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Client modifié avec succès', 'success');
+            closeModal('edit-client-modal');
+            location.reload();
+        } else {
+            showNotification(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la modification', 'error');
+    });
+});
+
+// Fonctions utilitaires
+function showModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+            <span class="notification-message">${message}</span>
+        </div>
+    `;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+        color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        z-index: 1001;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        max-width: 400px;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Fermer les modals en cliquant à l'extérieur
+window.onclick = function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
+
+// Fermer les modals avec la touche Échap
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (modal.style.display === 'block') {
+                modal.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

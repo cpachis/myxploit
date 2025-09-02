@@ -6,7 +6,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from sqlalchemy import text
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from config import get_config
 import smtplib
 from email.mime.text import MIMEText
@@ -2703,6 +2703,229 @@ def mon_entreprise():
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage de mon entreprise: {str(e)}")
         return render_template('error.html', error=str(e)), 500
+
+# === FONCTIONS UTILITAIRES ===
+
+def getTimeElapsed(date):
+    """Calculer le temps écoulé depuis une date"""
+    if not date:
+        return "N/A"
+    
+    now = datetime.utcnow()
+    if isinstance(date, str):
+        date = datetime.fromisoformat(date.replace('Z', '+00:00'))
+    
+    diff = now - date
+    
+    if diff.days > 0:
+        if diff.days == 1:
+            return "1 jour"
+        else:
+            return f"{diff.days} jours"
+    elif diff.seconds > 3600:
+        hours = diff.seconds // 3600
+        if hours == 1:
+            return "1 heure"
+        else:
+            return f"{hours} heures"
+    elif diff.seconds > 60:
+        minutes = diff.seconds // 60
+        if minutes == 1:
+            return "1 minute"
+        else:
+            return f"{minutes} minutes"
+    else:
+        return "À l'instant"
+
+# === ROUTES D'ADMINISTRATION DES CLIENTS ===
+
+@app.route('/admin/clients')
+def admin_clients_list():
+    """Page d'administration - Liste des clients"""
+    try:
+        # Récupérer tous les clients
+        clients = Client.query.all()
+        
+        # Récupérer les utilisateurs clients
+        users_clients = User.query.filter_by(type_utilisateur='client').all()
+        
+        # Créer un dictionnaire pour lier les clients aux utilisateurs
+        clients_data = []
+        for client in clients:
+            user = next((u for u in users_clients if u.email == client.email), None)
+            clients_data.append({
+                'client': client,
+                'user': user,
+                'has_account': user is not None
+            })
+        
+        return render_template('admin_clients_list.html', clients_data=clients_data)
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage de la liste des clients admin: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/admin/invitations')
+def admin_invitations():
+    """Page d'administration - Gestion des invitations"""
+    try:
+        # Récupérer toutes les invitations
+        invitations = Invitation.query.order_by(Invitation.created_at.desc()).all()
+        
+        # Statistiques
+        stats = {
+            'total': len(invitations),
+            'en_attente': len([i for i in invitations if i.statut == 'en_attente']),
+            'acceptees': len([i for i in invitations if i.statut == 'acceptee']),
+            'refusees': len([i for i in invitations if i.statut == 'refusee']),
+            'expirees': len([i for i in invitations if i.statut == 'expiree'])
+        }
+        
+        return render_template('admin_invitations.html', invitations=invitations, stats=stats)
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des invitations admin: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+@app.route('/admin/clients/pending')
+def admin_clients_pending():
+    """Page d'administration - Clients en attente d'acceptation"""
+    try:
+        # Récupérer les invitations en attente
+        invitations_pending = Invitation.query.filter_by(statut='en_attente').order_by(Invitation.created_at.desc()).all()
+        
+        # Récupérer les invitations refusées (pour relancer)
+        invitations_refused = Invitation.query.filter_by(statut='refusee').order_by(Invitation.created_at.desc()).all()
+        
+        return render_template('admin_clients_pending.html', 
+                             invitations_pending=invitations_pending,
+                             invitations_refused=invitations_refused,
+                             getTimeElapsed=getTimeElapsed)
+    except Exception as e:
+        logger.error(f"Erreur lors de l'affichage des clients en attente: {str(e)}")
+        return render_template('error.html', error=str(e)), 500
+
+# === API ENDPOINTS POUR L'ADMINISTRATION ===
+
+@app.route('/api/invitations/<int:invitation_id>/resend', methods=['POST'])
+def resend_invitation(invitation_id):
+    """Relancer une invitation"""
+    try:
+        invitation = Invitation.query.get(invitation_id)
+        if not invitation:
+            return jsonify({'success': False, 'error': 'Invitation non trouvée'}), 404
+        
+        # Générer un nouveau token
+        invitation.token = secrets.token_urlsafe(32)
+        invitation.date_invitation = datetime.utcnow()
+        invitation.statut = 'en_attente'
+        
+        # Envoyer l'email
+        try:
+            send_invitation_email(invitation.email, invitation.token, invitation.message_personnalise)
+            db.session.commit()
+            logger.info(f"✅ Invitation relancée pour {invitation.email}")
+            return jsonify({
+                'success': True,
+                'message': f'Invitation relancée avec succès à {invitation.email}'
+            })
+        except Exception as email_error:
+            logger.error(f"Erreur lors de l'envoi de l'email: {str(email_error)}")
+            db.session.rollback()
+            return jsonify({
+                'success': False,
+                'error': f'Erreur lors de l\'envoi de l\'email: {str(email_error)}'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de la relance de l'invitation {invitation_id}: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/invitations/<int:invitation_id>', methods=['DELETE'])
+def delete_invitation(invitation_id):
+    """Supprimer une invitation"""
+    try:
+        invitation = Invitation.query.get(invitation_id)
+        if not invitation:
+            return jsonify({'success': False, 'error': 'Invitation non trouvée'}), 404
+        
+        email = invitation.email
+        db.session.delete(invitation)
+        db.session.commit()
+        
+        logger.info(f"✅ Invitation supprimée pour {email}")
+        return jsonify({
+            'success': True,
+            'message': f'Invitation supprimée avec succès'
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la suppression de l'invitation {invitation_id}: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/clients/<int:client_id>', methods=['GET'])
+def get_client_details(client_id):
+    """Récupérer les détails d'un client"""
+    try:
+        client = Client.query.get(client_id)
+        if not client:
+            return jsonify({'success': False, 'error': 'Client non trouvé'}), 404
+        
+        return jsonify({
+            'success': True,
+            'client': {
+                'id': client.id,
+                'nom': client.nom,
+                'email': client.email,
+                'telephone': client.telephone,
+                'adresse': client.adresse,
+                'siret': client.siret,
+                'site_web': client.site_web,
+                'description': client.description,
+                'statut': client.statut,
+                'created_at': client.created_at.isoformat() if client.created_at else None
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération du client {client_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/clients', methods=['PUT'])
+def update_client():
+    """Mettre à jour un client"""
+    try:
+        data = request.get_json()
+        if not data or 'id' not in data:
+            return jsonify({'success': False, 'error': 'Données manquantes'}), 400
+        
+        client = Client.query.get(data['id'])
+        if not client:
+            return jsonify({'success': False, 'error': 'Client non trouvé'}), 404
+        
+        # Mettre à jour les champs
+        client.nom = data.get('nom', client.nom)
+        client.email = data.get('email', client.email)
+        client.telephone = data.get('telephone', client.telephone)
+        client.adresse = data.get('adresse', client.adresse)
+        client.siret = data.get('siret', client.siret)
+        client.site_web = data.get('site_web', client.site_web)
+        client.description = data.get('description', client.description)
+        client.statut = data.get('statut', client.statut)
+        client.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        logger.info(f"✅ Client mis à jour: {client.nom} (ID: {client.id})")
+        return jsonify({
+            'success': True,
+            'message': f'Client "{client.nom}" mis à jour avec succès'
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour du client: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.errorhandler(404)
 def not_found(error):
