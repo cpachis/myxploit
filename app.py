@@ -645,53 +645,103 @@ with app.app_context():
         try:
             logger.info("🔧 Migration du modèle Transport...")
             
-            # Vérifier si les nouvelles colonnes existent
-            result = db.session.execute(text("PRAGMA table_info(transports)"))
-            columns = [row[1] for row in result.fetchall()]
+            # Détecter le type de base de données
+            db_url = str(db.engine.url)
+            is_postgresql = 'postgresql' in db_url
+            
+            if is_postgresql:
+                logger.info("🐘 Migration PostgreSQL détectée")
+                # Pour PostgreSQL, utiliser information_schema
+                result = db.session.execute(text("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'transports' AND table_schema = 'public'
+                """))
+                columns = [row[0] for row in result.fetchall()]
+            else:
+                logger.info("📱 Migration SQLite détectée")
+                # Pour SQLite, utiliser PRAGMA
+                result = db.session.execute(text("PRAGMA table_info(transports)"))
+                columns = [row[1] for row in result.fetchall()]
+            
+            logger.info(f"📋 Colonnes existantes: {columns}")
             
             # Ajouter les colonnes manquantes
             if 'date' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN date DATE"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN date DATE"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN date DATE"))
                 logger.info("✅ Colonne 'date' ajoutée")
             
             if 'lieu_collecte' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN lieu_collecte VARCHAR(200)"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN lieu_collecte VARCHAR(200)"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN lieu_collecte VARCHAR(200)"))
                 logger.info("✅ Colonne 'lieu_collecte' ajoutée")
             
             if 'lieu_livraison' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN lieu_livraison VARCHAR(200)"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN lieu_livraison VARCHAR(200)"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN lieu_livraison VARCHAR(200)"))
                 logger.info("✅ Colonne 'lieu_livraison' ajoutée")
             
             if 'poids_tonnes' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN poids_tonnes FLOAT"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN poids_tonnes REAL"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN poids_tonnes FLOAT"))
                 logger.info("✅ Colonne 'poids_tonnes' ajoutée")
             
             if 'type_transport' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN type_transport VARCHAR(50) DEFAULT 'direct'"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN type_transport VARCHAR(50) DEFAULT 'direct'"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN type_transport VARCHAR(50) DEFAULT 'direct'"))
                 logger.info("✅ Colonne 'type_transport' ajoutée")
             
             if 'distance_km' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN distance_km FLOAT DEFAULT 0.0"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN distance_km REAL DEFAULT 0.0"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN distance_km FLOAT DEFAULT 0.0"))
                 logger.info("✅ Colonne 'distance_km' ajoutée")
             
             if 'emis_kg' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN emis_kg FLOAT DEFAULT 0.0"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN emis_kg REAL DEFAULT 0.0"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN emis_kg FLOAT DEFAULT 0.0"))
                 logger.info("✅ Colonne 'emis_kg' ajoutée")
             
             if 'emis_tkm' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN emis_tkm FLOAT DEFAULT 0.0"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN emis_tkm REAL DEFAULT 0.0"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN emis_tkm FLOAT DEFAULT 0.0"))
                 logger.info("✅ Colonne 'emis_tkm' ajoutée")
             
             if 'client' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN client VARCHAR(100)"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN client VARCHAR(100)"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN client VARCHAR(100)"))
                 logger.info("✅ Colonne 'client' ajoutée")
             
             if 'transporteur' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN transporteur VARCHAR(100)"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN transporteur VARCHAR(100)"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN transporteur VARCHAR(100)"))
                 logger.info("✅ Colonne 'transporteur' ajoutée")
             
             if 'description' not in columns:
-                db.session.execute(text("ALTER TABLE transports ADD COLUMN description TEXT"))
+                if is_postgresql:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN description TEXT"))
+                else:
+                    db.session.execute(text("ALTER TABLE transports ADD COLUMN description TEXT"))
                 logger.info("✅ Colonne 'description' ajoutée")
             
             db.session.commit()
