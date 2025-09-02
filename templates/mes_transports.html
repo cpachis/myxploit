@@ -160,7 +160,12 @@
               <small class="form-help">Consommation spécifique du véhicule utilisé</small>
             </div>
             <div class="form-group">
-              <!-- Champ vide pour l'équilibrage de la mise en page -->
+              <label for="transport-energie">Énergie utilisée</label>
+              <select id="transport-energie" name="energie">
+                <option value="">Sélectionnez l'énergie</option>
+                <!-- Les options seront chargées dynamiquement -->
+              </select>
+              <small class="form-help">Type d'énergie du véhicule</small>
             </div>
           </div>
         </div>
@@ -238,11 +243,13 @@
 let transports = [];
 let currentEditId = null;
 let typesVehicules = [];
+let energies = [];
 
 // Charger les transports au démarrage
 document.addEventListener('DOMContentLoaded', function() {
   loadTransports();
   loadTypesVehicules();
+  loadEnergies();
   
   // Définir la date d'aujourd'hui par défaut
   const today = new Date().toISOString().split('T')[0];
@@ -332,6 +339,50 @@ function updateVehiculeConsumption() {
   } else {
     consoInput.value = '';
   }
+}
+
+// Charger les énergies depuis l'API
+function loadEnergies() {
+  fetch('/api/energies')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        energies = data.energies || [];
+        populateEnergies();
+      } else {
+        console.error('Erreur lors du chargement des énergies:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement des énergies:', error);
+    });
+}
+
+// Peupler le select des énergies
+function populateEnergies() {
+  const select = document.getElementById('transport-energie');
+  if (!select) return;
+  
+  // Vider le select (garder l'option par défaut)
+  select.innerHTML = '<option value="">Sélectionnez l\'énergie</option>';
+  
+  // Si aucune énergie n'est configurée
+  if (energies.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Aucune énergie configurée - Allez dans Administration > Gestion des Énergies';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
+  
+  // Ajouter les énergies configurées
+  energies.forEach(energie => {
+    const option = document.createElement('option');
+    option.value = energie.identifiant || energie.id;
+    option.textContent = `${energie.nom} (${energie.unite})`;
+    select.appendChild(option);
+  });
 }
 
 // Fonctions d'autocomplétion pour les lieux
@@ -509,6 +560,7 @@ function displayTransports(transportsToShow) {
           <span class="detail-value">${transport.emis_kg} kg CO₂e (${transport.emis_tkm} kg/t.km)</span>
         </div>
         ${transport.type_vehicule ? `<div class="detail-row"><span class="detail-label">🚛 Type véhicule:</span><span class="detail-value">${transport.type_vehicule.replace('_', ' ').toUpperCase()}</span></div>` : ''}
+        ${transport.energie ? `<div class="detail-row"><span class="detail-label">⚡ Énergie:</span><span class="detail-value">${transport.energie}</span></div>` : ''}
         ${transport.conso_vehicule ? `<div class="detail-row"><span class="detail-label">⛽ Consommation:</span><span class="detail-value">${transport.conso_vehicule} L/100km</span></div>` : ''}
         ${transport.niveau_calcul ? `<div class="detail-row"><span class="detail-label">📊 Niveau calcul:</span><span class="detail-value">${transport.niveau_calcul.replace('niveau', 'Niveau ').toUpperCase()}</span></div>` : ''}
         ${transport.client ? `<div class="detail-row"><span class="detail-label">👤 Client:</span><span class="detail-value">${transport.client}</span></div>` : ''}
@@ -638,6 +690,7 @@ function resetTransportForm() {
   document.getElementById('transport-type-vehicule').value = '';
   document.getElementById('transport-niveau-calcul').value = 'niveau1';
   document.getElementById('transport-conso-vehicule').value = '';
+  document.getElementById('transport-energie').value = '';
 }
 
 // Éditer un transport
@@ -658,6 +711,7 @@ function editTransport(id) {
   document.getElementById('transport-type-vehicule').value = transport.type_vehicule || '';
   document.getElementById('transport-niveau-calcul').value = transport.niveau_calcul || '';
   document.getElementById('transport-conso-vehicule').value = transport.conso_vehicule || '';
+  document.getElementById('transport-energie').value = transport.energie || '';
   document.getElementById('transport-distance').value = transport.distance_km;
   document.getElementById('transport-emissions').value = transport.emis_kg;
   document.getElementById('transport-emissions-tkm').value = transport.emis_tkm;
@@ -711,6 +765,10 @@ document.getElementById('transport-form').addEventListener('submit', function(e)
     distance_km: parseFloat(formData.get('distance_km')) || 0,
     emis_kg: parseFloat(formData.get('emis_kg')) || 0,
     emis_tkm: parseFloat(formData.get('emis_tkm')) || 0,
+    type_vehicule: formData.get('type_vehicule'),
+    niveau_calcul: formData.get('niveau_calcul'),
+    conso_vehicule: parseFloat(formData.get('conso_vehicule')) || null,
+    energie: formData.get('energie'),
     client: formData.get('client'),
     transporteur: formData.get('transporteur'),
     description: formData.get('description')
