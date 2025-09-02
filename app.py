@@ -144,6 +144,28 @@ class Invitation(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+class User(db.Model):
+    """Modèle pour les utilisateurs (clients et administrateurs)"""
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    mot_de_passe = db.Column(db.String(255), nullable=False)
+    nom = db.Column(db.String(100), nullable=False)
+    nom_entreprise = db.Column(db.String(100))
+    type_utilisateur = db.Column(db.String(20), default='client')  # 'client' ou 'admin'
+    statut = db.Column(db.String(20), default='actif')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def check_password(self, password):
+        """Vérifier le mot de passe (simple comparaison pour l'instant)"""
+        return self.mot_de_passe == password
+    
+    def get_id(self):
+        """Méthode requise par Flask-Login"""
+        return str(self.id)
+
 class Client(db.Model):
     """Modèle pour les clients"""
     __tablename__ = 'clients'
@@ -2615,13 +2637,37 @@ def api_invitation_reponse(token):
             if not nom_entreprise or not nom_utilisateur:
                 return jsonify({'success': False, 'error': 'Nom d\'entreprise et nom d\'utilisateur requis'}), 400
             
+            mot_de_passe = data.get('mot_de_passe')
+            if not mot_de_passe:
+                return jsonify({'success': False, 'error': 'Mot de passe requis'}), 400
+            
+            if len(mot_de_passe) < 6:
+                return jsonify({'success': False, 'error': 'Le mot de passe doit contenir au moins 6 caractères'}), 400
+            
+            # Vérifier si l'utilisateur existe déjà
+            existing_user = User.query.filter_by(email=invitation.email).first()
+            if existing_user:
+                return jsonify({'success': False, 'error': 'Un compte existe déjà avec cet email'}), 400
+            
+            # Créer le compte utilisateur
+            nouveau_user = User(
+                email=invitation.email,
+                mot_de_passe=mot_de_passe,
+                nom=nom_utilisateur,
+                nom_entreprise=nom_entreprise,
+                type_utilisateur='client',
+                statut='actif'
+            )
+            
+            db.session.add(nouveau_user)
+            
+            # Mettre à jour l'invitation
             invitation.statut = 'acceptee'
             invitation.nom_entreprise = nom_entreprise
             invitation.nom_utilisateur = nom_utilisateur
             invitation.date_reponse = datetime.utcnow()
             
-            # TODO: Créer le compte utilisateur
-            logger.info(f"✅ Invitation acceptée par {nom_utilisateur} ({nom_entreprise})")
+            logger.info(f"✅ Invitation acceptée par {nom_utilisateur} ({nom_entreprise}) - Compte créé")
             
         elif action == 'refuser':
             invitation.statut = 'refusee'
@@ -2630,10 +2676,20 @@ def api_invitation_reponse(token):
         
         db.session.commit()
         
-        return jsonify({
-            'success': True,
-            'message': f'Invitation {action} avec succès'
-        })
+        if action == 'accepter':
+            return jsonify({
+                'success': True,
+                'message': f'Invitation acceptée avec succès. Votre compte a été créé.',
+                'identifiants': {
+                    'email': invitation.email,
+                    'mot_de_passe': mot_de_passe
+                }
+            })
+        else:
+            return jsonify({
+                'success': True,
+                'message': f'Invitation {action} avec succès'
+            })
         
     except Exception as e:
         logger.error(f"Erreur lors du traitement de l'invitation: {str(e)}")

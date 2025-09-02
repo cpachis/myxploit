@@ -72,6 +72,18 @@
                     <small class="form-text">Votre nom et prénom</small>
                 </div>
                 
+                <div class="form-group">
+                    <label for="mot_de_passe">Mot de passe *</label>
+                    <input type="password" id="mot_de_passe" name="mot_de_passe" class="form-control" required minlength="6">
+                    <small class="form-text">Minimum 6 caractères</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmer_mot_de_passe">Confirmer le mot de passe *</label>
+                    <input type="password" id="confirmer_mot_de_passe" name="confirmer_mot_de_passe" class="form-control" required>
+                    <small class="form-text">Répétez votre mot de passe</small>
+                </div>
+                
                 <div class="form-actions">
                     <button type="button" id="cancel-accept" class="btn btn-secondary">Annuler</button>
                     <button type="submit" class="btn btn-success">
@@ -507,6 +519,20 @@ function showNotification(message, type = 'info') {
 
 // Accepter l'invitation
 async function acceptInvitation(formData) {
+    const motDePasse = formData.get('mot_de_passe');
+    const confirmerMotDePasse = formData.get('confirmer_mot_de_passe');
+    
+    // Validation des mots de passe
+    if (motDePasse.length < 6) {
+        showNotification('Le mot de passe doit contenir au moins 6 caractères', 'error');
+        return;
+    }
+    
+    if (motDePasse !== confirmerMotDePasse) {
+        showNotification('Les mots de passe ne correspondent pas', 'error');
+        return;
+    }
+    
     try {
         const response = await fetch(`/api/invitation/${invitationToken}/reponse`, {
             method: 'POST',
@@ -516,7 +542,8 @@ async function acceptInvitation(formData) {
             body: JSON.stringify({
                 action: 'accepter',
                 nom_entreprise: formData.get('nom_entreprise'),
-                nom_utilisateur: formData.get('nom_utilisateur')
+                nom_utilisateur: formData.get('nom_utilisateur'),
+                mot_de_passe: motDePasse
             })
         });
         
@@ -524,7 +551,7 @@ async function acceptInvitation(formData) {
         
         if (data.success) {
             hideModal('accept-modal');
-            showSuccessModal('accept');
+            showSuccessModal('accept', data.identifiants);
         } else {
             showNotification(data.error, 'error');
         }
@@ -562,18 +589,37 @@ async function declineInvitation() {
 }
 
 // Afficher le modal de succès
-function showSuccessModal(action) {
+function showSuccessModal(action, identifiants = null) {
     const successModal = document.getElementById('success-modal');
     const successTitle = document.getElementById('success-title');
     const successContent = document.getElementById('success-content');
     
     if (action === 'accept') {
         successTitle.textContent = '🎉 Félicitations !';
-        successContent.innerHTML = `
-            <p>Votre inscription a été confirmée avec succès !</p>
-            <p>Vous allez recevoir un email de confirmation avec vos identifiants de connexion.</p>
-            <p>Vous pouvez maintenant vous connecter à votre espace MyXploit.</p>
-        `;
+        
+        if (identifiants) {
+            successContent.innerHTML = `
+                <p>Votre inscription a été confirmée avec succès !</p>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #28a745;">
+                    <h4 style="margin: 0 0 10px 0; color: #28a745;">🔑 Vos identifiants de connexion :</h4>
+                    <p style="margin: 5px 0;"><strong>Email :</strong> ${identifiants.email}</p>
+                    <p style="margin: 5px 0;"><strong>Mot de passe :</strong> ${identifiants.mot_de_passe}</p>
+                </div>
+                <p><strong>Important :</strong> Notez bien ces identifiants. Vous en aurez besoin pour vous connecter.</p>
+                <p>Vous pouvez maintenant accéder à votre espace client MyXploit.</p>
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="/login" class="btn btn-primary" style="text-decoration: none; display: inline-block; padding: 10px 20px; background: #667eea; color: white; border-radius: 5px;">
+                        🚀 Se connecter maintenant
+                    </a>
+                </div>
+            `;
+        } else {
+            successContent.innerHTML = `
+                <p>Votre inscription a été confirmée avec succès !</p>
+                <p>Vous allez recevoir un email de confirmation avec vos identifiants de connexion.</p>
+                <p>Vous pouvez maintenant vous connecter à votre espace MyXploit.</p>
+            `;
+        }
     } else {
         successTitle.textContent = '📧 Invitation refusée';
         successContent.innerHTML = `
