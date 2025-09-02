@@ -2592,8 +2592,8 @@ def invite_transporteur():
         logger.error(f"Erreur lors de l'invitation du transporteur: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/transports', methods=['GET', 'POST'])
-def api_transports():
+@app.route('/api/transports-v2', methods=['GET', 'POST'])
+def api_transports_new():
     """API pour gérer les transports"""
     if request.method == 'GET':
         try:
@@ -2693,8 +2693,8 @@ def api_transports():
             db.session.rollback()
             return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/transports/<int:transport_id>', methods=['PUT', 'DELETE'])
-def api_transport_individual(transport_id):
+@app.route('/api/transports-v2/<int:transport_id>', methods=['PUT', 'DELETE'])
+def api_transport_individual_new(transport_id):
     """API pour modifier ou supprimer un transport spécifique"""
     if request.method == 'PUT':
         try:

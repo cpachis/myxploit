@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Charger les transports depuis l'API
 function loadTransports() {
-  fetch('/api/transports')
+  fetch('/api/transports-v2')
     .then(response => response.json())
     .then(data => {
       if (data.success) {
@@ -443,7 +443,7 @@ function deleteTransport(id) {
   
   if (!confirm(`Êtes-vous sûr de vouloir supprimer le transport "${transport.ref}" ?`)) return;
   
-  fetch(`/api/transports/${id}`, {
+  fetch(`/api/transports-v2/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'
@@ -484,7 +484,7 @@ document.getElementById('transport-form').addEventListener('submit', function(e)
     description: formData.get('description')
   };
   
-  const url = currentEditId ? `/api/transports/${currentEditId}` : '/api/transports';
+  const url = currentEditId ? `/api/transports-v2/${currentEditId}` : '/api/transports-v2';
   const method = currentEditId ? 'PUT' : 'POST';
   
   // Ajouter l'ID pour la modification
