@@ -772,7 +772,16 @@ async function loadTransports() {
     const response = await fetch('/api/transports');
     if (!response.ok) throw new Error('Erreur lors du chargement');
     
-    transports = await response.json();
+    const data = await response.json();
+    // Gérer les différents formats de réponse
+    if (data.success && data.transports) {
+      transports = data.transports;
+    } else if (Array.isArray(data)) {
+      transports = data;
+    } else {
+      transports = [];
+    }
+    
     displayTransports();
     updateStats();
   } catch (error) {
@@ -784,6 +793,13 @@ async function loadTransports() {
 // Fonction pour afficher les transports
 function displayTransports() {
   const container = document.getElementById('transports-list');
+  
+  // Vérifier que transports est un tableau
+  if (!Array.isArray(transports)) {
+    console.warn('Les transports ne sont pas un tableau:', transports);
+    container.innerHTML = '<div class="no-transports">Erreur de format des données</div>';
+    return;
+  }
   
   if (transports.length === 0) {
     container.innerHTML = '<div class="no-transports">Aucun transport enregistré</div>';
@@ -932,7 +948,17 @@ async function loadClients() {
     const response = await fetch('/api/clients');
     if (!response.ok) throw new Error('Erreur lors du chargement des clients');
     
-    const clients = await response.json();
+    const data = await response.json();
+    // Gérer les différents formats de réponse
+    let clients = [];
+    if (data.success && data.clients) {
+      clients = data.clients;
+    } else if (Array.isArray(data)) {
+      clients = data;
+    } else if (data && Array.isArray(data)) {
+      clients = data;
+    }
+    
     populateClientsDropdown(clients);
   } catch (error) {
     console.error('Erreur lors du chargement des clients:', error);
@@ -945,6 +971,13 @@ function populateClientsDropdown(clients) {
   if (!select) return;
   
   select.innerHTML = '<option value="">Sélectionnez un client</option>';
+  
+  // Vérifier que clients est un tableau
+  if (!Array.isArray(clients)) {
+    console.warn('Les clients ne sont pas un tableau:', clients);
+    return;
+  }
+  
   clients.forEach(client => {
     const option = document.createElement('option');
     option.value = client.id;
@@ -955,6 +988,12 @@ function populateClientsDropdown(clients) {
 
 // Fonction pour mettre à jour les statistiques
 function updateStats() {
+  // Vérifier que transports est un tableau
+  if (!Array.isArray(transports)) {
+    console.warn('Les transports ne sont pas un tableau pour les statistiques:', transports);
+    return;
+  }
+  
   const totalTransports = transports.length;
   const totalEmissions = transports.reduce((sum, t) => sum + (parseFloat(t.emis_kg) || 0), 0);
   const totalDistance = transports.reduce((sum, t) => sum + (parseFloat(t.distance_km) || 0), 0);
@@ -987,6 +1026,17 @@ function populateVehiculeTypes(typesVehicules) {
   if (!select) return;
   
   select.innerHTML = '<option value="">Sélectionnez le type de véhicule</option>';
+  
+  // Vérifier que typesVehicules est un tableau
+  if (!Array.isArray(typesVehicules)) {
+    console.warn('Les types de véhicules ne sont pas un tableau:', typesVehicules);
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Erreur de chargement des véhicules';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
   
   if (typesVehicules.length === 0) {
     const option = document.createElement('option');
@@ -1028,6 +1078,17 @@ function populateEnergies(energies) {
   if (!select) return;
   
   select.innerHTML = '<option value="">Sélectionnez l\'énergie</option>';
+  
+  // Vérifier que energies est un tableau
+  if (!Array.isArray(energies)) {
+    console.warn('Les énergies ne sont pas un tableau:', energies);
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Erreur de chargement des énergies';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
   
   if (energies.length === 0) {
     const option = document.createElement('option');
