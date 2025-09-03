@@ -56,8 +56,60 @@
   <!-- Filtres et recherche -->
   <div class="filters-section">
     <div class="search-container">
-      <input type="text" id="search-input" placeholder="Rechercher un transport..." class="search-input">
+      <input type="text" id="search-input" placeholder="Rechercher un transport..." class="search-input" onkeyup="filterTransports()">
       <span class="search-icon">🔍</span>
+    </div>
+    
+    <!-- Filtres avancés -->
+    <div class="advanced-filters">
+      <div class="filter-group">
+        <label for="filter-reference">Référence</label>
+        <input type="text" id="filter-reference" placeholder="Ex: T001" onkeyup="filterTransports()">
+      </div>
+      
+      <div class="filter-group">
+        <label for="filter-poids-min">Poids (t)</label>
+        <div class="range-inputs">
+          <input type="number" id="filter-poids-min" placeholder="Min" step="0.1" min="0" onchange="filterTransports()">
+          <span>-</span>
+          <input type="number" id="filter-poids-max" placeholder="Max" step="0.1" min="0" onchange="filterTransports()">
+        </div>
+      </div>
+      
+      <div class="filter-group">
+        <label for="filter-energie">Énergie</label>
+        <select id="filter-energie" onchange="filterTransports()">
+          <option value="">Toutes les énergies</option>
+          <!-- Les options seront chargées dynamiquement -->
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="filter-niveau">Niveau de calcul</label>
+        <select id="filter-niveau" onchange="filterTransports()">
+          <option value="">Tous les niveaux</option>
+          <option value="niveau1">Niveau 1</option>
+          <option value="niveau2">Niveau 2</option>
+          <option value="niveau3">Niveau 3</option>
+          <option value="niveau4">Niveau 4</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="filter-type">Type de transport</label>
+        <select id="filter-type" onchange="filterTransports()">
+          <option value="">Tous les types</option>
+          <option value="direct">Direct</option>
+          <option value="indirect">Indirect</option>
+        </select>
+      </div>
+      
+      <div class="filter-actions">
+        <button type="button" class="btn-clear-filters" onclick="clearFilters()">
+          <span class="btn-icon">🗑️</span>
+          Effacer les filtres
+        </button>
+      </div>
     </div>
   </div>
 
@@ -291,11 +343,16 @@
 /* Styles pour les filtres */
 .filters-section {
   margin-bottom: 25px;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
 }
 
 .search-container {
   position: relative;
   max-width: 400px;
+  margin-bottom: 20px;
 }
 
 .search-input {
@@ -320,6 +377,85 @@
   transform: translateY(-50%);
   color: #a0aec0;
   font-size: 1.1rem;
+}
+
+/* Styles pour les filtres avancés */
+.advanced-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.filter-group input,
+.filter-group select {
+  padding: 10px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.range-inputs input {
+  flex: 1;
+  min-width: 0;
+}
+
+.range-inputs span {
+  color: #718096;
+  font-weight: 500;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: end;
+}
+
+.btn-clear-filters {
+  background: #f56565;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-clear-filters:hover {
+  background: #e53e3e;
+  transform: translateY(-1px);
 }
 
 /* Styles pour les boutons */
@@ -616,6 +752,20 @@
     flex-direction: column;
   }
   
+  .advanced-filters {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .filter-actions {
+    justify-content: center;
+  }
+  
+  .btn-clear-filters {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .form-row {
     grid-template-columns: 1fr;
   }
@@ -640,6 +790,30 @@
   
   .stats-section {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters-section {
+    padding: 15px;
+  }
+  
+  .search-container {
+    margin-bottom: 15px;
+  }
+  
+  .advanced-filters {
+    gap: 10px;
+  }
+  
+  .filter-group label {
+    font-size: 0.85rem;
+  }
+  
+  .filter-group input,
+  .filter-group select {
+    padding: 8px 10px;
+    font-size: 0.85rem;
   }
 }
 
@@ -987,17 +1161,19 @@ function populateClientsDropdown(clients) {
 }
 
 // Fonction pour mettre à jour les statistiques
-function updateStats() {
-  // Vérifier que transports est un tableau
-  if (!Array.isArray(transports)) {
-    console.warn('Les transports ne sont pas un tableau pour les statistiques:', transports);
+function updateStats(transportsToUse = null) {
+  const transportsForStats = transportsToUse || transports;
+  
+  // Vérifier que transportsForStats est un tableau
+  if (!Array.isArray(transportsForStats)) {
+    console.warn('Les transports ne sont pas un tableau pour les statistiques:', transportsForStats);
     return;
   }
   
-  const totalTransports = transports.length;
-  const totalEmissions = transports.reduce((sum, t) => sum + (parseFloat(t.emis_kg) || 0), 0);
-  const totalDistance = transports.reduce((sum, t) => sum + (parseFloat(t.distance_km) || 0), 0);
-  const totalPoids = transports.reduce((sum, t) => sum + (parseFloat(t.poids_tonnes) || 0), 0);
+  const totalTransports = transportsForStats.length;
+  const totalEmissions = transportsForStats.reduce((sum, t) => sum + (parseFloat(t.emis_kg) || 0), 0);
+  const totalDistance = transportsForStats.reduce((sum, t) => sum + (parseFloat(t.distance_km) || 0), 0);
+  const totalPoids = transportsForStats.reduce((sum, t) => sum + (parseFloat(t.poids_tonnes) || 0), 0);
   
   document.getElementById('total-transports').textContent = totalTransports;
   document.getElementById('total-emissions').textContent = totalEmissions.toFixed(1);
@@ -1075,6 +1251,8 @@ async function loadEnergies() {
 // Fonction pour peupler le select des énergies
 function populateEnergies(energies) {
   const select = document.getElementById('transport-energie');
+  const filterSelect = document.getElementById('filter-energie');
+  
   if (!select) return;
   
   select.innerHTML = '<option value="">Sélectionnez l\'énergie</option>';
@@ -1105,6 +1283,14 @@ function populateEnergies(energies) {
     option.textContent = `${energie.nom} (${energie.unite})`;
     option.dataset.facteur = energie.facteur || 2.7;
     select.appendChild(option);
+    
+    // Ajouter aussi au filtre des énergies
+    if (filterSelect) {
+      const filterOption = document.createElement('option');
+      filterOption.value = energie.identifiant || energie.id;
+      filterOption.textContent = `${energie.nom} (${energie.unite})`;
+      filterSelect.appendChild(filterOption);
+    }
   });
 }
 
@@ -1141,6 +1327,134 @@ function updateConsumptionFieldState() {
     consoField.style.cursor = '';
     consoLabel.innerHTML = 'Consommation du véhicule (L/100km) <small style="color: #666;">(saisie manuelle)</small>';
   }
+}
+
+// Fonction pour filtrer les transports
+function filterTransports() {
+  // Vérifier que transports est un tableau
+  if (!Array.isArray(transports)) {
+    console.warn('Les transports ne sont pas un tableau pour le filtrage:', transports);
+    return;
+  }
+  
+  const searchTerm = document.getElementById('search-input').value.toLowerCase();
+  const filterReference = document.getElementById('filter-reference').value.toLowerCase();
+  const filterPoidsMin = parseFloat(document.getElementById('filter-poids-min').value) || 0;
+  const filterPoidsMax = parseFloat(document.getElementById('filter-poids-max').value) || Infinity;
+  const filterEnergie = document.getElementById('filter-energie').value;
+  const filterNiveau = document.getElementById('filter-niveau').value;
+  const filterType = document.getElementById('filter-type').value;
+  
+  const filtered = transports.filter(transport => {
+    // Filtre de recherche générale
+    const matchesSearch = !searchTerm || 
+      transport.ref.toLowerCase().includes(searchTerm) ||
+      transport.lieu_collecte.toLowerCase().includes(searchTerm) ||
+      transport.lieu_livraison.toLowerCase().includes(searchTerm) ||
+      (transport.client && transport.client.toLowerCase().includes(searchTerm));
+    
+    // Filtre par référence
+    const matchesReference = !filterReference || 
+      transport.ref.toLowerCase().includes(filterReference);
+    
+    // Filtre par poids
+    const poids = parseFloat(transport.poids_tonnes) || 0;
+    const matchesPoids = poids >= filterPoidsMin && poids <= filterPoidsMax;
+    
+    // Filtre par énergie
+    const matchesEnergie = !filterEnergie || 
+      transport.energie === filterEnergie;
+    
+    // Filtre par niveau de calcul
+    const matchesNiveau = !filterNiveau || 
+      transport.niveau_calcul === filterNiveau;
+    
+    // Filtre par type de transport
+    const matchesType = !filterType || 
+      transport.type_transport === filterType;
+    
+    return matchesSearch && matchesReference && matchesPoids && 
+           matchesEnergie && matchesNiveau && matchesType;
+  });
+  
+  displayFilteredTransports(filtered);
+  updateStats(filtered);
+}
+
+// Fonction pour afficher les transports filtrés
+function displayFilteredTransports(filteredTransports) {
+  const container = document.getElementById('transports-list');
+  
+  if (filteredTransports.length === 0) {
+    container.innerHTML = '<div class="no-transports">Aucun transport ne correspond aux critères de recherche</div>';
+    return;
+  }
+
+  const html = `
+    <div class="transports-compact-container">
+      <div class="transports-header">
+        <div class="header-cell checkbox-header">
+          <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+        </div>
+        <div class="header-cell">Référence</div>
+        <div class="header-cell">Trajet</div>
+        <div class="header-cell">Distance</div>
+        <div class="header-cell">Poids</div>
+        <div class="header-cell">kg CO₂e</div>
+        <div class="header-cell">CO₂e/t.km</div>
+        <div class="header-cell">Énergie</div>
+        <div class="header-cell">Consommation</div>
+        <div class="header-cell">Niveau</div>
+        <div class="header-cell">Actions</div>
+      </div>
+      ${filteredTransports.map(transport => `
+        <div class="transport-row">
+          <div class="transport-cell checkbox-cell">
+            <input type="checkbox" class="transport-checkbox" value="${transport.id}">
+          </div>
+          <div class="transport-cell">
+            <strong>${transport.ref}</strong>
+            <span class="chip ${transport.type_transport === 'direct' ? 'ok' : 'warning'}">
+              ${transport.type_transport === 'direct' ? 'Direct' : 'Indirect'}
+            </span>
+          </div>
+          <div class="transport-cell">${transport.lieu_collecte} → ${transport.lieu_livraison}</div>
+          <div class="transport-cell">${transport.distance_km} km</div>
+          <div class="transport-cell">${transport.poids_tonnes} t</div>
+          <div class="transport-cell emissions-cell">
+            <span class="number">${transport.emis_kg || 0}</span><span class="unit">kg CO₂e</span>
+          </div>
+          <div class="transport-cell emissions-tkm-cell">
+            <span class="number">${transport.emis_tkm || 0}</span><span class="unit">CO₂e/t.km</span>
+          </div>
+          <div class="transport-cell">${transport.energie || 'N/A'}</div>
+          <div class="transport-cell consumption-cell">${transport.conso_vehicule || 'N/A'} L/100km</div>
+          <div class="transport-cell level-cell">${transport.niveau_calcul || 'N/A'}</div>
+          <div class="transport-cell transport-actions">
+            <button class="btn-icon" title="Modifier" onclick="editTransport(${transport.id})">✎</button>
+            <button class="btn-icon" title="Supprimer" onclick="deleteTransport(${transport.id})">🗑</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  
+  container.innerHTML = html;
+}
+
+// Fonction pour effacer tous les filtres
+function clearFilters() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-reference').value = '';
+  document.getElementById('filter-poids-min').value = '';
+  document.getElementById('filter-poids-max').value = '';
+  document.getElementById('filter-energie').value = '';
+  document.getElementById('filter-niveau').value = '';
+  document.getElementById('filter-type').value = '';
+  
+  // Réafficher tous les transports
+  displayTransports();
+  updateStats();
 }
 
 // Gestionnaire de soumission du formulaire
