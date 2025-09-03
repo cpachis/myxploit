@@ -806,7 +806,7 @@ function editTransport(id) {
   
   // Remplir le formulaire
   document.getElementById('transport-ref').value = transport.ref;
-  document.getElementById('transport-date').value = transport.date;
+  document.getElementById('transport-date').value = transport.date_iso || transport.date;
   document.getElementById('transport-lieu-collecte').value = transport.lieu_collecte;
   document.getElementById('transport-lieu-livraison').value = transport.lieu_livraison;
   document.getElementById('transport-poids').value = transport.poids_tonnes;
@@ -835,7 +835,7 @@ function deleteTransport(id) {
   
   if (!confirm(`Êtes-vous sûr de vouloir supprimer le transport "${transport.ref}" ?`)) return;
   
-  fetch(`/api/transports-v2/${id}`, {
+  fetch(`/api/transports/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'
@@ -880,7 +880,7 @@ document.getElementById('transport-form').addEventListener('submit', function(e)
     description: formData.get('description')
   };
   
-  const url = currentEditId ? `/api/transports-v2/${currentEditId}` : '/api/transports-v2';
+  const url = currentEditId ? `/api/transports/${currentEditId}` : '/api/transports';
   const method = currentEditId ? 'PUT' : 'POST';
   
   // Ajouter l'ID pour la modification

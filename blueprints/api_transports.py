@@ -108,6 +108,7 @@ def liste_transports_mise_a_jour():
                 'id': transport.id,
                 'ref': transport.ref,
                 'date': transport.date.strftime('%d/%m/%Y') if transport.date else None,
+                'date_iso': transport.date.strftime('%Y-%m-%d') if transport.date else None,  # Format ISO pour les champs date
                 'lieu_collecte': transport.lieu_collecte,
                 'lieu_livraison': transport.lieu_livraison,
                 'poids_tonnes': transport.poids_tonnes,
@@ -157,6 +158,7 @@ def api_transports():
                         'id': transport.id,
                         'ref': transport.ref,
                         'date': transport.date.strftime('%d/%m/%Y') if transport.date else None,
+                        'date_iso': transport.date.strftime('%Y-%m-%d') if transport.date else None,  # Format ISO pour les champs date
                         'lieu_collecte': transport.lieu_collecte,
                         'lieu_livraison': transport.lieu_livraison,
                         'poids_tonnes': transport.poids_tonnes,
