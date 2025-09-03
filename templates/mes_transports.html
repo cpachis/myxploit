@@ -1644,38 +1644,33 @@ function calculateEmissions() {
   let emissionsKg = 0;
   let emissionsTkm = 0;
   
+  // Pour tous les niveaux : calcul basé sur consommation et facteur d'émission
+  const consommation = parseFloat(consoField.value) || 0;
+  const energieOption = energieSelect.options[energieSelect.selectedIndex];
+  const facteurEmission = parseFloat(energieOption.dataset.facteur) || 2.7;
+  
+  console.log('Consommation:', consommation);
+  console.log('Facteur émission:', facteurEmission);
+  
+  if (consommation > 0) {
+    // Calcul : (distance/100) × consommation × facteur d'émission
+    emissionsKg = (distance / 100) * consommation * facteurEmission;
+    emissionsTkm = emissionsKg / (distance * poids);
+    
+    console.log('Émissions totales (kg):', emissionsKg);
+    console.log('Émissions t.km (kg):', emissionsTkm);
+  }
+  
+  // Pour le niveau 1, utiliser les émissions t.km paramétrées du véhicule
   if (niveauCalcul === 'niveau1') {
-    // Niveau 1 : utiliser les émissions paramétrées du véhicule
     const typeVehiculeSelect = document.getElementById('transport-type-vehicule');
     const selectedOption = typeVehiculeSelect.options[typeVehiculeSelect.selectedIndex];
     const emissionsParametrees = selectedOption.dataset.emissions;
     
-    console.log('Émissions paramétrées (g):', emissionsParametrees);
-    
     if (emissionsParametrees) {
-      // Convertir de grammes en kg et calculer
-      emissionsTkm = parseFloat(emissionsParametrees) / 1000; // Conversion g -> kg
-      emissionsKg = (distance * poids * emissionsTkm) / 1000; // Conversion en kg
-      
-      console.log('Émissions t.km (kg):', emissionsTkm);
-      console.log('Émissions totales (kg):', emissionsKg);
-    }
-  } else {
-    // Niveaux 2, 3, 4 : calcul basé sur consommation et facteur d'émission
-    const consommation = parseFloat(consoField.value) || 0;
-    const energieOption = energieSelect.options[energieSelect.selectedIndex];
-    const facteurEmission = parseFloat(energieOption.dataset.facteur) || 2.7;
-    
-    console.log('Consommation:', consommation);
-    console.log('Facteur émission:', facteurEmission);
-    
-    if (consommation > 0) {
-      // Calcul : (distance/100) × consommation × facteur d'émission
-      emissionsKg = (distance / 100) * consommation * facteurEmission;
-      emissionsTkm = emissionsKg / (distance * poids);
-      
-      console.log('Émissions totales (kg):', emissionsKg);
-      console.log('Émissions t.km (kg):', emissionsTkm);
+      // Utiliser les émissions t.km paramétrées (converties de g en kg)
+      emissionsTkm = parseFloat(emissionsParametrees) / 1000;
+      console.log('Émissions t.km paramétrées (kg):', emissionsTkm);
     }
   }
   
