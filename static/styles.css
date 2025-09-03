@@ -56,46 +56,51 @@
 
 /* --- Largeurs fixes pour l'en-tête (même que les cellules) --- */
 .transports-header .header-cell:nth-child(1) { 
+  min-width: 40px !important; 
+  max-width: 40px !important;
+} /* Checkbox */
+
+.transports-header .header-cell:nth-child(2) { 
   min-width: 100px !important; 
   max-width: 100px !important;
 } /* Référence */
 
-.transports-header .header-cell:nth-child(2) { 
+.transports-header .header-cell:nth-child(3) { 
   min-width: 140px !important; 
   max-width: 140px !important;
 } /* Trajet */
 
-.transports-header .header-cell:nth-child(3) { 
+.transports-header .header-cell:nth-child(4) { 
   min-width: 70px !important; 
   max-width: 70px !important;
 } /* Distance */
 
-.transports-header .header-cell:nth-child(4) { 
+.transports-header .header-cell:nth-child(5) { 
   min-width: 50px !important; 
   max-width: 50px !important;
 } /* Poids */
 
-.transports-header .header-cell:nth-child(5) { 
+.transports-header .header-cell:nth-child(6) { 
   min-width: 120px !important; 
   max-width: 120px !important;
 } /* Émissions */
 
-.transports-header .header-cell:nth-child(6) { 
+.transports-header .header-cell:nth-child(7) { 
   min-width: 110px !important; 
   max-width: 110px !important;
 } /* Énergie */
 
-.transports-header .header-cell:nth-child(7) { 
+.transports-header .header-cell:nth-child(8) { 
   min-width: 100px !important; 
   max-width: 100px !important;
 } /* Consommation */
 
-.transports-header .header-cell:nth-child(8) { 
+.transports-header .header-cell:nth-child(9) { 
   min-width: 80px !important; 
   max-width: 80px !important;
 } /* Niveau */
 
-.transports-header .header-cell:nth-child(9) { 
+.transports-header .header-cell:nth-child(10) { 
   min-width: 60px !important; 
   max-width: 60px !important;
   margin-left: auto !important;
@@ -142,46 +147,51 @@
 
 /* --- Largeurs fixes pour chaque colonne --- */
 .transport-cell:nth-child(1) { 
+  min-width: 40px !important; 
+  max-width: 40px !important;
+} /* Checkbox */
+
+.transport-cell:nth-child(2) { 
   min-width: 100px !important; 
   max-width: 100px !important;
 } /* Référence + chip */
 
-.transport-cell:nth-child(2) { 
+.transport-cell:nth-child(3) { 
   min-width: 140px !important; 
   max-width: 140px !important;
 } /* Trajet */
 
-.transport-cell:nth-child(3) { 
+.transport-cell:nth-child(4) { 
   min-width: 70px !important; 
   max-width: 70px !important;
 } /* Distance */
 
-.transport-cell:nth-child(4) { 
+.transport-cell:nth-child(5) { 
   min-width: 50px !important; 
   max-width: 50px !important;
 } /* Poids */
 
-.transport-cell:nth-child(5) { 
+.transport-cell:nth-child(6) { 
   min-width: 120px !important; 
   max-width: 120px !important;
 } /* Émissions */
 
-.transport-cell:nth-child(6) { 
+.transport-cell:nth-child(7) { 
   min-width: 110px !important; 
   max-width: 110px !important;
 } /* Énergie */
 
-.transport-cell:nth-child(7) { 
+.transport-cell:nth-child(8) { 
   min-width: 100px !important; 
   max-width: 100px !important;
 } /* Consommation */
 
-.transport-cell:nth-child(8) { 
+.transport-cell:nth-child(9) { 
   min-width: 80px !important; 
   max-width: 80px !important;
 } /* Niveau */
 
-.transport-cell:nth-child(9) { 
+.transport-cell:nth-child(10) { 
   min-width: 60px !important; 
   max-width: 60px !important;
   margin-left: auto !important;
@@ -213,11 +223,39 @@
   color: white !important;
 }
 
+/* --- Checkboxes --- */
+.checkbox-header,
+.checkbox-cell {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.checkbox-header input,
+.transport-checkbox {
+  width: 16px !important;
+  height: 16px !important;
+  cursor: pointer !important;
+}
+
+/* --- Alignements spécifiques --- */
+.consumption-cell {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.level-cell {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+}
+
 /* --- Actions --- */
 .transport-actions {
   display: flex !important;
   gap: 0.2rem !important;
-  justify-content: flex-end !important;
+  justify-content: center !important;
 }
 
 .btn-icon {

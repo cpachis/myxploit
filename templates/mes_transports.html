@@ -617,6 +617,9 @@ function displayTransports(transportsToShow) {
     
     return `
       <div class="transport-row" data-id="${transport.id}">
+        <div class="transport-cell checkbox-cell">
+          <input type="checkbox" class="transport-checkbox" value="${transport.id}">
+        </div>
         <div class="transport-cell">
           <strong>${transport.ref}</strong>${typeChip}
         </div>
@@ -635,10 +638,10 @@ function displayTransports(transportsToShow) {
         <div class="transport-cell">
           ${transport.energie || 'N/A'}
         </div>
-        <div class="transport-cell">
+        <div class="transport-cell consumption-cell">
           ${transport.conso_vehicule ? `<span class="number">${transport.conso_vehicule}</span><span class="unit">L/100km</span>` : 'N/A'}
         </div>
-        <div class="transport-cell">
+        <div class="transport-cell level-cell">
           ${niveauText}
         </div>
         <div class="transport-actions">
@@ -652,6 +655,9 @@ function displayTransports(transportsToShow) {
   // Créer l'en-tête des colonnes
   const header = `
     <div class="transports-header">
+      <div class="header-cell checkbox-header">
+        <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+      </div>
       <div class="header-cell">Référence</div>
       <div class="header-cell">Trajet</div>
       <div class="header-cell">Distance</div>
@@ -665,6 +671,16 @@ function displayTransports(transportsToShow) {
   `;
   
   container.innerHTML = `<div class="transports-compact-container">${header}${rows}</div>`;
+}
+
+// Fonction pour sélectionner/désélectionner tous les transports
+function toggleSelectAll() {
+  const selectAllCheckbox = document.getElementById('select-all');
+  const transportCheckboxes = document.querySelectorAll('.transport-checkbox');
+  
+  transportCheckboxes.forEach(checkbox => {
+    checkbox.checked = selectAllCheckbox.checked;
+  });
 }
 
 // Mettre à jour les statistiques
