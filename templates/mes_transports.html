@@ -241,6 +241,24 @@
               </div>
             </div>
             <div class="form-group">
+              <label for="transport-energie">Énergie utilisée</label>
+              <select id="transport-energie" name="energie" onchange="updateEnergieFacteur(); calculateEmissions();">
+                <option value="">Sélectionnez l'énergie</option>
+                <!-- Les options seront chargées dynamiquement -->
+              </select>
+              
+              <!-- Affichage du facteur d'émission -->
+              <div id="energie-params" class="energie-params" style="display: none;">
+                <div class="param-item">
+                  <span class="param-label">Facteur d'émission :</span>
+                  <span id="energie-facteur" class="param-value">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
               <label for="transport-niveau-calcul">Type de calcul</label>
               <select id="transport-niveau-calcul" name="niveau_calcul" onchange="updateConsumptionFieldState(); calculateEmissions();">
                 <option value="">Sélectionnez le niveau de calcul</option>
@@ -258,14 +276,7 @@
                <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
                <small class="form-help" id="conso-help">Consommation spécifique du véhicule utilisé</small>
              </div>
-             <div class="form-group">
-               <label for="transport-energie">Énergie utilisée</label>
-               <select id="transport-energie" name="energie" onchange="calculateEmissions()">
-                 <option value="">Sélectionnez l'énergie</option>
-                 <!-- Les options seront chargées dynamiquement -->
-               </select>
-               <small class="form-help">Type d'énergie du véhicule</small>
-             </div>
+
            </div>
         </div>
 
@@ -838,8 +849,8 @@
   box-shadow: none !important;
 }
 
-/* Styles pour l'affichage des paramètres du véhicule */
-.vehicule-params {
+/* Styles pour l'affichage des paramètres du véhicule et de l'énergie */
+.vehicule-params, .energie-params {
   margin-top: 8px;
   padding: 12px;
   background-color: #f8fafc;
@@ -1181,8 +1192,9 @@ function resetTransportForm() {
   document.getElementById('phases-container').innerHTML = '';
   document.getElementById('phases-section').style.display = 'none';
   
-  // Masquer les paramètres du véhicule
+  // Masquer les paramètres du véhicule et de l'énergie
   document.getElementById('vehicule-params').style.display = 'none';
+  document.getElementById('energie-params').style.display = 'none';
   
   // Mettre à jour l'état des champs selon le niveau de calcul
   updateConsumptionFieldState();
@@ -1319,6 +1331,9 @@ function editTransport(id) {
   
   // Afficher les paramètres du véhicule si un type est sélectionné
   updateVehiculeConsumption();
+  
+  // Afficher le facteur d'émission si une énergie est sélectionnée
+  updateEnergieFacteur();
   
   document.getElementById('transport-modal').style.display = 'block';
 }
@@ -1547,6 +1562,27 @@ function populateEnergies(energies) {
       filterSelect.appendChild(filterOption);
     }
   });
+}
+
+// Fonction pour mettre à jour l'affichage du facteur d'émission
+function updateEnergieFacteur() {
+  const energieSelect = document.getElementById('transport-energie');
+  const energieParams = document.getElementById('energie-params');
+  const energieFacteur = document.getElementById('energie-facteur');
+  
+  if (energieSelect.value) {
+    const selectedOption = energieSelect.options[energieSelect.selectedIndex];
+    const facteur = selectedOption.dataset.facteur;
+    
+    if (facteur) {
+      // Afficher le facteur d'émission
+      energieFacteur.textContent = facteur + ' kg CO₂e/L';
+      energieParams.style.display = 'block';
+    }
+  } else {
+    // Masquer les paramètres si aucune énergie sélectionnée
+    energieParams.style.display = 'none';
+  }
 }
 
 // Fonction pour mettre à jour la consommation automatiquement
