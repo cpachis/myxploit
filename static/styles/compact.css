@@ -3,6 +3,17 @@
    Version simple et épurée (style carte minimaliste)
    ============================================================================ */
 
+/* --- Reset pour forcer l'affichage horizontal --- */
+.transports-compact-container .transport-row,
+.transports-compact-container .transport-row * {
+  box-sizing: border-box;
+}
+
+/* --- Override des styles existants --- */
+.transports-compact-container .transport-card {
+  display: none !important;
+}
+
 /* --- Container principal des transports --- */
 .transports-compact-container {
   display: flex;
@@ -13,16 +24,18 @@
 
 /* --- Carte de transport --- */
 .transport-row {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 0.8rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  background: #fff !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  padding: 0.8rem 1rem !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 1rem !important;
   transition: all 0.2s ease;
   min-width: 0;
   overflow: hidden;
+  width: 100%;
 }
 
 .transport-row:hover {
@@ -32,14 +45,15 @@
 
 /* --- Cellules de transport --- */
 .transport-cell {
-  display: flex;
-  align-items: center;
-  font-size: 0.85rem;
-  color: #333;
-  line-height: 1.2;
-  white-space: nowrap;
-  flex-shrink: 0;
-  min-width: 0;
+  display: flex !important;
+  align-items: center !important;
+  font-size: 0.85rem !important;
+  color: #333 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  min-width: 0 !important;
+  flex-direction: row !important;
 }
 
 .transport-cell strong {
@@ -173,4 +187,34 @@
   color: #666;
   font-size: 0.8em;
   margin-left: 0.25rem;
+}
+
+/* --- Force l'affichage horizontal --- */
+.transports-compact-container .transport-row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+.transports-compact-container .transport-cell {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* --- Debug pour voir la structure --- */
+.transports-compact-container {
+  border: 2px solid red !important;
+}
+
+.transports-compact-container .transport-row {
+  border: 2px solid blue !important;
+}
+
+.transports-compact-container .transport-cell {
+  border: 1px solid green !important;
 }
