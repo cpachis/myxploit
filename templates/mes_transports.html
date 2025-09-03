@@ -605,8 +605,8 @@ function displayTransports(transportsToShow) {
     return;
   }
   
-  // Créer les cartes de transport
-  const cards = transportsToShow.map(transport => {
+  // Créer les lignes de transport
+  const rows = transportsToShow.map(transport => {
     const typeChip = transport.type_transport === 'direct' ? 
       '<span class="chip ok">Direct</span>' : 
       '<span class="chip warning">Indirect</span>';
@@ -615,10 +615,41 @@ function displayTransports(transportsToShow) {
       transport.niveau_calcul.replace('niveau', 'NIVEAU ').toUpperCase() : 
       'N/A';
     
-    return `<div class="transport-row" data-id="${transport.id}"><div class="transport-cell"><strong>${transport.ref}</strong> ${typeChip}</div><div class="transport-cell">${transport.lieu_collecte} → ${transport.lieu_livraison}</div><div class="transport-cell"><span class="number">${transport.distance_km}</span><span class="unit">km</span></div><div class="transport-cell"><span class="number">${transport.poids_tonnes}</span><span class="unit">t</span></div><div class="transport-cell"><span class="number">${transport.emis_kg || 0}</span><span class="unit">kg</span> <span class="unit">(${transport.emis_tkm || 0} kg/t.km)</span></div><div class="transport-cell">${transport.energie || 'N/A'}</div><div class="transport-cell">${transport.conso_vehicule ? `<span class="number">${transport.conso_vehicule}</span><span class="unit">L/100km</span>` : 'N/A'}</div><div class="transport-cell">${niveauText}</div><div class="transport-actions"><button class="btn-icon edit" onclick="editTransport(${transport.id})" title="Modifier">✎</button><button class="btn-icon delete" onclick="deleteTransport(${transport.id})" title="Supprimer">🗑</button></div></div>`;
+    return `
+      <div class="transport-row" data-id="${transport.id}">
+        <div class="transport-cell">
+          <strong>${transport.ref}</strong>${typeChip}
+        </div>
+        <div class="transport-cell">
+          ${transport.lieu_collecte} → ${transport.lieu_livraison}
+        </div>
+        <div class="transport-cell">
+          <span class="number">${transport.distance_km}</span><span class="unit">km</span>
+        </div>
+        <div class="transport-cell">
+          <span class="number">${transport.poids_tonnes}</span><span class="unit">t</span>
+        </div>
+        <div class="transport-cell">
+          <span class="number">${transport.emis_kg || 0}</span><span class="unit">kg</span> <span class="unit">(${transport.emis_tkm || 0} kg/t.km)</span>
+        </div>
+        <div class="transport-cell">
+          ${transport.energie || 'N/A'}
+        </div>
+        <div class="transport-cell">
+          ${transport.conso_vehicule ? `<span class="number">${transport.conso_vehicule}</span><span class="unit">L/100km</span>` : 'N/A'}
+        </div>
+        <div class="transport-cell">
+          ${niveauText}
+        </div>
+        <div class="transport-actions">
+          <button class="btn-icon edit" onclick="editTransport(${transport.id})" title="Modifier">✎</button>
+          <button class="btn-icon delete" onclick="deleteTransport(${transport.id})" title="Supprimer">🗑</button>
+        </div>
+      </div>
+    `;
   }).join('');
   
-  container.innerHTML = `<div class="transports-compact-container">${cards}</div>`;
+  container.innerHTML = `<div class="transports-compact-container">${rows}</div>`;
 }
 
 // Mettre à jour les statistiques
