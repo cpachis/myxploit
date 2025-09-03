@@ -81,26 +81,31 @@
 } /* Poids */
 
 .transports-header .header-cell:nth-child(6) { 
-  min-width: 120px !important; 
-  max-width: 120px !important;
-} /* Émissions */
+  min-width: 90px !important; 
+  max-width: 90px !important;
+} /* kg CO₂e */
 
 .transports-header .header-cell:nth-child(7) { 
+  min-width: 90px !important; 
+  max-width: 90px !important;
+} /* CO₂e/t.km */
+
+.transports-header .header-cell:nth-child(8) { 
   min-width: 110px !important; 
   max-width: 110px !important;
 } /* Énergie */
 
-.transports-header .header-cell:nth-child(8) { 
+.transports-header .header-cell:nth-child(9) { 
   min-width: 100px !important; 
   max-width: 100px !important;
 } /* Consommation */
 
-.transports-header .header-cell:nth-child(9) { 
+.transports-header .header-cell:nth-child(10) { 
   min-width: 80px !important; 
   max-width: 80px !important;
 } /* Niveau */
 
-.transports-header .header-cell:nth-child(10) { 
+.transports-header .header-cell:nth-child(11) { 
   min-width: 60px !important; 
   max-width: 60px !important;
   margin-left: auto !important;
@@ -172,26 +177,31 @@
 } /* Poids */
 
 .transport-cell:nth-child(6) { 
-  min-width: 120px !important; 
-  max-width: 120px !important;
-} /* Émissions */
+  min-width: 90px !important; 
+  max-width: 90px !important;
+} /* kg CO₂e */
 
 .transport-cell:nth-child(7) { 
+  min-width: 90px !important; 
+  max-width: 90px !important;
+} /* CO₂e/t.km */
+
+.transport-cell:nth-child(8) { 
   min-width: 110px !important; 
   max-width: 110px !important;
 } /* Énergie */
 
-.transport-cell:nth-child(8) { 
+.transport-cell:nth-child(9) { 
   min-width: 100px !important; 
   max-width: 100px !important;
 } /* Consommation */
 
-.transport-cell:nth-child(9) { 
+.transport-cell:nth-child(10) { 
   min-width: 80px !important; 
   max-width: 80px !important;
 } /* Niveau */
 
-.transport-cell:nth-child(10) { 
+.transport-cell:nth-child(11) { 
   min-width: 60px !important; 
   max-width: 60px !important;
   margin-left: auto !important;
@@ -239,6 +249,18 @@
 }
 
 /* --- Alignements spécifiques --- */
+.emissions-cell {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.emissions-tkm-cell {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 .consumption-cell {
   display: flex !important;
   align-items: center !important;

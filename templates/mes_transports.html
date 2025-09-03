@@ -632,8 +632,11 @@ function displayTransports(transportsToShow) {
         <div class="transport-cell">
           <span class="number">${transport.poids_tonnes}</span><span class="unit">t</span>
         </div>
-        <div class="transport-cell">
-          <span class="number">${transport.emis_kg || 0}</span><span class="unit">kg</span> <span class="unit">(${transport.emis_tkm || 0} kg/t.km)</span>
+        <div class="transport-cell emissions-cell">
+          <span class="number">${transport.emis_kg || 0}</span><span class="unit">kg CO₂e</span>
+        </div>
+        <div class="transport-cell emissions-tkm-cell">
+          <span class="number">${transport.emis_tkm || 0}</span><span class="unit">CO₂e/t.km</span>
         </div>
         <div class="transport-cell">
           ${transport.energie || 'N/A'}
@@ -662,7 +665,8 @@ function displayTransports(transportsToShow) {
       <div class="header-cell">Trajet</div>
       <div class="header-cell">Distance</div>
       <div class="header-cell">Poids</div>
-      <div class="header-cell">Émissions</div>
+      <div class="header-cell">kg CO₂e</div>
+      <div class="header-cell">CO₂e/t.km</div>
       <div class="header-cell">Énergie</div>
       <div class="header-cell">Consommation</div>
       <div class="header-cell">Niveau</div>
