@@ -144,23 +144,7 @@
       const myxploitSubmenu = document.getElementById('myxploit-submenu');
       const adminSubmenu = document.getElementById('admin-submenu');
       
-      // Marquer l'élément actif selon la page courante
-      function markActiveMenuItem() {
-        const currentPath = window.location.pathname;
-        
-        // Supprimer toutes les classes active
-        document.querySelectorAll('.submenu-item').forEach(item => {
-          item.classList.remove('active');
-        });
-        
-        // Marquer l'élément actif selon le chemin
-        const activeItem = document.querySelector(`.submenu-item[href="${currentPath}"]`);
-        if (activeItem) {
-          activeItem.classList.add('active');
-        }
-      }
-      
-      // Fonction pour masquer toutes les barres de sous-menu
+      // Fonction pour fermer toutes les barres de sous-menu
       function hideAllSubmenus() {
         myxploitSubmenu.style.display = 'none';
         adminSubmenu.style.display = 'none';
@@ -172,44 +156,37 @@
         submenu.style.display = 'block';
       }
       
-      // Marquer l'élément actif au chargement
-      markActiveMenuItem();
-      
-      // Gestion du survol sur MyXploit
+      // Gestion du clic sur MyXploit
       if (myxploitTrigger) {
-        myxploitTrigger.addEventListener('mouseenter', function() {
-          showSubmenu(myxploitSubmenu);
-        });
-        
-        // Garder le sous-menu visible quand on survole la barre
-        myxploitSubmenu.addEventListener('mouseenter', function() {
-          showSubmenu(myxploitSubmenu);
-        });
-        
-        // Masquer quand on quitte la zone
-        myxploitSubmenu.addEventListener('mouseleave', function() {
-          hideAllSubmenus();
+        myxploitTrigger.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Si le menu est déjà ouvert, le fermer
+          if (myxploitSubmenu.style.display === 'block') {
+            hideAllSubmenus();
+          } else {
+            // Fermer tous les autres menus et ouvrir celui-ci
+            showSubmenu(myxploitSubmenu);
+          }
         });
       }
       
-      // Gestion du survol sur Administration
+      // Gestion du clic sur Administration
       if (adminTrigger) {
-        adminTrigger.addEventListener('mouseenter', function() {
-          showSubmenu(adminSubmenu);
-        });
-        
-        // Garder le sous-menu visible quand on survole la barre
-        adminSubmenu.addEventListener('mouseenter', function() {
-          showSubmenu(adminSubmenu);
-        });
-        
-        // Masquer quand on quitte la zone
-        adminSubmenu.addEventListener('mouseleave', function() {
-          hideAllSubmenus();
+        adminTrigger.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Si le menu est déjà ouvert, le fermer
+          if (adminSubmenu.style.display === 'block') {
+            hideAllSubmenus();
+          } else {
+            // Fermer tous les autres menus et ouvrir celui-ci
+            showSubmenu(adminSubmenu);
+          }
         });
       }
       
-      // Masquer les sous-menus quand on clique ailleurs
+      // Fermer toutes les barres de sous-menu quand on clique ailleurs
       document.addEventListener('click', function(e) {
         if (!myxploitTrigger.contains(e.target) && 
             !adminTrigger.contains(e.target) && 
@@ -219,55 +196,9 @@
         }
       });
       
-      // Masquer les sous-menus au scroll
+      // Fermer toutes les barres de sous-menu au scroll
       window.addEventListener('scroll', function() {
         hideAllSubmenus();
-      });
-      
-      // Marquer l'élément actif lors des changements de page (pour SPA)
-      window.addEventListener('popstate', function() {
-        markActiveMenuItem();
-      });
-      
-      // Gestion des menus déroulants CSS
-      const dropdowns = document.querySelectorAll('.dropdown');
-      
-      // Fonction pour fermer tous les menus
-      function closeAllDropdowns() {
-        dropdowns.forEach(dropdown => {
-          const menu = dropdown.querySelector('.dropdown-menu');
-          if (menu) {
-            menu.classList.remove('open');
-          }
-        });
-      }
-      
-      dropdowns.forEach(dropdown => {
-        const trigger = dropdown.querySelector('a');
-        const menu = dropdown.querySelector('.dropdown-menu');
-        
-        if (trigger && menu) {
-          // Clic sur le trigger pour ouvrir/fermer
-          trigger.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Si le menu est déjà ouvert, le fermer
-            if (menu.classList.contains('open')) {
-              menu.classList.remove('open');
-            } else {
-              // Fermer tous les autres menus et ouvrir celui-ci
-              closeAllDropdowns();
-              menu.classList.add('open');
-            }
-          });
-        }
-      });
-      
-      // Fermer tous les menus quand on clique ailleurs
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('.dropdown')) {
-          closeAllDropdowns();
-        }
       });
     });
   </script>
