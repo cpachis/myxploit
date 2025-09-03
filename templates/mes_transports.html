@@ -330,6 +330,8 @@ function populateVehiculeTypes() {
     option.value = type.value;
     option.textContent = type.label; // Utiliser seulement le nom du véhicule
     option.dataset.consumption = type.consommation || ''; // Stocker la consommation
+    option.dataset.emissions = type.emissions || ''; // Stocker les émissions paramétrées
+    option.dataset.chargeUtile = type.charge_utile || ''; // Stocker la charge utile
     select.appendChild(option);
   });
 }
@@ -762,10 +764,11 @@ function calculateEmissions(showNotification = false) {
       return;
     }
     
-    // Récupérer la consommation du véhicule sélectionné
+    // Récupérer les données du véhicule sélectionné
     const vehiculeSelect = document.getElementById('transport-type-vehicule');
     const selectedOption = vehiculeSelect.options[vehiculeSelect.selectedIndex];
     const consommationVehicule = parseFloat(selectedOption.dataset.consumption) || 0;
+    const emissionsParametrees = parseFloat(selectedOption.dataset.emissions) || 0; // g CO2e/km
     
     if (!consommationVehicule) {
       if (showNotification) {
@@ -780,16 +783,27 @@ function calculateEmissions(showNotification = false) {
     const facteurEmission = parseFloat(selectedEnergieOption.dataset.facteur) || 2.7;
     
     // Debug: afficher les valeurs de calcul
-    console.log('🔍 Debug calcul émissions:');
+    console.log('🔍 Debug calcul émissions (Niveau 1):');
     console.log(`  - Distance: ${distance} km`);
     console.log(`  - Consommation véhicule: ${consommationVehicule} L/100km`);
     console.log(`  - Facteur émission: ${facteurEmission} kg CO2e/L`);
+    console.log(`  - Émissions paramétrées: ${emissionsParametrees} g CO2e/km`);
     console.log(`  - Énergie sélectionnée: ${selectedEnergieOption.value} - ${selectedEnergieOption.textContent}`);
     
     // Calcul : distance × consommation × facteur d'émission
     const consommationTotale = (distance / 100) * consommationVehicule; // L
     emisKg = consommationTotale * facteurEmission; // kg CO2e
-    emisTkm = (emisKg / (poids * distance)); // kg CO2e/t.km
+    
+    // Pour le niveau 1, utiliser les émissions paramétrées du véhicule
+    if (emissionsParametrees > 0) {
+      // Convertir g CO2e/km en kg CO2e/t.km
+      emisTkm = (emissionsParametrees / 1000) / poids; // kg CO2e/t.km
+      console.log(`  - Émissions t.km paramétrées: ${emisTkm} kg CO2e/t.km`);
+    } else {
+      // Fallback: calcul classique si pas d'émissions paramétrées
+      emisTkm = (emisKg / (poids * distance)); // kg CO2e/t.km
+      console.log(`  - Émissions t.km calculées: ${emisTkm} kg CO2e/t.km`);
+    }
     
     console.log(`  - Consommation totale: ${consommationTotale} L`);
     console.log(`  - Émissions calculées: ${emisKg} kg CO2e`);
