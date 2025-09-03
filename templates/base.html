@@ -228,6 +228,52 @@
       window.addEventListener('popstate', function() {
         markActiveMenuItem();
       });
+      
+      // Gestion des menus déroulants CSS
+      const dropdowns = document.querySelectorAll('.dropdown');
+      
+      dropdowns.forEach(dropdown => {
+        const trigger = dropdown.querySelector('a');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        
+        if (trigger && menu) {
+          // Fermer le menu au clic sur le trigger
+          trigger.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Fermer tous les autres menus
+            dropdowns.forEach(otherDropdown => {
+              if (otherDropdown !== dropdown) {
+                const otherMenu = otherDropdown.querySelector('.dropdown-menu');
+                if (otherMenu) {
+                  otherMenu.style.display = 'none';
+                  otherMenu.style.opacity = '0';
+                  otherMenu.style.visibility = 'hidden';
+                }
+              }
+            });
+            
+            // Basculer le menu actuel
+            if (menu.style.display === 'block') {
+              menu.style.display = 'none';
+              menu.style.opacity = '0';
+              menu.style.visibility = 'hidden';
+            } else {
+              menu.style.display = 'block';
+              menu.style.opacity = '1';
+              menu.style.visibility = 'visible';
+            }
+          });
+          
+          // Fermer le menu quand on clique ailleurs
+          document.addEventListener('click', function(e) {
+            if (!dropdown.contains(e.target)) {
+              menu.style.display = 'none';
+              menu.style.opacity = '0';
+              menu.style.visibility = 'hidden';
+            }
+          });
+        }
+      });
     });
   </script>
 

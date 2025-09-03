@@ -91,11 +91,12 @@ body {
   transition: all 0.3s ease;
 }
 
+/* Désactiver le hover par défaut - géré par JavaScript */
 .dropdown:hover .dropdown-menu {
-  display: block;
+  /* display: block;
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0); */
 }
 
 .dropdown-menu li {
