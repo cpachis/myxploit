@@ -649,7 +649,22 @@ function displayTransports(transportsToShow) {
     `;
   }).join('');
   
-  container.innerHTML = `<div class="transports-compact-container">${rows}</div>`;
+  // Créer l'en-tête des colonnes
+  const header = `
+    <div class="transports-header">
+      <div class="header-cell">Référence</div>
+      <div class="header-cell">Trajet</div>
+      <div class="header-cell">Distance</div>
+      <div class="header-cell">Poids</div>
+      <div class="header-cell">Émissions</div>
+      <div class="header-cell">Énergie</div>
+      <div class="header-cell">Consommation</div>
+      <div class="header-cell">Niveau</div>
+      <div class="header-cell">Actions</div>
+    </div>
+  `;
+  
+  container.innerHTML = `<div class="transports-compact-container">${header}${rows}</div>`;
 }
 
 // Mettre à jour les statistiques
