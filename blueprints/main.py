@@ -18,8 +18,7 @@ def index():
         return render_template('index.html')
     except Exception as e:
         logger.error(f"Erreur lors du chargement de la page d'accueil: {str(e)}")
-        flash('Erreur lors du chargement de la page', 'error')
-        return redirect(url_for('main.index'))
+        return render_template('error.html', error=str(e)), 500
 
 @main_bp.route('/homepage')
 def homepage():
@@ -28,8 +27,7 @@ def homepage():
         return render_template('homepage.html')
     except Exception as e:
         logger.error(f"Erreur lors du chargement de la homepage: {str(e)}")
-        flash('Erreur lors du chargement de la page', 'error')
-        return redirect(url_for('main.index'))
+        return render_template('error.html', error=str(e)), 500
 
 @main_bp.route('/myxploit')
 def myxploit():
@@ -38,8 +36,7 @@ def myxploit():
         return render_template('myxploit.html')
     except Exception as e:
         logger.error(f"Erreur lors du chargement de la page MyXploit: {str(e)}")
-        flash('Erreur lors du chargement de la page', 'error')
-        return redirect(url_for('main.myxploit'))
+        return render_template('error.html', error=str(e)), 500
 
 @main_bp.route('/administration')
 def administration():
@@ -48,8 +45,7 @@ def administration():
         return render_template('administration.html')
     except Exception as e:
         logger.error(f"Erreur lors du chargement de la page administration: {str(e)}")
-        flash('Erreur lors du chargement de la page', 'error')
-        return redirect(url_for('main.administration'))
+        return render_template('error.html', error=str(e)), 500
 
 @main_bp.route('/dashboard')
 def dashboard():
@@ -58,8 +54,7 @@ def dashboard():
         return render_template('dashboard.html')
     except Exception as e:
         logger.error(f"Erreur lors du chargement du dashboard: {str(e)}")
-        flash('Erreur lors du chargement de la page', 'error')
-        return redirect(url_for('main.dashboard'))
+        return render_template('error.html', error=str(e)), 500
 
 @main_bp.route('/logout')
 def logout():
