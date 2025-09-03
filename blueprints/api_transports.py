@@ -706,5 +706,132 @@ def lieux_autocomplete():
             'error': f'Erreur lors de l\'autocomplétion: {str(e)}'
         })
 
+@api_transports_bp.route('/transports/<int:transport_id>', methods=['PUT', 'DELETE'])
+def api_transport_by_id(transport_id):
+    """API pour modifier ou supprimer un transport spécifique"""
+    try:
+        # Import des modèles depuis app.py
+        from app import Transport, db
+        
+        if request.method == 'PUT':
+            """Modifier un transport existant"""
+            try:
+                data = request.get_json()
+                logger.info(f"📥 Données reçues pour modification transport {transport_id}: {data}")
+                
+                if not data:
+                    return jsonify({'success': False, 'error': 'Données JSON manquantes'}), 400
+                
+                transport = Transport.query.get(transport_id)
+                if not transport:
+                    return jsonify({'success': False, 'error': 'Transport non trouvé'}), 404
+                
+                # Mettre à jour les champs
+                if 'ref' in data:
+                    transport.ref = data['ref']
+                if 'date' in data:
+                    transport.date = datetime.strptime(data['date'], '%Y-%m-%d') if data['date'] else None
+                if 'lieu_collecte' in data:
+                    transport.lieu_collecte = data['lieu_collecte']
+                if 'lieu_livraison' in data:
+                    transport.lieu_livraison = data['lieu_livraison']
+                if 'poids_tonnes' in data:
+                    transport.poids_tonnes = float(data['poids_tonnes'])
+                if 'distance_km' in data:
+                    transport.distance_km = float(data['distance_km'])
+                if 'type_transport' in data:
+                    transport.type_transport = data['type_transport']
+                if 'niveau_calcul' in data:
+                    transport.niveau_calcul = data['niveau_calcul']
+                if 'type_vehicule' in data:
+                    transport.type_vehicule = data['type_vehicule']
+                if 'energie' in data:
+                    transport.energie = data['energie']
+                if 'conso_vehicule' in data:
+                    transport.conso_vehicule = float(data['conso_vehicule']) if data['conso_vehicule'] else None
+                if 'client' in data:
+                    transport.client = data['client']
+                if 'transporteur' in data:
+                    transport.transporteur = data['transporteur']
+                if 'description' in data:
+                    transport.description = data['description']
+                if 'emis_kg' in data:
+                    transport.emis_kg = float(data['emis_kg']) if data['emis_kg'] else None
+                if 'emis_tkm' in data:
+                    transport.emis_tkm = float(data['emis_tkm']) if data['emis_tkm'] else None
+                
+                # Mettre à jour la date de modification
+                transport.updated_at = datetime.now()
+                
+                db.session.commit()
+                
+                logger.info(f"✅ Transport {transport_id} modifié avec succès")
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Transport modifié avec succès',
+                    'transport': {
+                        'id': transport.id,
+                        'ref': transport.ref,
+                        'date': transport.date.strftime('%d/%m/%Y') if transport.date else None,
+                        'date_iso': transport.date.strftime('%Y-%m-%d') if transport.date else None,
+                        'lieu_collecte': transport.lieu_collecte,
+                        'lieu_livraison': transport.lieu_livraison,
+                        'poids_tonnes': transport.poids_tonnes,
+                        'distance_km': transport.distance_km,
+                        'emis_kg': transport.emis_kg,
+                        'emis_tkm': transport.emis_tkm,
+                        'type_transport': transport.type_transport,
+                        'niveau_calcul': transport.niveau_calcul,
+                        'type_vehicule': transport.type_vehicule,
+                        'energie': transport.energie,
+                        'conso_vehicule': transport.conso_vehicule,
+                        'client': transport.client,
+                        'transporteur': transport.transporteur,
+                        'description': transport.description
+                    }
+                })
+                
+            except Exception as e:
+                logger.error(f"Erreur modification transport {transport_id}: {str(e)}")
+                db.session.rollback()
+                return jsonify({
+                    'success': False,
+                    'error': f'Erreur lors de la modification: {str(e)}'
+                }), 500
+        
+        elif request.method == 'DELETE':
+            """Supprimer un transport"""
+            try:
+                transport = Transport.query.get(transport_id)
+                if not transport:
+                    return jsonify({'success': False, 'error': 'Transport non trouvé'}), 404
+                
+                ref_transport = transport.ref
+                db.session.delete(transport)
+                db.session.commit()
+                
+                logger.info(f"✅ Transport {transport_id} ({ref_transport}) supprimé avec succès")
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Transport "{ref_transport}" supprimé avec succès'
+                })
+                
+            except Exception as e:
+                logger.error(f"Erreur suppression transport {transport_id}: {str(e)}")
+                db.session.rollback()
+                return jsonify({
+                    'success': False,
+                    'error': f'Erreur lors de la suppression: {str(e)}'
+                }), 500
+        
+    except Exception as e:
+        logger.error(f"Erreur API transport {transport_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 
 
