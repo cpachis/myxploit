@@ -238,6 +238,10 @@
                   <span class="param-label">CO₂e/t.km :</span>
                   <span id="vehicule-emissions-tkm" class="param-value">-</span>
                 </div>
+                <div class="param-item">
+                  <span class="param-label">Charge utile :</span>
+                  <span id="vehicule-charge-utile" class="param-value">-</span>
+                </div>
               </div>
             </div>
             <div class="form-group">
@@ -1499,6 +1503,7 @@ function populateVehiculeTypes(typesVehicules) {
     option.textContent = vehicule.label || vehicule.nom;
     option.dataset.conso = vehicule.consommation || 0;
     option.dataset.emissions = vehicule.emissions || 0;
+    option.dataset.chargeUtile = vehicule.charge_utile || 0;
     select.appendChild(option);
   });
 }
@@ -1598,6 +1603,7 @@ function updateVehiculeConsumption() {
     const selectedOption = select.options[select.selectedIndex];
     const conso = selectedOption.dataset.conso;
     const emissions = selectedOption.dataset.emissions;
+    const chargeUtile = selectedOption.dataset.chargeutile;
     
     if (conso) {
       // Mettre à jour le champ de consommation
@@ -1609,6 +1615,10 @@ function updateVehiculeConsumption() {
       // Convertir les émissions de grammes en kg et afficher
       const emissionsKg = emissions ? (parseFloat(emissions) / 1000).toFixed(3) : '-';
       vehiculeEmissionsTkm.textContent = emissionsKg + ' kg CO₂e/t.km';
+      
+      // Afficher la charge utile
+      const vehiculeChargeUtile = document.getElementById('vehicule-charge-utile');
+      vehiculeChargeUtile.textContent = chargeUtile ? chargeUtile + ' t' : '-';
       
       vehiculeParams.style.display = 'block';
       
