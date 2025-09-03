@@ -336,11 +336,13 @@
   display: flex !important;
   gap: 1rem !important;
   margin-bottom: 1rem !important;
+  flex-wrap: wrap !important;
 }
 
 .transport-modal .form-group {
   flex: 1 !important;
-  min-width: 0 !important;
+  min-width: 200px !important;
+  margin-bottom: 0.5rem !important;
 }
 
 .transport-modal .form-group label {
@@ -348,6 +350,7 @@
   color: #333 !important;
   margin-bottom: 0.5rem !important;
   display: block !important;
+  font-size: 0.9rem !important;
 }
 
 .transport-modal .form-group input,
@@ -357,11 +360,13 @@
   border: 1px solid #ddd !important;
   border-radius: 4px !important;
   font-size: 0.9rem !important;
+  box-sizing: border-box !important;
 }
 
 .transport-modal .form-group input[readonly] {
   background-color: #f8f9fa !important;
   color: #666 !important;
+  cursor: not-allowed !important;
 }
 
 .transport-modal .form-help {
@@ -369,6 +374,7 @@
   color: #666 !important;
   margin-top: 0.25rem !important;
   display: block !important;
+  font-style: italic !important;
 }
 
 .transport-modal .btn-calculate {
@@ -383,10 +389,22 @@
   align-items: center !important;
   gap: 0.5rem !important;
   transition: background-color 0.2s ease !important;
+  margin-top: 1rem !important;
 }
 
 .transport-modal .btn-calculate:hover {
   background: #45a049 !important;
+}
+
+/* Responsive pour le modal */
+@media (max-width: 768px) {
+  .transport-modal .form-row {
+    flex-direction: column !important;
+  }
+  
+  .transport-modal .form-group {
+    min-width: 100% !important;
+  }
 }
 
 /* Corps de page */
