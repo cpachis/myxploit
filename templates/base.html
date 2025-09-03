@@ -232,46 +232,41 @@
       // Gestion des menus déroulants CSS
       const dropdowns = document.querySelectorAll('.dropdown');
       
+      // Fonction pour fermer tous les menus
+      function closeAllDropdowns() {
+        dropdowns.forEach(dropdown => {
+          const menu = dropdown.querySelector('.dropdown-menu');
+          if (menu) {
+            menu.classList.remove('open');
+          }
+        });
+      }
+      
       dropdowns.forEach(dropdown => {
         const trigger = dropdown.querySelector('a');
         const menu = dropdown.querySelector('.dropdown-menu');
         
         if (trigger && menu) {
-          // Fermer le menu au clic sur le trigger
+          // Clic sur le trigger pour ouvrir/fermer
           trigger.addEventListener('click', function(e) {
             e.preventDefault();
-            // Fermer tous les autres menus
-            dropdowns.forEach(otherDropdown => {
-              if (otherDropdown !== dropdown) {
-                const otherMenu = otherDropdown.querySelector('.dropdown-menu');
-                if (otherMenu) {
-                  otherMenu.style.display = 'none';
-                  otherMenu.style.opacity = '0';
-                  otherMenu.style.visibility = 'hidden';
-                }
-              }
-            });
             
-            // Basculer le menu actuel
-            if (menu.style.display === 'block') {
-              menu.style.display = 'none';
-              menu.style.opacity = '0';
-              menu.style.visibility = 'hidden';
+            // Si le menu est déjà ouvert, le fermer
+            if (menu.classList.contains('open')) {
+              menu.classList.remove('open');
             } else {
-              menu.style.display = 'block';
-              menu.style.opacity = '1';
-              menu.style.visibility = 'visible';
+              // Fermer tous les autres menus et ouvrir celui-ci
+              closeAllDropdowns();
+              menu.classList.add('open');
             }
           });
-          
-          // Fermer le menu quand on clique ailleurs
-          document.addEventListener('click', function(e) {
-            if (!dropdown.contains(e.target)) {
-              menu.style.display = 'none';
-              menu.style.opacity = '0';
-              menu.style.visibility = 'hidden';
-            }
-          });
+        }
+      });
+      
+      // Fermer tous les menus quand on clique ailleurs
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+          closeAllDropdowns();
         }
       });
     });
