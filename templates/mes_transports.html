@@ -227,6 +227,18 @@
                 <option value="">Sélectionnez le type de véhicule</option>
                 <!-- Les options seront chargées dynamiquement -->
               </select>
+              
+              <!-- Affichage des paramètres du véhicule -->
+              <div id="vehicule-params" class="vehicule-params" style="display: none;">
+                <div class="param-item">
+                  <span class="param-label">Consommation :</span>
+                  <span id="vehicule-conso" class="param-value">-</span>
+                </div>
+                <div class="param-item">
+                  <span class="param-label">CO₂e/t.km :</span>
+                  <span id="vehicule-emissions-tkm" class="param-value">-</span>
+                </div>
+              </div>
             </div>
             <div class="form-group">
               <label for="transport-niveau-calcul">Type de calcul</label>
@@ -826,6 +838,41 @@
   box-shadow: none !important;
 }
 
+/* Styles pour l'affichage des paramètres du véhicule */
+.vehicule-params {
+  margin-top: 8px;
+  padding: 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.param-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.param-item:last-child {
+  margin-bottom: 0;
+}
+
+.param-label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.param-value {
+  font-weight: 600;
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
 .form-group textarea {
   resize: vertical;
   min-height: 80px;
@@ -1134,6 +1181,9 @@ function resetTransportForm() {
   document.getElementById('phases-container').innerHTML = '';
   document.getElementById('phases-section').style.display = 'none';
   
+  // Masquer les paramètres du véhicule
+  document.getElementById('vehicule-params').style.display = 'none';
+  
   // Mettre à jour l'état des champs selon le niveau de calcul
   updateConsumptionFieldState();
   calculateEmissions();
@@ -1266,6 +1316,9 @@ function editTransport(id) {
   
   // Mettre à jour l'état des champs selon le niveau de calcul
   updateConsumptionFieldState();
+  
+  // Afficher les paramètres du véhicule si un type est sélectionné
+  updateVehiculeConsumption();
   
   document.getElementById('transport-modal').style.display = 'block';
 }
@@ -1501,14 +1554,29 @@ function updateVehiculeConsumption() {
   const select = document.getElementById('transport-type-vehicule');
   const consoField = document.getElementById('transport-conso-vehicule');
   const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
+  const vehiculeParams = document.getElementById('vehicule-params');
+  const vehiculeConso = document.getElementById('vehicule-conso');
+  const vehiculeEmissionsTkm = document.getElementById('vehicule-emissions-tkm');
   
-  if (select.value && niveauCalcul === 'niveau1') {
+  if (select.value) {
     const selectedOption = select.options[select.selectedIndex];
     const conso = selectedOption.dataset.conso;
+    const emissions = selectedOption.dataset.emissions;
+    
     if (conso) {
+      // Mettre à jour le champ de consommation
       consoField.value = conso;
+      
+      // Afficher les paramètres du véhicule
+      vehiculeConso.textContent = conso + ' L/100km';
+      vehiculeEmissionsTkm.textContent = emissions || '-';
+      vehiculeParams.style.display = 'block';
+      
       calculateEmissions();
     }
+  } else {
+    // Masquer les paramètres si aucun véhicule sélectionné
+    vehiculeParams.style.display = 'none';
   }
 }
 
