@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Charger les transports depuis l'API
 function loadTransports() {
-  fetch('/api/transports-v2')
+  fetch('/api/transports')
     .then(response => response.json())
     .then(data => {
       if (data.success) {
