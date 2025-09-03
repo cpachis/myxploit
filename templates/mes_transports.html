@@ -18,8 +18,15 @@
         <span class="btn-icon">➕</span>
         Nouveau Transport
       </button>
+      <button class="btn-secondary" onclick="showNewTourneeModal()">
+        <span class="btn-icon">🗺️</span>
+        Nouvelle Tournée
+      </button>
     </div>
   </div>
+
+  <!-- Espacement -->
+  <div class="header-spacing"></div>
 
   <!-- Statistiques -->
   <div class="stats-section">
@@ -458,7 +465,18 @@
   transform: translateY(-1px);
 }
 
+/* Espacement entre header et statistiques */
+.header-spacing {
+  height: 30px;
+}
+
 /* Styles pour les boutons */
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .btn-primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -478,6 +496,27 @@
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
 }
 
 .btn-icon {
@@ -748,6 +787,18 @@
     text-align: center;
   }
   
+  .header-actions {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .filters-section {
     flex-direction: column;
   }
@@ -913,6 +964,12 @@ function showAddTransportModal() {
 
 function closeAddChoiceModal() {
   document.getElementById('add-choice-modal').style.display = 'none';
+}
+
+function showNewTourneeModal() {
+  // Pour l'instant, afficher une alerte
+  // TODO: Implémenter la fonctionnalité de tournée
+  alert('🚧 Fonctionnalité "Nouvelle Tournée" en cours de développement !\n\nCette fonctionnalité permettra de :\n• Planifier des tournées avec plusieurs arrêts\n• Optimiser les trajets\n• Calculer les émissions totales de la tournée\n• Gérer les livraisons multiples');
 }
 
 function openTransportModal() {
