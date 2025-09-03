@@ -1,61 +1,31 @@
 /* ============================================================================
    STYLES COMPACTS POUR L'AFFICHAGE DES TRANSPORTS
-   Version professionnelle en ligne (type tableau stylisé)
+   Version simple et épurée (style carte minimaliste)
    ============================================================================ */
 
 /* --- Container principal des transports --- */
 .transports-compact-container {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   margin-top: 1rem;
 }
 
-/* --- En-tête de la grille --- */
-.transports-header {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr 0.8fr 0.6fr 1.2fr 1fr 0.8fr 0.8fr 1fr;
-  gap: 1rem;
+/* --- Carte de transport --- */
+.transport-row {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.transports-header .header-cell {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.transports-header .header-icon {
-  font-size: 1rem;
-}
-
-/* --- Ligne de transport --- */
-.transport-row {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr 0.8fr 0.6fr 1.2fr 1fr 0.8fr 0.8fr 1fr;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #f0f0f0;
+  gap: 1.5rem;
   transition: all 0.2s ease;
-  align-items: center;
-  min-height: 60px;
 }
 
 .transport-row:hover {
-  background: #f8f9ff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.transport-row:last-child {
-  border-bottom: none;
+  border-color: #d0d0d0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 /* --- Cellules de transport --- */
@@ -65,210 +35,103 @@
   font-size: 0.9rem;
   color: #333;
   line-height: 1.4;
+  white-space: nowrap;
 }
 
 .transport-cell strong {
-  color: #2c3e50;
+  color: #333;
   font-weight: 600;
+  font-size: 1rem;
 }
 
 /* --- Chips de statut --- */
 .chip {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   margin-left: 0.5rem;
 }
 
 .chip.ok {
-  background: #e8f5e8;
-  color: #2d5a2d;
-  border: 1px solid #c3e6c3;
+  background: #4caf50;
+  color: white;
 }
 
 .chip.warning {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
+  background: #ff9800;
+  color: white;
 }
 
 .chip.error {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background: #f44336;
+  color: white;
 }
 
 /* --- Actions --- */
 .transport-actions {
   display: flex;
   gap: 0.5rem;
-  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: none;
-  border-radius: 6px;
-  background: #f8f9fa;
-  color: #6c757d;
+  border-radius: 4px;
+  background: #f5f5f5;
+  color: #666;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .btn-icon:hover {
-  background: #e9ecef;
-  color: #495057;
-  transform: translateY(-1px);
-}
-
-.btn-icon.edit:hover {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-
-.btn-icon.delete:hover {
-  background: #f8d7da;
-  color: #721c24;
+  background: #e0e0e0;
+  color: #333;
 }
 
 /* --- Responsive --- */
-@media (max-width: 1200px) {
-  .transports-header,
+@media (max-width: 768px) {
   .transport-row {
-    grid-template-columns: 1fr 1.2fr 0.7fr 0.5fr 1fr 0.8fr 0.7fr 0.7fr 0.8fr;
-    gap: 0.8rem;
+    flex-wrap: wrap;
+    gap: 1rem;
     padding: 0.8rem 1rem;
   }
   
   .transport-cell {
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .transports-compact-container {
-    overflow-x: auto;
-  }
-  
-  .transports-header,
-  .transport-row {
-    grid-template-columns: 1fr 1.5fr 0.8fr 0.6fr 1.2fr 1fr 0.8fr 0.8fr 1fr;
-    min-width: 800px;
-  }
-  
-  .transports-header {
     font-size: 0.8rem;
   }
   
-  .transport-cell {
-    font-size: 0.8rem;
+  .transport-cell strong {
+    font-size: 0.9rem;
   }
   
   .chip {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+  }
+  
+  .btn-icon {
+    width: 24px;
+    height: 24px;
     font-size: 0.7rem;
-    padding: 0.2rem 0.6rem;
   }
-}
-
-/* --- États spéciaux --- */
-.transport-row.highlight {
-  background: linear-gradient(90deg, #e3f2fd 0%, #f8f9ff 100%);
-  border-left: 4px solid #2196f3;
-}
-
-.transport-row.new {
-  background: linear-gradient(90deg, #e8f5e8 0%, #f8f9ff 100%);
-  border-left: 4px solid #4caf50;
-}
-
-/* --- Animations --- */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.transport-row {
-  animation: slideIn 0.3s ease-out;
-}
-
-/* --- Indicateurs de statut --- */
-.status-indicator {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 0.5rem;
-}
-
-.status-indicator.active {
-  background: #4caf50;
-}
-
-.status-indicator.pending {
-  background: #ff9800;
-}
-
-.status-indicator.inactive {
-  background: #f44336;
 }
 
 /* --- Amélioration des données numériques --- */
 .transport-cell .number {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-weight: 500;
 }
 
 .transport-cell .unit {
-  color: #6c757d;
+  color: #666;
   font-size: 0.8em;
   margin-left: 0.25rem;
-}
-
-/* --- Effet de survol amélioré --- */
-.transport-row:hover .transport-cell {
-  color: #2c3e50;
-}
-
-.transport-row:hover .chip {
-  transform: scale(1.05);
-}
-
-/* --- Mode sombre (optionnel) --- */
-@media (prefers-color-scheme: dark) {
-  .transports-compact-container {
-    background: #2c3e50;
-    color: #ecf0f1;
-  }
-  
-  .transport-row {
-    border-bottom-color: #34495e;
-  }
-  
-  .transport-row:hover {
-    background: #34495e;
-  }
-  
-  .transport-cell {
-    color: #ecf0f1;
-  }
-  
-  .transport-cell strong {
-    color: #3498db;
-  }
 }

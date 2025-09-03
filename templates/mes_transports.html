@@ -605,51 +605,8 @@ function displayTransports(transportsToShow) {
     return;
   }
   
-  // Créer l'en-tête de la grille
-  const header = `
-    <div class="transports-compact-container">
-      <div class="transports-header">
-        <div class="header-cell">
-          <span class="header-icon">📋</span>
-          Référence
-        </div>
-        <div class="header-cell">
-          <span class="header-icon">📍</span>
-          Trajet
-        </div>
-        <div class="header-cell">
-          <span class="header-icon">📏</span>
-          Distance
-        </div>
-        <div class="header-cell">
-          <span class="header-icon">⚖️</span>
-          Poids
-        </div>
-        <div class="header-cell">
-          <span class="header-icon">🌱</span>
-          Émissions
-        </div>
-        <div class="header-cell">
-          <span class="header-icon">⛽</span>
-          Énergie
-        </div>
-        <div class="header-cell">
-          <span class="header-icon">🚛</span>
-          Consommation
-        </div>
-        <div class="header-cell">
-          <span class="header-icon">📊</span>
-          Niveau
-        </div>
-        <div class="header-cell">
-          <span class="header-icon">⚙️</span>
-          Actions
-        </div>
-      </div>
-  `;
-  
-  // Créer les lignes de transport
-  const rows = transportsToShow.map(transport => {
+  // Créer les cartes de transport
+  const cards = transportsToShow.map(transport => {
     const typeChip = transport.type_transport === 'direct' ? 
       '<span class="chip ok">Direct</span>' : 
       '<span class="chip warning">Indirect</span>';
@@ -697,7 +654,7 @@ function displayTransports(transportsToShow) {
     `;
   }).join('');
   
-  container.innerHTML = header + rows + '</div>';
+  container.innerHTML = `<div class="transports-compact-container">${cards}</div>`;
 }
 
 // Mettre à jour les statistiques
