@@ -117,3 +117,6 @@ if __name__ == "__main__":
     else:
         print("\n❌ Migration échouée. Vérifiez les logs pour plus de détails.")
 
+
+
+

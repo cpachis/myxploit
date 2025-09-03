@@ -22,3 +22,6 @@ EMAIL_PASSWORD=votre-cle-api-sendgrid
 # Autres variables
 SECRET_KEY=votre-cle-secrete-tres-longue
 DATABASE_URL=sqlite:///instance/myxploit_dev.db
+
+
+

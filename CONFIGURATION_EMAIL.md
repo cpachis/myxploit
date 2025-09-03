@@ -142,3 +142,6 @@ python test_email.py
 3. **Tester l'envoi d'emails**
 4. **Déployer sur Render** avec la configuration
 5. **Monitorer les envois** et ajuster si nécessaire
+
+
+

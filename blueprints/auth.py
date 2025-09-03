@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, login_required, logout_user, current_user
 from .utils import load_json, User
-from ..app import db, User as DBUser
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -42,7 +41,7 @@ def login():
 
 # --- Route de déconnexion ---
 @auth_bp.route('/logout')
-@login_required
 def logout():
+    """Déconnexion"""
     logout_user()
     return redirect(url_for('auth.login')) 

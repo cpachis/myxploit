@@ -149,3 +149,6 @@ DATABASE_URL=sqlite:///instance/myxploit_dev.db
 
 if __name__ == "__main__":
     configurer_contact_email()
+
+
+
