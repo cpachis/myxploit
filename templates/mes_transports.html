@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Mes Transports — MyXploit{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/compact.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="transports-container">
   <!-- Header -->
@@ -601,57 +605,99 @@ function displayTransports(transportsToShow) {
     return;
   }
   
-  container.innerHTML = transportsToShow.map(transport => `
-    <div class="transport-card" data-id="${transport.id}">
-      <div class="transport-header">
-        <div class="transport-info">
-          <h3>${transport.ref}</h3>
-          <div class="transport-badges">
-            <span class="transport-type ${transport.type_transport}">
-              ${transport.type_transport === 'direct' ? '🚛 Direct' : '🔄 Indirect'}
-            </span>
-            <span class="transport-date">📅 ${new Date(transport.date).toLocaleDateString('fr-FR')}</span>
-          </div>
+  // Créer l'en-tête de la grille
+  const header = `
+    <div class="transports-compact-container">
+      <div class="transports-header">
+        <div class="header-cell">
+          <span class="header-icon">📋</span>
+          Référence
+        </div>
+        <div class="header-cell">
+          <span class="header-icon">📍</span>
+          Trajet
+        </div>
+        <div class="header-cell">
+          <span class="header-icon">📏</span>
+          Distance
+        </div>
+        <div class="header-cell">
+          <span class="header-icon">⚖️</span>
+          Poids
+        </div>
+        <div class="header-cell">
+          <span class="header-icon">🌱</span>
+          Émissions
+        </div>
+        <div class="header-cell">
+          <span class="header-icon">⛽</span>
+          Énergie
+        </div>
+        <div class="header-cell">
+          <span class="header-icon">🚛</span>
+          Consommation
+        </div>
+        <div class="header-cell">
+          <span class="header-icon">📊</span>
+          Niveau
+        </div>
+        <div class="header-cell">
+          <span class="header-icon">⚙️</span>
+          Actions
+        </div>
+      </div>
+  `;
+  
+  // Créer les lignes de transport
+  const rows = transportsToShow.map(transport => {
+    const typeChip = transport.type_transport === 'direct' ? 
+      '<span class="chip ok">Direct</span>' : 
+      '<span class="chip warning">Indirect</span>';
+    
+    const niveauText = transport.niveau_calcul ? 
+      transport.niveau_calcul.replace('niveau', 'NIVEAU ').toUpperCase() : 
+      'N/A';
+    
+    return `
+      <div class="transport-row" data-id="${transport.id}">
+        <div class="transport-cell">
+          <strong>${transport.ref}</strong> ${typeChip}
+        </div>
+        <div class="transport-cell">
+          ${transport.lieu_collecte} → ${transport.lieu_livraison}
+        </div>
+        <div class="transport-cell">
+          <span class="number">${transport.distance_km}</span><span class="unit">km</span>
+        </div>
+        <div class="transport-cell">
+          <span class="number">${transport.poids_tonnes}</span><span class="unit">t</span>
+        </div>
+        <div class="transport-cell">
+          <span class="number">${transport.emis_kg || 0}</span><span class="unit">kg</span>
+          <br><small>(${transport.emis_tkm || 0} kg/t.km)</small>
+        </div>
+        <div class="transport-cell">
+          ${transport.energie || 'N/A'}
+        </div>
+        <div class="transport-cell">
+          ${transport.conso_vehicule ? `<span class="number">${transport.conso_vehicule}</span><span class="unit">L/100km</span>` : 'N/A'}
+        </div>
+        <div class="transport-cell">
+          ${niveauText}
         </div>
         <div class="transport-actions">
-          <button class="btn-edit" onclick="editTransport(${transport.id})" title="Modifier">
-            <span class="btn-icon">✏️</span>
-            Modifier
+          <button class="btn-icon edit" onclick="editTransport(${transport.id})" title="Modifier">
+            ✎
           </button>
-          <button class="btn-delete" onclick="deleteTransport(${transport.id})" title="Supprimer">
-            <span class="btn-icon">🗑️</span>
-            Supprimer
+          <button class="btn-icon delete" onclick="deleteTransport(${transport.id})" title="Supprimer">
+            🗑
           </button>
         </div>
       </div>
-      
-      <div class="transport-details">
-        <div class="detail-row">
-          <span class="detail-label">📍 Trajet:</span>
-          <span class="detail-value">${transport.lieu_collecte} → ${transport.lieu_livraison}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">📏 Distance:</span>
-          <span class="detail-value">${transport.distance_km} km</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">⚖️ Poids:</span>
-          <span class="detail-value">${transport.poids_tonnes} tonnes</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">🌱 Émissions:</span>
-          <span class="detail-value">${transport.emis_kg} kg CO₂e (${transport.emis_tkm} kg/t.km)</span>
-        </div>
-        ${transport.type_vehicule ? `<div class="detail-row"><span class="detail-label">🚛 Type véhicule:</span><span class="detail-value">${transport.type_vehicule.replace('_', ' ').toUpperCase()}</span></div>` : ''}
-        ${transport.energie ? `<div class="detail-row"><span class="detail-label">⚡ Énergie:</span><span class="detail-value">${transport.energie}</span></div>` : ''}
-        ${transport.conso_vehicule ? `<div class="detail-row"><span class="detail-label">⛽ Consommation:</span><span class="detail-value">${transport.conso_vehicule} L/100km</span></div>` : ''}
-        ${transport.niveau_calcul ? `<div class="detail-row"><span class="detail-label">📊 Niveau calcul:</span><span class="detail-value">${transport.niveau_calcul.replace('niveau', 'Niveau ').toUpperCase()}</span></div>` : ''}
-        ${transport.client ? `<div class="detail-row"><span class="detail-label">👤 Client:</span><span class="detail-value">${transport.client}</span></div>` : ''}
-        ${transport.transporteur ? `<div class="detail-row"><span class="detail-label">🚚 Transporteur:</span><span class="detail-value">${transport.transporteur}</span></div>` : ''}
-        ${transport.description ? `<div class="detail-row"><span class="detail-label">📝 Description:</span><span class="detail-value">${transport.description}</span></div>` : ''}
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+  
+  container.innerHTML = header + rows + '</div>';
 }
 
 // Mettre à jour les statistiques
