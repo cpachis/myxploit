@@ -11,6 +11,70 @@ api_transports_bp = Blueprint('api_transports', __name__, url_prefix='/api')
 
 logger = logging.getLogger(__name__)
 
+def calculer_emissions_transport(distance_km, consommation_l_100km, facteur_emission):
+    """
+    Calcule les émissions CO2e d'un transport
+    
+    Formule: Émissions CO2e (kg) = (distance/100) × consommation × facteur d'émissions
+    
+    Args:
+        distance_km (float): Distance en kilomètres
+        consommation_l_100km (float): Consommation en L/100km
+        facteur_emission (float): Facteur d'émission en kg CO2e/L
+    
+    Returns:
+        dict: {'emis_kg': float, 'emis_tkm': float}
+    """
+    try:
+        # Calcul de la consommation totale en litres
+        consommation_totale = (distance_km / 100) * consommation_l_100km
+        
+        # Calcul des émissions en kg CO2e
+        emis_kg = consommation_totale * facteur_emission
+        
+        return {
+            'success': True,
+            'emis_kg': emis_kg,
+            'consommation_totale': consommation_totale
+        }
+    except Exception as e:
+        logger.error(f"Erreur lors du calcul des émissions: {str(e)}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+def charger_facteurs_emission():
+    """Charge les facteurs d'émission depuis le fichier energies.json"""
+    try:
+        import json
+        import os
+        
+        energies_path = os.path.join('data', 'energies.json')
+        if not os.path.exists(energies_path):
+            logger.warning("Fichier energies.json non trouvé")
+            return {}
+        
+        with open(energies_path, 'r', encoding='utf-8') as f:
+            energies_data = json.load(f)
+        
+        # Extraire les facteurs d'émission
+        facteurs = {}
+        for energie_id, energie_info in energies_data.items():
+            facteur = energie_info.get('facteur', 2.7)  # Valeur par défaut
+            # Convertir en float si c'est une chaîne
+            if isinstance(facteur, str):
+                try:
+                    facteur = float(facteur)
+                except ValueError:
+                    facteur = 2.7
+            facteurs[energie_id] = facteur
+        
+        return facteurs
+    except Exception as e:
+        logger.error(f"Erreur lors du chargement des facteurs d'émission: {str(e)}")
+        return {}
+
 @api_transports_bp.route('/transports/recalculer-emissions', methods=['POST'])
 def recalculer_emissions():
     """Endpoint pour recalculer les émissions de tous les transports"""
@@ -32,20 +96,60 @@ def recalculer_emissions():
             erreurs = 0
             resultats = []
             
+            # Charger les facteurs d'émission
+            facteurs_emission = charger_facteurs_emission()
+            
             for transport in transports:
                 try:
-                    # Pour l'instant, on garde les émissions existantes
-                    # TODO: Implémenter le calcul d'émissions
-                    succes += 1
-                    
-                    resultats.append({
-                        'ref': transport.ref,
-                        'emis_kg': transport.emis_kg or 0,
-                        'emis_tkm': transport.emis_tkm or 0,
-                        'success': True
-                    })
-                    
-                    logger.info(f"Transport {transport.ref}: Émissions conservées")
+                    # Calculer les émissions si les données sont disponibles
+                    if (transport.distance_km and transport.conso_vehicule and 
+                        transport.energie and transport.poids_tonnes):
+                        
+                        # Récupérer le facteur d'émission
+                        facteur = facteurs_emission.get(transport.energie, 2.7)
+                        
+                        # Calculer les émissions
+                        resultat_calcul = calculer_emissions_transport(
+                            transport.distance_km,
+                            transport.conso_vehicule,
+                            facteur
+                        )
+                        
+                        if resultat_calcul['success']:
+                            # Mettre à jour les émissions
+                            transport.emis_kg = resultat_calcul['emis_kg']
+                            transport.emis_tkm = resultat_calcul['emis_kg'] / (transport.poids_tonnes * transport.distance_km)
+                            
+                            succes += 1
+                            
+                            resultats.append({
+                                'ref': transport.ref,
+                                'emis_kg': transport.emis_kg,
+                                'emis_tkm': transport.emis_tkm,
+                                'success': True
+                            })
+                            
+                            logger.info(f"Transport {transport.ref}: Émissions recalculées - {transport.emis_kg:.2f} kg CO2e")
+                        else:
+                            erreurs += 1
+                            resultats.append({
+                                'ref': transport.ref,
+                                'error': resultat_calcul['error'],
+                                'success': False
+                            })
+                    else:
+                        # Données insuffisantes, conserver les émissions existantes
+                        succes += 1
+                        
+                        resultats.append({
+                            'ref': transport.ref,
+                            'emis_kg': transport.emis_kg or 0,
+                            'emis_tkm': transport.emis_tkm or 0,
+                            'success': True,
+                            'message': 'Données insuffisantes, émissions conservées'
+                        })
+                        
+                        logger.info(f"Transport {transport.ref}: Données insuffisantes, émissions conservées")
                         
                 except Exception as e:
                     erreurs += 1

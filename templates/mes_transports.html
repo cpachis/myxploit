@@ -768,10 +768,20 @@ function calculateEmissions() {
     const selectedEnergieOption = energieSelect.options[energieSelect.selectedIndex];
     const facteurEmission = parseFloat(selectedEnergieOption.dataset.facteur) || 2.7;
     
+    // Debug: afficher les valeurs de calcul
+    console.log('🔍 Debug calcul émissions:');
+    console.log(`  - Distance: ${distance} km`);
+    console.log(`  - Consommation véhicule: ${consommationVehicule} L/100km`);
+    console.log(`  - Facteur émission: ${facteurEmission} kg CO2e/L`);
+    console.log(`  - Énergie sélectionnée: ${selectedEnergieOption.value} - ${selectedEnergieOption.textContent}`);
+    
     // Calcul : distance × consommation × facteur d'émission
     const consommationTotale = (distance / 100) * consommationVehicule; // L
     emisKg = consommationTotale * facteurEmission; // kg CO2e
     emisTkm = (emisKg / (poids * distance)); // kg CO2e/t.km
+    
+    console.log(`  - Consommation totale: ${consommationTotale} L`);
+    console.log(`  - Émissions calculées: ${emisKg} kg CO2e`);
     
     // Mettre à jour le champ consommation avec la valeur du véhicule
     document.getElementById('transport-conso-vehicule').value = consommationVehicule;
@@ -797,10 +807,20 @@ function calculateEmissions() {
     const selectedEnergieOption = energieSelect.options[energieSelect.selectedIndex];
     const facteurEmission = parseFloat(selectedEnergieOption.dataset.facteur) || 2.7;
     
+    // Debug: afficher les valeurs de calcul
+    console.log('🔍 Debug calcul émissions (niveaux 2-4):');
+    console.log(`  - Distance: ${distance} km`);
+    console.log(`  - Consommation véhicule: ${consoVehicule} L/100km`);
+    console.log(`  - Facteur émission: ${facteurEmission} kg CO2e/L`);
+    console.log(`  - Énergie sélectionnée: ${selectedEnergieOption.value} - ${selectedEnergieOption.textContent}`);
+    
     // Calcul : distance × consommation × facteur d'émission
     const consommationTotale = (distance / 100) * consoVehicule; // L
     emisKg = consommationTotale * facteurEmission; // kg CO2e
     emisTkm = (emisKg / (poids * distance)); // kg CO2e/t.km
+    
+    console.log(`  - Consommation totale: ${consommationTotale} L`);
+    console.log(`  - Émissions calculées: ${emisKg} kg CO2e`);
   }
   
   // Simuler un délai pour l'UX
