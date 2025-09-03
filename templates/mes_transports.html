@@ -82,6 +82,34 @@
     <!-- Les transports seront chargés dynamiquement -->
   </div>
 
+  <!-- Modal de choix d'ajout -->
+  <div id="add-choice-modal" class="modal">
+    <div class="modal-content choice-modal">
+      <div class="modal-header">
+        <h2>Nouveau Transport</h2>
+        <button class="close-btn" onclick="closeAddChoiceModal()">&times;</button>
+      </div>
+      
+      <div class="choice-container">
+        <div class="choice-card" onclick="openTransportModal()">
+          <div class="choice-icon">📝</div>
+          <div class="choice-content">
+            <h3>Enregistrer un transport</h3>
+            <p>Saisir manuellement les informations d'un transport</p>
+          </div>
+        </div>
+        
+        <div class="choice-card" onclick="openCsvModal()">
+          <div class="choice-icon">📊</div>
+          <div class="choice-content">
+            <h3>Transférer un CSV</h3>
+            <p>Importer plusieurs transports depuis un fichier CSV</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal d'ajout/modification de transport -->
   <div id="transport-modal" class="modal transport-modal">
     <div class="modal-content">
@@ -1738,4 +1766,263 @@ function showNotification(message, type = 'info') {
   color: white;
 }
 </style>
+
+<script>
+// Variables globales
+let transports = [];
+let currentEditingId = null;
+
+// Fonctions pour les modals
+function showAddTransportModal() {
+  document.getElementById('add-choice-modal').style.display = 'block';
+}
+
+function closeAddChoiceModal() {
+  document.getElementById('add-choice-modal').style.display = 'none';
+}
+
+function openTransportModal() {
+  closeAddChoiceModal();
+  document.getElementById('transport-modal').style.display = 'block';
+  resetTransportForm();
+}
+
+function openCsvModal() {
+  closeAddChoiceModal();
+  // Rediriger vers la page d'import CSV
+  window.location.href = "{{ url_for('import_csv_bp.import_csv') }}";
+}
+
+function closeTransportModal() {
+  document.getElementById('transport-modal').style.display = 'none';
+  resetTransportForm();
+}
+
+function resetTransportForm() {
+  document.getElementById('transport-form').reset();
+  document.getElementById('transport-modal-title').textContent = 'Nouveau Transport';
+  currentEditingId = null;
+  document.getElementById('transport-niveau-calcul').value = 'niveau1';
+  calculateEmissions();
+}
+
+// Fonction pour charger les transports
+async function loadTransports() {
+  try {
+    const response = await fetch('/api/transports');
+    if (!response.ok) throw new Error('Erreur lors du chargement');
+    
+    transports = await response.json();
+    displayTransports();
+    updateStats();
+  } catch (error) {
+    console.error('Erreur:', error);
+    document.getElementById('transports-list').innerHTML = '<div class="no-transports">Erreur lors du chargement des transports</div>';
+  }
+}
+
+// Fonction pour afficher les transports
+function displayTransports() {
+  const container = document.getElementById('transports-list');
+  
+  if (transports.length === 0) {
+    container.innerHTML = '<div class="no-transports">Aucun transport enregistré</div>';
+    return;
+  }
+
+  const html = `
+    <div class="transports-compact-container">
+      <div class="transports-header">
+        <div class="header-cell checkbox-header">
+          <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+        </div>
+        <div class="header-cell">Référence</div>
+        <div class="header-cell">Trajet</div>
+        <div class="header-cell">Distance</div>
+        <div class="header-cell">Poids</div>
+        <div class="header-cell">kg CO₂e</div>
+        <div class="header-cell">CO₂e/t.km</div>
+        <div class="header-cell">Énergie</div>
+        <div class="header-cell">Consommation</div>
+        <div class="header-cell">Niveau</div>
+        <div class="header-cell">Actions</div>
+      </div>
+      ${transports.map(transport => `
+        <div class="transport-row">
+          <div class="transport-cell checkbox-cell">
+            <input type="checkbox" class="transport-checkbox" value="${transport.id}">
+          </div>
+          <div class="transport-cell">
+            <strong>${transport.ref}</strong>
+            <span class="chip ${transport.type_transport === 'direct' ? 'ok' : 'warning'}">
+              ${transport.type_transport === 'direct' ? 'Direct' : 'Indirect'}
+            </span>
+          </div>
+          <div class="transport-cell">${transport.lieu_collecte} → ${transport.lieu_livraison}</div>
+          <div class="transport-cell">${transport.distance_km} km</div>
+          <div class="transport-cell">${transport.poids_tonnes} t</div>
+          <div class="transport-cell emissions-cell">
+            <span class="number">${transport.emis_kg || 0}</span><span class="unit">kg CO₂e</span>
+          </div>
+          <div class="transport-cell emissions-tkm-cell">
+            <span class="number">${transport.emis_tkm || 0}</span><span class="unit">CO₂e/t.km</span>
+          </div>
+          <div class="transport-cell">${transport.energie || 'N/A'}</div>
+          <div class="transport-cell consumption-cell">${transport.conso_vehicule || 'N/A'} L/100km</div>
+          <div class="transport-cell level-cell">${transport.niveau_calcul || 'N/A'}</div>
+          <div class="transport-cell transport-actions">
+            <button class="btn-icon" title="Modifier" onclick="editTransport(${transport.id})">✎</button>
+            <button class="btn-icon" title="Supprimer" onclick="deleteTransport(${transport.id})">🗑</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  
+  container.innerHTML = html;
+}
+
+// Fonction pour basculer la sélection
+function toggleSelectAll() {
+  const selectAll = document.getElementById('select-all');
+  const checkboxes = document.querySelectorAll('.transport-checkbox');
+  
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = selectAll.checked;
+  });
+}
+
+// Fonction pour éditer un transport
+function editTransport(id) {
+  const transport = transports.find(t => t.id === id);
+  if (!transport) return;
+  
+  currentEditingId = id;
+  document.getElementById('transport-modal-title').textContent = 'Modifier le Transport';
+  
+  // Remplir le formulaire
+  document.getElementById('transport-ref').value = transport.ref || '';
+  document.getElementById('transport-date').value = transport.date_iso || transport.date || '';
+  document.getElementById('transport-lieu-collecte').value = transport.lieu_collecte || '';
+  document.getElementById('transport-lieu-livraison').value = transport.lieu_livraison || '';
+  document.getElementById('transport-poids').value = transport.poids_tonnes || '';
+  document.getElementById('transport-type').value = transport.type_transport || '';
+  document.getElementById('transport-type-vehicule').value = transport.type_vehicule || '';
+  document.getElementById('transport-niveau-calcul').value = transport.niveau_calcul || 'niveau1';
+  document.getElementById('transport-conso-vehicule').value = transport.conso_vehicule || '';
+  document.getElementById('transport-energie').value = transport.energie || '';
+  document.getElementById('transport-distance').value = transport.distance_km || '';
+  document.getElementById('transport-emissions').value = transport.emis_kg || '';
+  document.getElementById('transport-emissions-tkm').value = transport.emis_tkm || '';
+  
+  document.getElementById('transport-modal').style.display = 'block';
+}
+
+// Fonction pour supprimer un transport
+async function deleteTransport(id) {
+  if (!confirm('Êtes-vous sûr de vouloir supprimer ce transport ?')) return;
+  
+  try {
+    const response = await fetch(`/api/transports/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) throw new Error('Erreur lors de la suppression');
+    
+    await loadTransports();
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert('Erreur lors de la suppression du transport');
+  }
+}
+
+// Fonction pour calculer les émissions
+function calculateEmissions() {
+  const distance = parseFloat(document.getElementById('transport-distance').value) || 0;
+  const poids = parseFloat(document.getElementById('transport-poids').value) || 0;
+  const niveau = document.getElementById('transport-niveau-calcul').value;
+  const conso = parseFloat(document.getElementById('transport-conso-vehicule').value) || 0;
+  
+  let emissions = 0;
+  let emissionsTkm = 0;
+  
+  if (niveau === 'niveau1') {
+    // Utiliser les facteurs d'émission paramétrés
+    const selectedOption = document.getElementById('transport-type-vehicule').selectedOptions[0];
+    if (selectedOption && selectedOption.dataset.emissions) {
+      const facteurEmission = parseFloat(selectedOption.dataset.emissions);
+      emissions = (distance / 100) * conso * facteurEmission;
+    }
+  } else {
+    // Calcul basique pour les autres niveaux
+    emissions = (distance / 100) * conso * 3.17; // Facteur par défaut
+  }
+  
+  if (poids > 0) {
+    emissionsTkm = emissions / (distance * poids);
+  }
+  
+  document.getElementById('transport-emissions').value = emissions.toFixed(2);
+  document.getElementById('transport-emissions-tkm').value = emissionsTkm.toFixed(3);
+}
+
+// Fonction pour charger les clients
+async function loadClients() {
+  try {
+    const response = await fetch('/api/clients');
+    if (!response.ok) throw new Error('Erreur lors du chargement des clients');
+    
+    const clients = await response.json();
+    populateClientsDropdown(clients);
+  } catch (error) {
+    console.error('Erreur lors du chargement des clients:', error);
+  }
+}
+
+// Fonction pour peupler le dropdown des clients
+function populateClientsDropdown(clients) {
+  const select = document.getElementById('transport-client');
+  if (!select) return;
+  
+  select.innerHTML = '<option value="">Sélectionnez un client</option>';
+  clients.forEach(client => {
+    const option = document.createElement('option');
+    option.value = client.id;
+    option.textContent = client.nom;
+    select.appendChild(option);
+  });
+}
+
+// Fonction pour mettre à jour les statistiques
+function updateStats() {
+  const totalTransports = transports.length;
+  const totalEmissions = transports.reduce((sum, t) => sum + (parseFloat(t.emis_kg) || 0), 0);
+  const totalDistance = transports.reduce((sum, t) => sum + (parseFloat(t.distance_km) || 0), 0);
+  const totalPoids = transports.reduce((sum, t) => sum + (parseFloat(t.poids_tonnes) || 0), 0);
+  
+  document.getElementById('total-transports').textContent = totalTransports;
+  document.getElementById('total-emissions').textContent = totalEmissions.toFixed(1);
+  document.getElementById('total-distance').textContent = totalDistance.toFixed(0);
+  document.getElementById('total-poids').textContent = totalPoids.toFixed(1);
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+  loadTransports();
+  loadClients();
+  
+  // Fermer les modals en cliquant à l'extérieur
+  window.onclick = function(event) {
+    const addChoiceModal = document.getElementById('add-choice-modal');
+    const transportModal = document.getElementById('transport-modal');
+    
+    if (event.target === addChoiceModal) {
+      closeAddChoiceModal();
+    }
+    if (event.target === transportModal) {
+      closeTransportModal();
+    }
+  }
+});
+</script>
 {% endblock %}
