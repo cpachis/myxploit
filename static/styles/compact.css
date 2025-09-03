@@ -3,27 +3,34 @@
    Version ligne horizontale - Une ligne par transport
    ============================================================================ */
 
+/* --- Override des styles existants --- */
+.transports-compact-container .transport-card {
+  display: none !important;
+}
+
 /* --- Container principal --- */
 .transports-compact-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+  margin-top: 1rem !important;
+  width: 100% !important;
 }
 
 /* --- Ligne de transport --- */
 .transport-row {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  padding: 0.75rem 1rem;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 1rem;
-  min-height: 50px;
-  width: 100%;
-  box-sizing: border-box;
+  background: #fff !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 6px !important;
+  padding: 0.75rem 1rem !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  min-height: 50px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  flex-wrap: nowrap !important;
 }
 
 .transport-row:hover {
@@ -33,13 +40,14 @@
 
 /* --- Cellules de transport --- */
 .transport-cell {
-  display: flex;
-  align-items: center;
-  font-size: 0.85rem;
-  color: #333;
-  white-space: nowrap;
-  flex-shrink: 0;
-  min-width: 0;
+  display: flex !important;
+  align-items: center !important;
+  font-size: 0.85rem !important;
+  color: #333 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  min-width: 0 !important;
+  flex-direction: row !important;
 }
 
 .transport-cell strong {
@@ -159,55 +167,97 @@
   margin-left: 0.2rem;
 }
 
+/* --- Force l'affichage horizontal --- */
+.transports-compact-container .transport-row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+.transports-compact-container .transport-cell {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
 /* --- Responsive --- */
 @media (max-width: 1200px) {
   .transport-row {
-    gap: 0.8rem;
-    padding: 0.6rem 0.8rem;
+    gap: 0.8rem !important;
+    padding: 0.6rem 0.8rem !important;
   }
   
   .transport-cell {
-    font-size: 0.8rem;
+    font-size: 0.8rem !important;
   }
   
-  .transport-cell:nth-child(1) { min-width: 90px; max-width: 90px; }
-  .transport-cell:nth-child(2) { min-width: 120px; max-width: 120px; }
-  .transport-cell:nth-child(3) { min-width: 60px; max-width: 60px; }
-  .transport-cell:nth-child(4) { min-width: 45px; max-width: 45px; }
-  .transport-cell:nth-child(5) { min-width: 100px; max-width: 100px; }
-  .transport-cell:nth-child(6) { min-width: 100px; max-width: 100px; }
-  .transport-cell:nth-child(7) { min-width: 70px; max-width: 70px; }
-  .transport-cell:nth-child(8) { min-width: 60px; max-width: 60px; }
-  .transport-cell:nth-child(9) { min-width: 50px; max-width: 50px; }
+  .transport-cell:nth-child(1) { min-width: 90px !important; max-width: 90px !important; }
+  .transport-cell:nth-child(2) { min-width: 120px !important; max-width: 120px !important; }
+  .transport-cell:nth-child(3) { min-width: 60px !important; max-width: 60px !important; }
+  .transport-cell:nth-child(4) { min-width: 45px !important; max-width: 45px !important; }
+  .transport-cell:nth-child(5) { min-width: 100px !important; max-width: 100px !important; }
+  .transport-cell:nth-child(6) { min-width: 100px !important; max-width: 100px !important; }
+  .transport-cell:nth-child(7) { min-width: 70px !important; max-width: 70px !important; }
+  .transport-cell:nth-child(8) { min-width: 60px !important; max-width: 60px !important; }
+  .transport-cell:nth-child(9) { min-width: 50px !important; max-width: 50px !important; }
 }
 
 @media (max-width: 768px) {
   .transports-compact-container {
-    overflow-x: auto;
+    overflow-x: auto !important;
   }
   
   .transport-row {
-    min-width: 800px;
-    gap: 0.6rem;
-    padding: 0.5rem 0.8rem;
+    min-width: 800px !important;
+    gap: 0.6rem !important;
+    padding: 0.5rem 0.8rem !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
   }
   
   .transport-cell {
-    font-size: 0.75rem;
+    font-size: 0.75rem !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
   }
   
   .transport-cell strong {
-    font-size: 0.8rem;
+    font-size: 0.8rem !important;
   }
   
   .chip {
-    font-size: 0.55rem;
-    padding: 0.05rem 0.3rem;
+    font-size: 0.55rem !important;
+    padding: 0.05rem 0.3rem !important;
   }
   
   .btn-icon {
-    width: 20px;
-    height: 20px;
-    font-size: 0.6rem;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0.6rem !important;
   }
+}
+
+/* --- Règles de force pour éviter les conflits --- */
+.transports-compact-container * {
+  box-sizing: border-box !important;
+}
+
+.transports-compact-container .transport-row,
+.transports-compact-container .transport-row * {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+}
+
+.transports-compact-container .transport-cell {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
 }
