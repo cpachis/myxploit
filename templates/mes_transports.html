@@ -121,7 +121,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="transport-poids">Poids (tonnes) *</label>
-              <input type="number" id="transport-poids" name="poids_tonnes" step="0.001" min="0" required placeholder="Ex: 2.5">
+              <input type="number" id="transport-poids" name="poids_tonnes" step="0.001" min="0" required placeholder="Ex: 2.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
             </div>
             <div class="form-group">
               <label for="transport-type">Type de transport *</label>
@@ -136,14 +136,14 @@
           <div class="form-row">
             <div class="form-group">
               <label for="transport-type-vehicule">Type de véhicule</label>
-              <select id="transport-type-vehicule" name="type_vehicule" onchange="updateVehiculeConsumption()">
+              <select id="transport-type-vehicule" name="type_vehicule" onchange="updateVehiculeConsumption(); calculateEmissions();">
                 <option value="">Sélectionnez le type de véhicule</option>
                 <!-- Les options seront chargées dynamiquement -->
               </select>
             </div>
             <div class="form-group">
               <label for="transport-niveau-calcul">Type de calcul</label>
-              <select id="transport-niveau-calcul" name="niveau_calcul">
+              <select id="transport-niveau-calcul" name="niveau_calcul" onchange="updateConsumptionFieldState(); calculateEmissions();">
                 <option value="">Sélectionnez le niveau de calcul</option>
                 <option value="niveau1" selected>📊 Niveau 1 - Valeurs agrégées (données moyennes)</option>
                 <option value="niveau2">📈 Niveau 2 - Données spécifiques (facteurs d'émission)</option>
@@ -156,12 +156,12 @@
           <div class="form-row">
             <div class="form-group">
               <label for="transport-conso-vehicule">Consommation du véhicule (L/100km)</label>
-              <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5">
+              <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
               <small class="form-help">Consommation spécifique du véhicule utilisé</small>
             </div>
             <div class="form-group">
               <label for="transport-energie">Énergie utilisée</label>
-              <select id="transport-energie" name="energie">
+              <select id="transport-energie" name="energie" onchange="calculateEmissions()">
                 <option value="">Sélectionnez l'énergie</option>
                 <!-- Les options seront chargées dynamiquement -->
               </select>
@@ -176,7 +176,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="transport-distance">Distance (km) *</label>
-              <input type="number" id="transport-distance" name="distance_km" step="0.1" min="0" placeholder="Ex: 150.5" required>
+              <input type="number" id="transport-distance" name="distance_km" step="0.1" min="0" placeholder="Ex: 150.5" required onchange="calculateEmissions()" oninput="calculateEmissions()">
               <small class="form-help">Distance à saisir manuellement</small>
             </div>
             <div class="form-group">
@@ -193,7 +193,7 @@
               <small class="form-help">Calculées automatiquement</small>
             </div>
             <div class="form-group">
-              <button type="button" class="btn-calculate" onclick="calculateEmissions()">
+              <button type="button" class="btn-calculate" onclick="calculateEmissions(true)">
                 <span class="btn-icon">🧮</span>
                 Calculer les émissions
               </button>
@@ -707,7 +707,7 @@ function filterTransports() {
 }
 
 // Calculer les émissions selon le niveau de calcul
-function calculateEmissions() {
+function calculateEmissions(showNotification = false) {
   const distance = parseFloat(document.getElementById('transport-distance').value) || 0;
   const poids = parseFloat(document.getElementById('transport-poids').value) || 0;
   const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
@@ -715,21 +715,30 @@ function calculateEmissions() {
   const energie = document.getElementById('transport-energie').value;
   const consoVehicule = parseFloat(document.getElementById('transport-conso-vehicule').value) || 0;
   
+  // Vérifier les données de base
   if (!distance || distance <= 0) {
-    showNotification('⚠️ Veuillez saisir une distance valide', 'warning');
+    if (showNotification) {
+      showNotification('⚠️ Veuillez saisir une distance valide', 'warning');
+    }
     return;
   }
   
   if (!poids || poids <= 0) {
-    showNotification('⚠️ Veuillez saisir un poids valide', 'warning');
+    if (showNotification) {
+      showNotification('⚠️ Veuillez saisir un poids valide', 'warning');
+    }
     return;
   }
   
-  // Afficher un indicateur de chargement
-  const calculateBtn = document.querySelector('.btn-calculate');
-  const originalText = calculateBtn.innerHTML;
-  calculateBtn.innerHTML = '<span class="btn-icon">⏳</span> Calcul...';
-  calculateBtn.disabled = true;
+  // Afficher un indicateur de chargement seulement pour le calcul manuel
+  if (showNotification) {
+    const calculateBtn = document.querySelector('.btn-calculate');
+    if (calculateBtn) {
+      const originalText = calculateBtn.innerHTML;
+      calculateBtn.innerHTML = '<span class="btn-icon">⏳</span> Calcul...';
+      calculateBtn.disabled = true;
+    }
+  }
   
   let emisKg = 0;
   let emisTkm = 0;
@@ -740,16 +749,16 @@ function calculateEmissions() {
     // Seule l'énergie est modifiable, la consommation vient du véhicule
     
     if (!typeVehicule) {
-      showNotification('⚠️ Veuillez sélectionner un type de véhicule pour le niveau 1', 'warning');
-      calculateBtn.innerHTML = originalText;
-      calculateBtn.disabled = false;
+      if (showNotification) {
+        showNotification('⚠️ Veuillez sélectionner un type de véhicule pour le niveau 1', 'warning');
+      }
       return;
     }
     
     if (!energie) {
-      showNotification('⚠️ Veuillez sélectionner une énergie pour le niveau 1', 'warning');
-      calculateBtn.innerHTML = originalText;
-      calculateBtn.disabled = false;
+      if (showNotification) {
+        showNotification('⚠️ Veuillez sélectionner une énergie pour le niveau 1', 'warning');
+      }
       return;
     }
     
@@ -759,9 +768,9 @@ function calculateEmissions() {
     const consommationVehicule = parseFloat(selectedOption.dataset.consumption) || 0;
     
     if (!consommationVehicule) {
-      showNotification('⚠️ Consommation du véhicule non disponible', 'warning');
-      calculateBtn.innerHTML = originalText;
-      calculateBtn.disabled = false;
+      if (showNotification) {
+        showNotification('⚠️ Consommation du véhicule non disponible', 'warning');
+      }
       return;
     }
     
@@ -791,16 +800,16 @@ function calculateEmissions() {
   } else {
     // Niveaux 2, 3, 4 : calcul avec consommation manuelle
     if (!consoVehicule || consoVehicule <= 0) {
-      showNotification('⚠️ Veuillez saisir la consommation du véhicule pour les niveaux 2-4', 'warning');
-      calculateBtn.innerHTML = originalText;
-      calculateBtn.disabled = false;
+      if (showNotification) {
+        showNotification('⚠️ Veuillez saisir la consommation du véhicule pour les niveaux 2-4', 'warning');
+      }
       return;
     }
     
     if (!energie) {
-      showNotification('⚠️ Veuillez sélectionner une énergie', 'warning');
-      calculateBtn.innerHTML = originalText;
-      calculateBtn.disabled = false;
+      if (showNotification) {
+        showNotification('⚠️ Veuillez sélectionner une énergie', 'warning');
+      }
       return;
     }
     
@@ -825,17 +834,24 @@ function calculateEmissions() {
     console.log(`  - Émissions calculées: ${emisKg} kg CO2e`);
   }
   
-  // Simuler un délai pour l'UX
-  setTimeout(() => {
-    document.getElementById('transport-emissions').value = emisKg.toFixed(2);
-    document.getElementById('transport-emissions-tkm').value = emisTkm.toFixed(3);
-    
+  // Mettre à jour les champs immédiatement
+  document.getElementById('transport-emissions').value = emisKg.toFixed(2);
+  document.getElementById('transport-emissions-tkm').value = emisTkm.toFixed(3);
+  
+  // Afficher la notification seulement si demandé (calcul manuel)
+  if (showNotification) {
     const niveauText = niveauCalcul === 'niveau1' ? 'Niveau 1 (valeurs agrégées)' : `Niveau ${niveauCalcul.replace('niveau', '')}`;
     showNotification(`✅ Émissions calculées avec succès (${niveauText})`, 'success');
-    
-    calculateBtn.innerHTML = originalText;
-    calculateBtn.disabled = false;
-  }, 500);
+  }
+  
+  // Restaurer le bouton seulement si c'était un calcul manuel
+  if (showNotification) {
+    const calculateBtn = document.querySelector('.btn-calculate');
+    if (calculateBtn) {
+      calculateBtn.innerHTML = '<span class="btn-icon">🧮</span> Calculer les émissions';
+      calculateBtn.disabled = false;
+    }
+  }
 }
 
 // Afficher le modal d'ajout
