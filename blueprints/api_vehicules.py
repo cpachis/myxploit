@@ -209,6 +209,8 @@ def api_vehicules_types():
         vehicules_data = []
         for v in vehicules:
             vehicules_data.append({
+                'value': v[0],  # ID du véhicule
+                'label': v[1],  # Nom du véhicule
                 'id': v[0],
                 'nom': v[1],
                 'type': v[2],
@@ -226,7 +228,7 @@ def api_vehicules_types():
         
         return jsonify({
             'success': True,
-            'vehicules': vehicules_data
+            'types_vehicules': vehicules_data
         })
         
     except Exception as e:
