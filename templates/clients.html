@@ -136,7 +136,7 @@ function loadClients() {
 function loadClientInvitationStatuses(clients) {
   const promises = clients.map(client => {
     if (client.email) {
-      return fetch(`/api/clients/${client.id}/invitation-status`)
+      return fetch(`/api/${client.id}/invitation-status`)
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -172,8 +172,8 @@ function displayClients(clientsToShow) {
     <div class="client-card" data-id="${client.id}">
       <div class="client-header">
         <div class="client-info">
-          <h3>${client.nom}</h3>
-          <span class="client-statut ${client.statut.toLowerCase()}">${client.statut}</span>
+          <h3>${client.nom || 'Client sans nom'}</h3>
+          <span class="client-statut ${(client.statut || 'inconnu').toLowerCase()}">${client.statut || 'Inconnu'}</span>
         </div>
       </div>
       
@@ -290,7 +290,7 @@ function filterClients() {
   const statutFilter = document.getElementById('filter-statut').value;
   
   const filtered = clients.filter(client => {
-    const matchesSearch = client.nom.toLowerCase().includes(searchTerm);
+    const matchesSearch = (client.nom || '').toLowerCase().includes(searchTerm);
     const matchesStatut = !statutFilter || client.statut === statutFilter;
     
     return matchesSearch && matchesStatut;
