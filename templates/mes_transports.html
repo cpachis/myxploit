@@ -1504,6 +1504,9 @@ function populateVehiculeTypes(typesVehicules) {
     option.dataset.conso = vehicule.consommation || 0;
     option.dataset.emissions = vehicule.emissions || 0;
     option.dataset.chargeUtile = vehicule.charge_utile || 0;
+    
+    console.log('Véhicule chargé:', vehicule.nom, 'Charge utile:', vehicule.charge_utile);
+    
     select.appendChild(option);
   });
 }
@@ -1603,7 +1606,7 @@ function updateVehiculeConsumption() {
     const selectedOption = select.options[select.selectedIndex];
     const conso = selectedOption.dataset.conso;
     const emissions = selectedOption.dataset.emissions;
-    const chargeUtile = selectedOption.dataset.chargeutile;
+    const chargeUtile = selectedOption.dataset.chargeUtile;
     
     if (conso) {
       // Mettre à jour le champ de consommation
@@ -1618,7 +1621,14 @@ function updateVehiculeConsumption() {
       
       // Afficher la charge utile
       const vehiculeChargeUtile = document.getElementById('vehicule-charge-utile');
-      vehiculeChargeUtile.textContent = chargeUtile ? chargeUtile + ' t' : '-';
+      console.log('Charge utile récupérée:', chargeUtile);
+      console.log('Type de charge utile:', typeof chargeUtile);
+      
+      if (chargeUtile && chargeUtile !== '0' && chargeUtile !== 'null' && chargeUtile !== 'undefined') {
+        vehiculeChargeUtile.textContent = chargeUtile + ' t';
+      } else {
+        vehiculeChargeUtile.textContent = 'Non définie';
+      }
       
       vehiculeParams.style.display = 'block';
       
