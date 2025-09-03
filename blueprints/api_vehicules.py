@@ -216,7 +216,7 @@ def api_vehicules_types():
                 'type': v[2],
                 'consommation': v[3],
                 'emissions': v[4],
-                'charge_utile': v[5]
+                'charge_utile': v[5]  # Garder le nom charge_utile pour la compatibilité
             })
         
         if not vehicules_data:
