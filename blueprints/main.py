@@ -21,6 +21,16 @@ def index():
         flash('Erreur lors du chargement de la page', 'error')
         return redirect(url_for('main.index'))
 
+@main_bp.route('/homepage')
+def homepage():
+    """Page d'accueil principale"""
+    try:
+        return render_template('homepage.html')
+    except Exception as e:
+        logger.error(f"Erreur lors du chargement de la homepage: {str(e)}")
+        flash('Erreur lors du chargement de la page', 'error')
+        return redirect(url_for('main.index'))
+
 @main_bp.route('/myxploit')
 def myxploit():
     """Page MyXploit"""
