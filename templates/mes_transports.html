@@ -207,7 +207,10 @@
           <div class="form-row">
             <div class="form-group">
               <label for="transport-client">Client</label>
-              <input type="text" id="transport-client" name="client" placeholder="Nom du client">
+              <select id="transport-client" name="client">
+                <option value="">Sélectionnez un client</option>
+                <!-- Les options seront chargées dynamiquement -->
+              </select>
             </div>
             <div class="form-group">
               <label for="transport-transporteur">Transporteur</label>
@@ -244,12 +247,14 @@ let transports = [];
 let currentEditId = null;
 let typesVehicules = [];
 let energies = [];
+let clients = [];
 
 // Charger les transports au démarrage
 document.addEventListener('DOMContentLoaded', function() {
   loadTransports();
   loadTypesVehicules();
   loadEnergies();
+  loadClients();
   
   // Définir la date d'aujourd'hui par défaut
   const today = new Date().toISOString().split('T')[0];
@@ -408,6 +413,53 @@ function populateEnergies() {
     option.value = energie.identifiant || energie.id;
     option.textContent = `${energie.nom} (${energie.unite})`;
     option.dataset.facteur = energie.facteur || 2.7; // Stocker le facteur d'émission
+    select.appendChild(option);
+  });
+}
+
+// Charger les clients depuis l'API
+function loadClients() {
+  fetch('/api/clients')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        clients = data.clients || [];
+        populateClientsDropdown();
+      } else {
+        console.error('Erreur lors du chargement des clients:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement des clients:', error);
+    });
+}
+
+// Remplir le dropdown des clients
+function populateClientsDropdown() {
+  const select = document.getElementById('transport-client');
+  if (!select) return;
+  
+  // Vider le dropdown (garder l'option par défaut)
+  select.innerHTML = '<option value="">Sélectionnez un client</option>';
+  
+  // Si aucun client n'est configuré
+  if (clients.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Aucun client configuré - Allez dans Mes Clients';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
+  
+  // Ajouter les clients configurés
+  clients.forEach(client => {
+    const option = document.createElement('option');
+    option.value = client.id;
+    option.textContent = `${client.nom} (${client.id})`;
+    option.dataset.nom = client.nom;
+    option.dataset.adresse = client.adresse;
+    option.dataset.email = client.email;
     select.appendChild(option);
   });
 }
@@ -791,6 +843,7 @@ function resetTransportForm() {
   document.getElementById('transport-niveau-calcul').value = 'niveau1';
   document.getElementById('transport-conso-vehicule').value = '';
   document.getElementById('transport-energie').value = '';
+  document.getElementById('transport-client').value = '';
   
   // Mettre à jour l'état du champ consommation
   updateConsumptionFieldState();

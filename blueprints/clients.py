@@ -75,3 +75,45 @@ def get_client_invitation_status(client_id):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération du statut d'invitation: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@clients_bp.route('/api/clients')
+def api_clients():
+    """API pour récupérer la liste des clients"""
+    try:
+        import json
+        import os
+        
+        # Charger les clients depuis le fichier JSON
+        clients_path = os.path.join('data', 'clients.json')
+        
+        if not os.path.exists(clients_path):
+            return jsonify({
+                'success': True,
+                'clients': [],
+                'message': 'Aucun client configuré'
+            })
+        
+        with open(clients_path, 'r', encoding='utf-8') as f:
+            clients_data = json.load(f)
+        
+        # Convertir en format pour le dropdown
+        clients_list = []
+        for client_id, client_info in clients_data.items():
+            clients_list.append({
+                'id': client_id,
+                'nom': client_info.get('nom', client_id),
+                'adresse': client_info.get('adresse', ''),
+                'email': client_info.get('email', '')
+            })
+        
+        return jsonify({
+            'success': True,
+            'clients': clients_list
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des clients: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
