@@ -456,10 +456,12 @@ function populateClientsDropdown() {
   clients.forEach(client => {
     const option = document.createElement('option');
     option.value = client.id;
-    option.textContent = `${client.nom} (${client.id})`;
+    option.textContent = `${client.nom} (ID: ${client.id})`;
     option.dataset.nom = client.nom;
     option.dataset.adresse = client.adresse;
     option.dataset.email = client.email;
+    option.dataset.telephone = client.telephone;
+    option.dataset.siret = client.siret;
     select.appendChild(option);
   });
 }

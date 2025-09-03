@@ -78,37 +78,31 @@ def get_client_invitation_status(client_id):
 
 @clients_bp.route('/api/clients')
 def api_clients():
-    """API pour récupérer la liste des clients"""
+    """API pour récupérer la liste des clients depuis la base de données"""
     try:
-        import json
-        import os
+        # Import des modèles depuis app.py
+        from app import Client, db
         
-        # Charger les clients depuis le fichier JSON
-        clients_path = os.path.join('data', 'clients.json')
-        
-        if not os.path.exists(clients_path):
-            return jsonify({
-                'success': True,
-                'clients': [],
-                'message': 'Aucun client configuré'
-            })
-        
-        with open(clients_path, 'r', encoding='utf-8') as f:
-            clients_data = json.load(f)
+        # Récupérer tous les clients actifs depuis la base de données
+        clients = Client.query.filter_by(statut='actif').all()
         
         # Convertir en format pour le dropdown
         clients_list = []
-        for client_id, client_info in clients_data.items():
+        for client in clients:
             clients_list.append({
-                'id': client_id,
-                'nom': client_info.get('nom', client_id),
-                'adresse': client_info.get('adresse', ''),
-                'email': client_info.get('email', '')
+                'id': client.id,
+                'nom': client.nom,
+                'adresse': client.adresse or '',
+                'email': client.email,
+                'telephone': client.telephone or '',
+                'siret': client.siret or '',
+                'description': client.description or ''
             })
         
         return jsonify({
             'success': True,
-            'clients': clients_list
+            'clients': clients_list,
+            'total': len(clients_list)
         })
         
     except Exception as e:
