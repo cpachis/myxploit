@@ -332,34 +332,54 @@
 }
 
 /* --- Styles pour le modal de transport --- */
+.transport-modal .modal-content {
+  max-width: 1200px !important;
+  width: 95% !important;
+  margin: 1% auto !important;
+}
+
+.transport-modal .transport-form {
+  padding: 1rem !important;
+}
+
+.transport-modal .form-section {
+  margin-bottom: 1rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+.transport-modal .form-section h3 {
+  margin: 0 0 0.75rem 0 !important;
+  font-size: 1rem !important;
+}
+
 .transport-modal .form-row {
   display: flex !important;
-  gap: 1rem !important;
-  margin-bottom: 1rem !important;
+  gap: 0.75rem !important;
+  margin-bottom: 0.75rem !important;
   flex-wrap: wrap !important;
 }
 
 .transport-modal .form-group {
   flex: 1 !important;
-  min-width: 200px !important;
-  margin-bottom: 0.5rem !important;
+  min-width: 180px !important;
+  margin-bottom: 0.25rem !important;
 }
 
 .transport-modal .form-group label {
   font-weight: 600 !important;
   color: #333 !important;
-  margin-bottom: 0.5rem !important;
+  margin-bottom: 0.25rem !important;
   display: block !important;
-  font-size: 0.9rem !important;
+  font-size: 0.85rem !important;
 }
 
 .transport-modal .form-group input,
 .transport-modal .form-group select {
   width: 100% !important;
-  padding: 0.5rem !important;
+  padding: 0.4rem !important;
   border: 1px solid #ddd !important;
   border-radius: 4px !important;
-  font-size: 0.9rem !important;
+  font-size: 0.85rem !important;
   box-sizing: border-box !important;
 }
 
@@ -370,9 +390,9 @@
 }
 
 .transport-modal .form-help {
-  font-size: 0.8rem !important;
+  font-size: 0.75rem !important;
   color: #666 !important;
-  margin-top: 0.25rem !important;
+  margin-top: 0.15rem !important;
   display: block !important;
   font-style: italic !important;
 }
