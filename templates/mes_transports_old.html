@@ -1,0 +1,2191 @@
+{% extends "base.html" %}
+{% block title %}Mes Transports — MyXploit{% endblock %}
+
+{% block head %}
+<!-- Styles compacts intégrés dans styles.css -->
+{% endblock %}
+
+{% block content %}
+<div class="transports-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>🚛 Mes Transports</h1>
+      <p class="header-subtitle">Gérez vos transports et suivez vos émissions carbone</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" onclick="showAddTransportModal()">
+        <span class="btn-icon">➕</span>
+        Nouveau Transport
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-section">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-number" id="total-transports">0</div>
+        <div class="stat-label">Transports</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🌱</div>
+      <div class="stat-content">
+        <div class="stat-number" id="total-emissions">0</div>
+        <div class="stat-label">kg CO₂e</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📏</div>
+      <div class="stat-content">
+        <div class="stat-number" id="total-distance">0</div>
+        <div class="stat-label">km parcourus</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚖️</div>
+      <div class="stat-content">
+        <div class="stat-number" id="total-poids">0</div>
+        <div class="stat-label">tonnes transportées</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input type="text" id="search-transports" placeholder="Rechercher un transport..." onkeyup="filterTransports()">
+      <span class="search-icon">🔍</span>
+    </div>
+    <div class="filter-options">
+      <select id="filter-type" onchange="filterTransports()">
+        <option value="">Tous les types</option>
+        <option value="direct">🚛 Direct</option>
+        <option value="indirect">🔄 Indirect</option>
+      </select>
+      <input type="date" id="filter-date" onchange="filterTransports()" placeholder="Filtrer par date">
+      <select id="filter-sort" onchange="filterTransports()">
+        <option value="date-desc">Date (récent)</option>
+        <option value="date-asc">Date (ancien)</option>
+        <option value="emissions-desc">Émissions (élevées)</option>
+        <option value="emissions-asc">Émissions (faibles)</option>
+        <option value="distance-desc">Distance (longue)</option>
+        <option value="distance-asc">Distance (courte)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Liste des transports -->
+  <div class="transports-list" id="transports-list">
+    <!-- Les transports seront chargés dynamiquement -->
+  </div>
+
+  <!-- Modal de choix d'ajout -->
+  <div id="add-choice-modal" class="modal">
+    <div class="modal-content choice-modal">
+      <div class="modal-header">
+        <h2>Nouveau Transport</h2>
+        <button class="close-btn" onclick="closeAddChoiceModal()">&times;</button>
+      </div>
+      
+      <div class="choice-container">
+        <div class="choice-card" onclick="openTransportModal()">
+          <div class="choice-icon">📝</div>
+          <div class="choice-content">
+            <h3>Enregistrer un transport</h3>
+            <p>Saisir manuellement les informations d'un transport</p>
+          </div>
+        </div>
+        
+        <div class="choice-card" onclick="openCsvModal()">
+          <div class="choice-icon">📊</div>
+          <div class="choice-content">
+            <h3>Transférer un CSV</h3>
+            <p>Importer plusieurs transports depuis un fichier CSV</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal d'ajout/modification de transport -->
+  <div id="transport-modal" class="modal transport-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="transport-modal-title">Nouveau Transport</h2>
+        <button class="close-btn" onclick="closeTransportModal()">&times;</button>
+      </div>
+      
+      <form id="transport-form" class="transport-form">
+        <div class="form-section">
+          <h3>📋 Informations de base</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-ref">Référence du transport *</label>
+              <input type="text" id="transport-ref" name="ref" required placeholder="Ex: T001">
+            </div>
+            <div class="form-group">
+              <label for="transport-date">Date du transport *</label>
+              <input type="date" id="transport-date" name="date" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-lieu-collecte">Lieu de collecte *</label>
+              <div class="autocomplete-container">
+                <input type="text" id="transport-lieu-collecte" name="lieu_collecte" required placeholder="Ex: Paris, France ou 75001" autocomplete="off">
+                <div id="transport-lieu-collecte-suggestions" class="autocomplete-suggestions"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="transport-lieu-livraison">Lieu de livraison *</label>
+              <div class="autocomplete-container">
+                <input type="text" id="transport-lieu-livraison" name="lieu_livraison" required placeholder="Ex: Lyon, France ou 69001" autocomplete="off">
+                <div id="transport-lieu-livraison-suggestions" class="autocomplete-suggestions"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-poids">Poids (tonnes) *</label>
+              <input type="number" id="transport-poids" name="poids_tonnes" step="0.001" min="0" required placeholder="Ex: 2.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
+            </div>
+            <div class="form-group">
+              <label for="transport-type">Type de transport *</label>
+              <select id="transport-type" name="type_transport" required>
+                <option value="">Sélectionnez le type</option>
+                <option value="direct">🚛 Direct - Transport direct du point A au point B</option>
+                <option value="indirect">🔄 Indirect - Transport avec étapes intermédiaires</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-type-vehicule">Type de véhicule</label>
+              <select id="transport-type-vehicule" name="type_vehicule" onchange="updateVehiculeConsumption(); calculateEmissions();">
+                <option value="">Sélectionnez le type de véhicule</option>
+                <!-- Les options seront chargées dynamiquement -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="transport-niveau-calcul">Type de calcul</label>
+              <select id="transport-niveau-calcul" name="niveau_calcul" onchange="updateConsumptionFieldState(); calculateEmissions();">
+                <option value="">Sélectionnez le niveau de calcul</option>
+                <option value="niveau1" selected>📊 Niveau 1 - Valeurs agrégées (données moyennes)</option>
+                <option value="niveau2">📈 Niveau 2 - Données spécifiques (facteurs d'émission)</option>
+                <option value="niveau3">📋 Niveau 3 - Données détaillées (consommation réelle)</option>
+                <option value="niveau4">🔬 Niveau 4 - Données précises (mesures directes)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-conso-vehicule">Consommation du véhicule (L/100km)</label>
+              <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
+              <small class="form-help">Consommation spécifique du véhicule utilisé</small>
+            </div>
+            <div class="form-group">
+              <label for="transport-energie">Énergie utilisée</label>
+              <select id="transport-energie" name="energie" onchange="calculateEmissions()">
+                <option value="">Sélectionnez l'énergie</option>
+                <!-- Les options seront chargées dynamiquement -->
+              </select>
+              <small class="form-help">Type d'énergie du véhicule</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>📊 Distance et calculs</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-distance">Distance (km) *</label>
+              <input type="number" id="transport-distance" name="distance_km" step="0.1" min="0" placeholder="Ex: 150.5" required onchange="calculateEmissions()" oninput="calculateEmissions()">
+              <small class="form-help">Distance à saisir manuellement</small>
+            </div>
+            <div class="form-group">
+              <label for="transport-emissions">kg CO₂e</label>
+              <input type="number" id="transport-emissions" name="emis_kg" step="0.01" min="0" readonly>
+              <small class="form-help">Émissions totales calculées automatiquement</small>
+            </div>
+            <div class="form-group">
+              <label for="transport-emissions-tkm">CO₂e/t.km</label>
+              <input type="number" id="transport-emissions-tkm" name="emis_tkm" step="0.001" min="0" readonly>
+              <small class="form-help">Émissions par tonne-kilomètre calculées automatiquement</small>
+            </div>
+          </div>
+
+
+        </div>
+
+        <div class="form-section">
+          <h3>ℹ️ Informations complémentaires</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-client">Client</label>
+              <select id="transport-client" name="client">
+                <option value="">Sélectionnez un client</option>
+                <!-- Les options seront chargées dynamiquement -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="transport-transporteur">Transporteur</label>
+              <input type="text" id="transport-transporteur" name="transporteur" placeholder="Nom du transporteur">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label for="transport-description">Description</label>
+              <textarea id="transport-description" name="description" rows="3" placeholder="Informations complémentaires sur le transport..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-success">
+            <span class="btn-icon">💾</span>
+            Sauvegarder
+          </button>
+          <button type="button" class="btn-cancel" onclick="closeTransportModal()">
+            <span class="btn-icon">❌</span>
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+// Charger les transports au démarrage
+document.addEventListener('DOMContentLoaded', function() {
+  loadTransports();
+  loadTypesVehicules();
+  loadEnergies();
+  loadClients();
+  
+  // Définir la date d'aujourd'hui par défaut
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('transport-date').value = today;
+  
+  // Initialiser l'autocomplétion pour les lieux
+  initAutocomplete('transport-lieu-collecte');
+  initAutocomplete('transport-lieu-livraison');
+  
+  // Gestionnaire pour le changement de niveau de calcul
+  document.getElementById('transport-niveau-calcul').addEventListener('change', function() {
+    updateConsumptionFieldState();
+  });
+});
+
+// Charger les transports depuis l'API
+function loadTransports() {
+  fetch('/api/transports')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        transports = data.transports || [];
+        displayTransports(transports);
+        updateStats();
+      } else {
+        showNotification('❌ Erreur lors du chargement des transports', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Erreur:', error);
+      showNotification('❌ Erreur de connexion', 'error');
+    });
+}
+
+// Charger les types de véhicules depuis l'API
+function loadTypesVehicules() {
+  fetch('/api/vehicules/types')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        typesVehicules = data.types_vehicules || [];
+        populateVehiculeTypes();
+      } else {
+        console.error('Erreur lors du chargement des types de véhicules:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement des types de véhicules:', error);
+    });
+}
+
+// Peupler le select des types de véhicules
+function populateVehiculeTypes() {
+  const select = document.getElementById('transport-type-vehicule');
+  if (!select) return;
+  
+  // Vider le select (garder l'option par défaut)
+  select.innerHTML = '<option value="">Sélectionnez le type de véhicule</option>';
+  
+  // Si aucun véhicule n'est configuré
+  if (typesVehicules.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Aucun véhicule configuré - Allez dans Administration > Types de Véhicules';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
+  
+  // Ajouter les types de véhicules configurés
+  typesVehicules.forEach(type => {
+    const option = document.createElement('option');
+    option.value = type.value;
+    option.textContent = type.label; // Utiliser seulement le nom du véhicule
+    option.dataset.consumption = type.consommation || ''; // Stocker la consommation
+    option.dataset.emissions = type.emissions || ''; // Stocker les émissions paramétrées
+    option.dataset.chargeUtile = type.charge_utile || ''; // Stocker la charge utile
+    select.appendChild(option);
+  });
+}
+
+// Mettre à jour la consommation du véhicule
+function updateVehiculeConsumption() {
+  const select = document.getElementById('transport-type-vehicule');
+  const consoInput = document.getElementById('transport-conso-vehicule');
+  
+  if (!select || !consoInput) return;
+  
+  const selectedOption = select.options[select.selectedIndex];
+  const consumption = selectedOption.dataset.consumption;
+  
+  if (consumption && consumption !== '') {
+    consoInput.value = consumption;
+  } else {
+    consoInput.value = '';
+  }
+}
+
+// Charger les énergies depuis l'API
+function loadEnergies() {
+  fetch('/api/energies')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        energies = data.energies || [];
+        populateEnergies();
+      } else {
+        console.error('Erreur lors du chargement des énergies:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement des énergies:', error);
+    });
+}
+
+// Mettre à jour l'état du champ consommation selon le niveau de calcul
+function updateConsumptionFieldState() {
+  const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
+  const consoField = document.getElementById('transport-conso-vehicule');
+  const consoLabel = consoField.previousElementSibling;
+  
+  if (niveauCalcul === 'niveau1') {
+    // Niveau 1 : consommation automatique depuis le véhicule
+    consoField.readOnly = true;
+    consoField.style.backgroundColor = '#f5f5f5';
+    consoField.style.cursor = 'not-allowed';
+    consoLabel.innerHTML = 'Consommation du véhicule (L/100km) <small style="color: #666;">(automatique)</small>';
+  } else {
+    // Niveaux 2-4 : consommation manuelle
+    consoField.readOnly = false;
+    consoField.style.backgroundColor = '';
+    consoField.style.cursor = '';
+    consoLabel.innerHTML = 'Consommation du véhicule (L/100km) <small style="color: #666;">(saisie manuelle)</small>';
+  }
+}
+
+// Peupler le select des énergies
+function populateEnergies() {
+  const select = document.getElementById('transport-energie');
+  if (!select) return;
+  
+  // Vider le select (garder l'option par défaut)
+  select.innerHTML = '<option value="">Sélectionnez l\'énergie</option>';
+  
+  // Si aucune énergie n'est configurée
+  if (energies.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Aucune énergie configurée - Allez dans Administration > Gestion des Énergies';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
+  
+  // Ajouter les énergies configurées
+  energies.forEach(energie => {
+    const option = document.createElement('option');
+    option.value = energie.identifiant || energie.id;
+    option.textContent = `${energie.nom} (${energie.unite})`;
+    option.dataset.facteur = energie.facteur || 2.7; // Stocker le facteur d'émission
+    select.appendChild(option);
+  });
+}
+
+// Charger les clients depuis l'API
+function loadClients() {
+  fetch('/api/clients')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        clients = data.clients || [];
+        populateClientsDropdown();
+      } else {
+        console.error('Erreur lors du chargement des clients:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors du chargement des clients:', error);
+    });
+}
+
+// Remplir le dropdown des clients
+function populateClientsDropdown() {
+  const select = document.getElementById('transport-client');
+  if (!select) return;
+  
+  // Vider le dropdown (garder l'option par défaut)
+  select.innerHTML = '<option value="">Sélectionnez un client</option>';
+  
+  // Si aucun client n'est configuré
+  if (clients.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Aucun client configuré - Allez dans Mes Clients';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
+  
+  // Ajouter les clients configurés
+  clients.forEach(client => {
+    const option = document.createElement('option');
+    option.value = client.id;
+    option.textContent = `${client.nom} (ID: ${client.id})`;
+    option.dataset.nom = client.nom;
+    option.dataset.adresse = client.adresse;
+    option.dataset.email = client.email;
+    option.dataset.telephone = client.telephone;
+    option.dataset.siret = client.siret;
+    select.appendChild(option);
+  });
+}
+
+// Fonctions d'autocomplétion pour les lieux
+function initAutocomplete(inputId) {
+  const input = document.getElementById(inputId);
+  const suggestionsContainer = document.getElementById(inputId + '-suggestions');
+  
+  if (!input || !suggestionsContainer) return;
+  
+  let currentSuggestions = [];
+  let selectedIndex = -1;
+  
+  // Événement de saisie
+  input.addEventListener('input', function(e) {
+    const query = e.target.value.trim();
+    
+    if (query.length < 2) {
+      hideSuggestions();
+      return;
+    }
+    
+    // Délai pour éviter trop de requêtes
+    clearTimeout(input.searchTimeout);
+    input.searchTimeout = setTimeout(() => {
+      searchPlaces(query, inputId);
+    }, 300);
+  });
+  
+  // Événements clavier
+  input.addEventListener('keydown', function(e) {
+    if (!suggestionsContainer.style.display || suggestionsContainer.style.display === 'none') {
+      return;
+    }
+    
+    switch(e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, currentSuggestions.length - 1);
+        updateSelection();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, -1);
+        updateSelection();
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && currentSuggestions[selectedIndex]) {
+          selectSuggestion(currentSuggestions[selectedIndex], inputId);
+        }
+        break;
+      case 'Escape':
+        hideSuggestions();
+        break;
+    }
+  });
+  
+  // Cacher les suggestions quand on clique ailleurs
+  document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+      hideSuggestions();
+    }
+  });
+  
+  function searchPlaces(query, inputId) {
+    fetch(`/api/lieux/autocomplete?q=${encodeURIComponent(query)}&limit=8`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          currentSuggestions = data.suggestions;
+          selectedIndex = -1;
+          displaySuggestions(data.suggestions, inputId);
+        }
+      })
+      .catch(error => {
+        console.error('Erreur lors de la recherche de lieux:', error);
+      });
+  }
+  
+  function displaySuggestions(suggestions, inputId) {
+    if (suggestions.length === 0) {
+      hideSuggestions();
+      return;
+    }
+    
+    suggestionsContainer.innerHTML = suggestions.map((suggestion, index) => `
+      <div class="autocomplete-suggestion" data-index="${index}">
+        <div class="suggestion-main">${suggestion.label}</div>
+        <div class="suggestion-details">
+          ${suggestion.departement} - ${suggestion.region}
+          <span class="suggestion-type ${suggestion.type}">${suggestion.type === 'ville' ? 'Ville' : 'Code postal'}</span>
+        </div>
+      </div>
+    `).join('');
+    
+    // Ajouter les événements de clic
+    suggestionsContainer.querySelectorAll('.autocomplete-suggestion').forEach((item, index) => {
+      item.addEventListener('click', () => {
+        selectSuggestion(suggestions[index], inputId);
+      });
+    });
+    
+    suggestionsContainer.style.display = 'block';
+  }
+  
+  function updateSelection() {
+    const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion');
+    suggestions.forEach((item, index) => {
+      item.classList.toggle('active', index === selectedIndex);
+    });
+  }
+  
+  function selectSuggestion(suggestion, inputId) {
+    const input = document.getElementById(inputId);
+    input.value = suggestion.value;
+    hideSuggestions();
+    
+    // Note: Le calcul de distance est maintenant manuel via le bouton "Calculer les émissions"
+  }
+  
+  function hideSuggestions() {
+    suggestionsContainer.style.display = 'none';
+    selectedIndex = -1;
+  }
+}
+
+// Afficher la liste des transports
+function displayTransports(transportsToShow) {
+  const container = document.getElementById('transports-list');
+  
+  if (transportsToShow.length === 0) {
+    container.innerHTML = '<div class="no-transports">Aucun transport trouvé</div>';
+    return;
+  }
+  
+  // Créer les lignes de transport
+  const rows = transportsToShow.map(transport => {
+    const typeChip = transport.type_transport === 'direct' ? 
+      '<span class="chip ok">Direct</span>' : 
+      '<span class="chip warning">Indirect</span>';
+    
+    const niveauText = transport.niveau_calcul ? 
+      transport.niveau_calcul.replace('niveau', 'NIVEAU ').toUpperCase() : 
+      'N/A';
+    
+    return `
+      <div class="transport-row" data-id="${transport.id}">
+        <div class="transport-cell checkbox-cell">
+          <input type="checkbox" class="transport-checkbox" value="${transport.id}">
+        </div>
+        <div class="transport-cell">
+          <strong>${transport.ref}</strong>${typeChip}
+        </div>
+        <div class="transport-cell">
+          ${transport.lieu_collecte} → ${transport.lieu_livraison}
+        </div>
+        <div class="transport-cell">
+          <span class="number">${transport.distance_km}</span><span class="unit">km</span>
+        </div>
+        <div class="transport-cell">
+          <span class="number">${transport.poids_tonnes}</span><span class="unit">t</span>
+        </div>
+        <div class="transport-cell emissions-cell">
+          <span class="number">${transport.emis_kg || 0}</span><span class="unit">kg CO₂e</span>
+        </div>
+        <div class="transport-cell emissions-tkm-cell">
+          <span class="number">${transport.emis_tkm || 0}</span><span class="unit">CO₂e/t.km</span>
+        </div>
+        <div class="transport-cell">
+          ${transport.energie || 'N/A'}
+        </div>
+        <div class="transport-cell consumption-cell">
+          ${transport.conso_vehicule ? `<span class="number">${transport.conso_vehicule}</span><span class="unit">L/100km</span>` : 'N/A'}
+        </div>
+        <div class="transport-cell level-cell">
+          ${niveauText}
+        </div>
+        <div class="transport-actions">
+          <button class="btn-icon edit" onclick="editTransport(${transport.id})" title="Modifier">✎</button>
+          <button class="btn-icon delete" onclick="deleteTransport(${transport.id})" title="Supprimer">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  // Créer l'en-tête des colonnes
+  const header = `
+    <div class="transports-header">
+      <div class="header-cell checkbox-header">
+        <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+      </div>
+      <div class="header-cell">Référence</div>
+      <div class="header-cell">Trajet</div>
+      <div class="header-cell">Distance</div>
+      <div class="header-cell">Poids</div>
+      <div class="header-cell">kg CO₂e</div>
+      <div class="header-cell">CO₂e/t.km</div>
+      <div class="header-cell">Énergie</div>
+      <div class="header-cell">Consommation</div>
+      <div class="header-cell">Niveau</div>
+      <div class="header-cell">Actions</div>
+    </div>
+  `;
+  
+  container.innerHTML = `<div class="transports-compact-container">${header}${rows}</div>`;
+}
+
+// Fonction pour sélectionner/désélectionner tous les transports
+function toggleSelectAll() {
+  const selectAllCheckbox = document.getElementById('select-all');
+  const transportCheckboxes = document.querySelectorAll('.transport-checkbox');
+  
+  transportCheckboxes.forEach(checkbox => {
+    checkbox.checked = selectAllCheckbox.checked;
+  });
+}
+
+// Mettre à jour les statistiques
+function updateStats() {
+  const totalTransports = transports.length;
+  const totalEmissions = transports.reduce((sum, t) => sum + (t.emis_kg || 0), 0);
+  const totalDistance = transports.reduce((sum, t) => sum + (t.distance_km || 0), 0);
+  const totalPoids = transports.reduce((sum, t) => sum + (t.poids_tonnes || 0), 0);
+  
+  document.getElementById('total-transports').textContent = totalTransports;
+  document.getElementById('total-emissions').textContent = Math.round(totalEmissions);
+  document.getElementById('total-distance').textContent = Math.round(totalDistance);
+  document.getElementById('total-poids').textContent = Math.round(totalPoids * 10) / 10;
+}
+
+// Filtrer les transports
+function filterTransports() {
+  const searchTerm = document.getElementById('search-transports').value.toLowerCase();
+  const typeFilter = document.getElementById('filter-type').value;
+  const dateFilter = document.getElementById('filter-date').value;
+  const sortFilter = document.getElementById('filter-sort').value;
+  
+  let filtered = transports.filter(transport => {
+    const matchesSearch = transport.ref.toLowerCase().includes(searchTerm) ||
+                         transport.lieu_collecte.toLowerCase().includes(searchTerm) ||
+                         transport.lieu_livraison.toLowerCase().includes(searchTerm) ||
+                         (transport.client && transport.client.toLowerCase().includes(searchTerm));
+    const matchesType = !typeFilter || transport.type_transport === typeFilter;
+    const matchesDate = !dateFilter || transport.date === dateFilter;
+    
+    return matchesSearch && matchesType && matchesDate;
+  });
+  
+  // Trier les résultats
+  filtered.sort((a, b) => {
+    switch(sortFilter) {
+      case 'date-desc':
+        return new Date(b.date) - new Date(a.date);
+      case 'date-asc':
+        return new Date(a.date) - new Date(b.date);
+      case 'emissions-desc':
+        return (b.emis_kg || 0) - (a.emis_kg || 0);
+      case 'emissions-asc':
+        return (a.emis_kg || 0) - (b.emis_kg || 0);
+      case 'distance-desc':
+        return (b.distance_km || 0) - (a.distance_km || 0);
+      case 'distance-asc':
+        return (a.distance_km || 0) - (b.distance_km || 0);
+      default:
+        return 0;
+    }
+  });
+  
+  displayTransports(filtered);
+}
+
+// Calculer les émissions selon le niveau de calcul
+function calculateEmissions(showNotification = false) {
+  const distance = parseFloat(document.getElementById('transport-distance').value) || 0;
+  const poids = parseFloat(document.getElementById('transport-poids').value) || 0;
+  const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
+  const typeVehicule = document.getElementById('transport-type-vehicule').value;
+  const energie = document.getElementById('transport-energie').value;
+  const consoVehicule = parseFloat(document.getElementById('transport-conso-vehicule').value) || 0;
+  
+  // Vérifier les données de base
+  if (!distance || distance <= 0) {
+    if (showNotification) {
+      showNotification('⚠️ Veuillez saisir une distance valide', 'warning');
+    }
+    return;
+  }
+  
+  if (!poids || poids <= 0) {
+    if (showNotification) {
+      showNotification('⚠️ Veuillez saisir un poids valide', 'warning');
+    }
+    return;
+  }
+  
+  // Afficher un indicateur de chargement seulement pour le calcul manuel
+  if (showNotification) {
+    const calculateBtn = document.querySelector('.btn-calculate');
+    if (calculateBtn) {
+      const originalText = calculateBtn.innerHTML;
+      calculateBtn.innerHTML = '<span class="btn-icon">⏳</span> Calcul...';
+      calculateBtn.disabled = true;
+    }
+  }
+  
+  let emisKg = 0;
+  let emisTkm = 0;
+  
+  // Calcul selon le niveau
+  if (niveauCalcul === 'niveau1') {
+    // Niveau 1 : distance × consommation × facteur d'émission
+    // Seule l'énergie est modifiable, la consommation vient du véhicule
+    
+    if (!typeVehicule) {
+      if (showNotification) {
+        showNotification('⚠️ Veuillez sélectionner un type de véhicule pour le niveau 1', 'warning');
+      }
+      return;
+    }
+    
+    if (!energie) {
+      if (showNotification) {
+        showNotification('⚠️ Veuillez sélectionner une énergie pour le niveau 1', 'warning');
+      }
+      return;
+    }
+    
+    // Récupérer les données du véhicule sélectionné
+    const vehiculeSelect = document.getElementById('transport-type-vehicule');
+    const selectedOption = vehiculeSelect.options[vehiculeSelect.selectedIndex];
+    const consommationVehicule = parseFloat(selectedOption.dataset.consumption) || 0;
+    const emissionsParametrees = parseFloat(selectedOption.dataset.emissions) || 0; // g CO2e/km
+    
+    if (!consommationVehicule) {
+      if (showNotification) {
+        showNotification('⚠️ Consommation du véhicule non disponible', 'warning');
+      }
+      return;
+    }
+    
+    // Récupérer le facteur d'émission de l'énergie
+    const energieSelect = document.getElementById('transport-energie');
+    const selectedEnergieOption = energieSelect.options[energieSelect.selectedIndex];
+    const facteurEmission = parseFloat(selectedEnergieOption.dataset.facteur) || 2.7;
+    
+    // Debug: afficher les valeurs de calcul
+    console.log('🔍 Debug calcul émissions (Niveau 1):');
+    console.log(`  - Distance: ${distance} km`);
+    console.log(`  - Consommation véhicule: ${consommationVehicule} L/100km`);
+    console.log(`  - Facteur émission: ${facteurEmission} kg CO2e/L`);
+    console.log(`  - Émissions paramétrées: ${emissionsParametrees} g CO2e/km`);
+    console.log(`  - Énergie sélectionnée: ${selectedEnergieOption.value} - ${selectedEnergieOption.textContent}`);
+    
+    // Calcul : distance × consommation × facteur d'émission
+    const consommationTotale = (distance / 100) * consommationVehicule; // L
+    emisKg = consommationTotale * facteurEmission; // kg CO2e
+    
+    // Pour le niveau 1, utiliser les émissions paramétrées du véhicule
+    if (emissionsParametrees > 0) {
+      // Convertir g CO2e/km en kg CO2e/t.km
+      emisTkm = (emissionsParametrees / 1000) / poids; // kg CO2e/t.km
+      console.log(`  - Émissions t.km paramétrées: ${emisTkm} kg CO2e/t.km`);
+    } else {
+      // Fallback: calcul classique si pas d'émissions paramétrées
+      emisTkm = (emisKg / (poids * distance)); // kg CO2e/t.km
+      console.log(`  - Émissions t.km calculées: ${emisTkm} kg CO2e/t.km`);
+    }
+    
+    console.log(`  - Consommation totale: ${consommationTotale} L`);
+    console.log(`  - Émissions calculées: ${emisKg} kg CO2e`);
+    
+    // Mettre à jour le champ consommation avec la valeur du véhicule
+    document.getElementById('transport-conso-vehicule').value = consommationVehicule;
+    
+  } else {
+    // Niveaux 2, 3, 4 : calcul avec consommation manuelle
+    if (!consoVehicule || consoVehicule <= 0) {
+      if (showNotification) {
+        showNotification('⚠️ Veuillez saisir la consommation du véhicule pour les niveaux 2-4', 'warning');
+      }
+      return;
+    }
+    
+    if (!energie) {
+      if (showNotification) {
+        showNotification('⚠️ Veuillez sélectionner une énergie', 'warning');
+      }
+      return;
+    }
+    
+    // Récupérer le facteur d'émission de l'énergie
+    const energieSelect = document.getElementById('transport-energie');
+    const selectedEnergieOption = energieSelect.options[energieSelect.selectedIndex];
+    const facteurEmission = parseFloat(selectedEnergieOption.dataset.facteur) || 2.7;
+    
+    // Debug: afficher les valeurs de calcul
+    console.log('🔍 Debug calcul émissions (niveaux 2-4):');
+    console.log(`  - Distance: ${distance} km`);
+    console.log(`  - Consommation véhicule: ${consoVehicule} L/100km`);
+    console.log(`  - Facteur émission: ${facteurEmission} kg CO2e/L`);
+    console.log(`  - Énergie sélectionnée: ${selectedEnergieOption.value} - ${selectedEnergieOption.textContent}`);
+    
+    // Calcul : distance × consommation × facteur d'émission
+    const consommationTotale = (distance / 100) * consoVehicule; // L
+    emisKg = consommationTotale * facteurEmission; // kg CO2e
+    emisTkm = (emisKg / (poids * distance)); // kg CO2e/t.km
+    
+    console.log(`  - Consommation totale: ${consommationTotale} L`);
+    console.log(`  - Émissions calculées: ${emisKg} kg CO2e`);
+  }
+  
+  // Mettre à jour les champs immédiatement
+  document.getElementById('transport-emissions').value = emisKg.toFixed(2);
+  document.getElementById('transport-emissions-tkm').value = emisTkm.toFixed(3);
+  
+  // Afficher la notification seulement si demandé (calcul manuel)
+  if (showNotification) {
+    const niveauText = niveauCalcul === 'niveau1' ? 'Niveau 1 (valeurs agrégées)' : `Niveau ${niveauCalcul.replace('niveau', '')}`;
+    showNotification(`✅ Émissions calculées avec succès (${niveauText})`, 'success');
+  }
+  
+  // Restaurer le bouton seulement si c'était un calcul manuel
+  if (showNotification) {
+    const calculateBtn = document.querySelector('.btn-calculate');
+    if (calculateBtn) {
+      calculateBtn.innerHTML = '<span class="btn-icon">🧮</span> Calculer les émissions';
+      calculateBtn.disabled = false;
+    }
+  }
+}
+
+// Afficher le modal d'ajout
+function showAddTransportModal() {
+  resetTransportForm();
+  document.getElementById('transport-modal').style.display = 'block';
+}
+
+// Fermer le modal
+function closeTransportModal() {
+  document.getElementById('transport-modal').style.display = 'none';
+  resetTransportForm();
+}
+
+// Réinitialiser le formulaire
+function resetTransportForm() {
+  document.getElementById('transport-form').reset();
+  document.getElementById('transport-modal-title').textContent = 'Nouveau Transport';
+  currentEditId = null;
+  
+  // Définir la date d'aujourd'hui par défaut
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('transport-date').value = today;
+  
+  // Réinitialiser les nouveaux champs
+  document.getElementById('transport-type-vehicule').value = '';
+  document.getElementById('transport-niveau-calcul').value = 'niveau1';
+  document.getElementById('transport-conso-vehicule').value = '';
+  document.getElementById('transport-energie').value = '';
+  document.getElementById('transport-client').value = '';
+  
+  // Mettre à jour l'état du champ consommation
+  updateConsumptionFieldState();
+}
+
+// Éditer un transport
+function editTransport(id) {
+  const transport = transports.find(t => t.id == id);
+  if (!transport) return;
+  
+  currentEditId = id;
+  document.getElementById('transport-modal-title').textContent = 'Modifier le Transport';
+  
+  // Remplir le formulaire
+  document.getElementById('transport-ref').value = transport.ref;
+  document.getElementById('transport-date').value = transport.date_iso || transport.date;
+  document.getElementById('transport-lieu-collecte').value = transport.lieu_collecte;
+  document.getElementById('transport-lieu-livraison').value = transport.lieu_livraison;
+  document.getElementById('transport-poids').value = transport.poids_tonnes;
+  document.getElementById('transport-type').value = transport.type_transport;
+  document.getElementById('transport-type-vehicule').value = transport.type_vehicule || '';
+  document.getElementById('transport-niveau-calcul').value = transport.niveau_calcul || 'niveau1';
+  document.getElementById('transport-conso-vehicule').value = transport.conso_vehicule || '';
+  document.getElementById('transport-energie').value = transport.energie || '';
+  document.getElementById('transport-distance').value = transport.distance_km;
+  document.getElementById('transport-emissions').value = transport.emis_kg;
+  document.getElementById('transport-emissions-tkm').value = transport.emis_tkm;
+  document.getElementById('transport-client').value = transport.client || '';
+  document.getElementById('transport-transporteur').value = transport.transporteur || '';
+  document.getElementById('transport-description').value = transport.description || '';
+  
+  // Mettre à jour l'état du champ consommation selon le niveau
+  updateConsumptionFieldState();
+  
+  document.getElementById('transport-modal').style.display = 'block';
+}
+
+// Supprimer un transport
+function deleteTransport(id) {
+  const transport = transports.find(t => t.id == id);
+  if (!transport) return;
+  
+  if (!confirm(`Êtes-vous sûr de vouloir supprimer le transport "${transport.ref}" ?`)) return;
+  
+  fetch(`/api/transports/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification('✅ Transport supprimé avec succès', 'success');
+      loadTransports();
+    } else {
+      showNotification(`❌ Erreur: ${data.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur:', error);
+    showNotification('❌ Erreur lors de la suppression', 'error');
+  });
+}
+
+// Gérer la soumission du formulaire
+document.getElementById('transport-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  const transportData = {
+    ref: formData.get('ref'),
+    date: formData.get('date'),
+    lieu_collecte: formData.get('lieu_collecte'),
+    lieu_livraison: formData.get('lieu_livraison'),
+    poids_tonnes: parseFloat(formData.get('poids_tonnes')),
+    type_transport: formData.get('type_transport'),
+    distance_km: parseFloat(formData.get('distance_km')) || 0,
+    emis_kg: parseFloat(formData.get('emis_kg')) || 0,
+    emis_tkm: parseFloat(formData.get('emis_tkm')) || 0,
+    type_vehicule: formData.get('type_vehicule'),
+    niveau_calcul: formData.get('niveau_calcul'),
+    conso_vehicule: parseFloat(formData.get('conso_vehicule')) || null,
+    energie: formData.get('energie'),
+    client: formData.get('client'),
+    transporteur: formData.get('transporteur'),
+    description: formData.get('description')
+  };
+  
+  const url = currentEditId ? `/api/transports/${currentEditId}` : '/api/transports';
+  const method = currentEditId ? 'PUT' : 'POST';
+  
+  // Ajouter l'ID pour la modification
+  if (currentEditId) {
+    transportData.id = currentEditId;
+  }
+  
+  fetch(url, {
+    method: method,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(transportData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification('✅ Transport sauvegardé avec succès', 'success');
+      closeTransportModal();
+      loadTransports();
+    } else {
+      showNotification(`❌ Erreur: ${data.error}`, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erreur lors de la sauvegarde:', error);
+    showNotification('❌ Erreur lors de la sauvegarde', 'error');
+  });
+});
+
+// Système de notifications modernes
+function showNotification(message, type = 'info') {
+  // Supprimer les notifications existantes
+  const existingNotifications = document.querySelectorAll('.modern-notification');
+  existingNotifications.forEach(notif => notif.remove());
+  
+  // Créer la nouvelle notification
+  const notification = document.createElement('div');
+  notification.className = `modern-notification modern-notification-${type}`;
+  
+  // Icônes selon le type
+  let icon, bgColor, borderColor;
+  switch(type) {
+    case 'success':
+      icon = '✅';
+      bgColor = '#d4edda';
+      borderColor = '#28a745';
+      break;
+    case 'error':
+      icon = '❌';
+      bgColor = '#f8d7da';
+      borderColor = '#dc3545';
+      break;
+    case 'warning':
+      icon = '⚠️';
+      bgColor = '#fff3cd';
+      borderColor = '#ffc107';
+      break;
+    default:
+      icon = 'ℹ️';
+      bgColor = '#d1ecf1';
+      borderColor = '#17a2b8';
+  }
+  
+  notification.innerHTML = `
+    <div class="notification-icon">${icon}</div>
+    <div class="notification-message">${message}</div>
+  `;
+  
+  // Styles inline pour garantir l'apparence
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${bgColor};
+    border: 2px solid ${borderColor};
+    border-radius: 10px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10000;
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    max-width: 350px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+  `;
+  
+  // Styles pour l'icône et le message
+  const iconElement = notification.querySelector('.notification-icon');
+  iconElement.style.cssText = `
+    font-size: 20px;
+    flex-shrink: 0;
+  `;
+  
+  const messageElement = notification.querySelector('.notification-message');
+  messageElement.style.cssText = `
+    color: #333;
+    font-weight: 500;
+    line-height: 1.4;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animation d'entrée
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+    notification.style.opacity = '1';
+  }, 10);
+  
+  // Auto-suppression avec fade out
+  setTimeout(() => {
+    notification.style.transform = 'translateX(400px)';
+    notification.style.opacity = '0';
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 300);
+  }, 4000);
+}
+</script>
+
+<!-- Styles CSS -->
+<style>
+.transports-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  color: white;
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.header-subtitle {
+  margin: 5px 0 0 0;
+  opacity: 0.9;
+}
+
+.btn-primary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.stat-icon {
+  font-size: 2rem;
+  opacity: 0.8;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  color: #718096;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.filters-section {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+}
+
+.filter-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-options select,
+.filter-options input {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+}
+
+.transport-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.transport-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.transport-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.transport-info h3 {
+  margin: 0 0 8px 0;
+  color: #2d3748;
+  font-size: 1.25rem;
+}
+
+.transport-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.transport-type {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.transport-type.direct {
+  background: #d4edda;
+  color: #155724;
+}
+
+.transport-type.indirect {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.transport-date {
+  background: #e3eaff;
+  color: #2a7de1;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.transport-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-edit, .btn-delete {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-edit {
+  background: #4299e1;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #3182ce;
+}
+
+.btn-delete {
+  background: #f56565;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #e53e3e;
+}
+
+.transport-details {
+  margin-bottom: 20px;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 8px;
+  align-items: flex-start;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 120px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  color: #2d3748;
+  flex: 1;
+}
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 2% auto;
+  padding: 0;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 95vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.transport-form {
+  padding: 20px;
+}
+
+.form-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.form-section h3 {
+  margin: 0 0 15px 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2d3748;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input[readonly] {
+  background-color: #f8fafc;
+  color: #6b7280;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-help {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 5px;
+}
+
+.btn-calculate {
+  background: #48bb78;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  margin-top: 15px;
+}
+
+.btn-calculate:hover {
+  background: #38a169;
+}
+
+.btn-calculate:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-success, .btn-cancel {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-success {
+  background: #48bb78;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #38a169;
+}
+
+.btn-cancel {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn-cancel:hover {
+  background: #cbd5e0;
+}
+
+.no-transports {
+  text-align: center;
+  padding: 60px 20px;
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .filters-section {
+    flex-direction: column;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .transport-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .transport-actions {
+    justify-content: flex-start;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .detail-label {
+    min-width: auto;
+  }
+  
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Styles pour l'autocomplétion des lieux */
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+}
+
+.autocomplete-suggestion {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+.autocomplete-suggestion:hover {
+  background-color: #f8fafc;
+}
+
+.autocomplete-suggestion:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-suggestion .suggestion-main {
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.autocomplete-suggestion .suggestion-details {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.autocomplete-suggestion .suggestion-type {
+  display: inline-block;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+
+.autocomplete-suggestion .suggestion-type.ville {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.autocomplete-suggestion .suggestion-type.code_postal {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.autocomplete-suggestion.active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.autocomplete-suggestion.active .suggestion-main,
+.autocomplete-suggestion.active .suggestion-details {
+  color: white;
+}
+
+.autocomplete-suggestion.active .suggestion-type {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+</style>
+
+<script>
+// Variables globales
+let transports = [];
+let currentEditingId = null;
+
+// Fonctions pour les modals
+function showAddTransportModal() {
+  document.getElementById('add-choice-modal').style.display = 'block';
+}
+
+function closeAddChoiceModal() {
+  document.getElementById('add-choice-modal').style.display = 'none';
+}
+
+function openTransportModal() {
+  closeAddChoiceModal();
+  document.getElementById('transport-modal').style.display = 'block';
+  resetTransportForm();
+}
+
+function openCsvModal() {
+  closeAddChoiceModal();
+  // Rediriger vers la page d'import CSV
+  window.location.href = "{{ url_for('import_csv.import_csv') }}";
+}
+
+function closeTransportModal() {
+  document.getElementById('transport-modal').style.display = 'none';
+  resetTransportForm();
+}
+
+function resetTransportForm() {
+  document.getElementById('transport-form').reset();
+  document.getElementById('transport-modal-title').textContent = 'Nouveau Transport';
+  currentEditingId = null;
+  document.getElementById('transport-niveau-calcul').value = 'niveau1';
+  calculateEmissions();
+}
+
+// Fonction pour charger les transports
+async function loadTransports() {
+  try {
+    const response = await fetch('/api/transports');
+    if (!response.ok) throw new Error('Erreur lors du chargement');
+    
+    transports = await response.json();
+    displayTransports();
+    updateStats();
+  } catch (error) {
+    console.error('Erreur:', error);
+    document.getElementById('transports-list').innerHTML = '<div class="no-transports">Erreur lors du chargement des transports</div>';
+  }
+}
+
+// Fonction pour afficher les transports
+function displayTransports() {
+  const container = document.getElementById('transports-list');
+  
+  if (transports.length === 0) {
+    container.innerHTML = '<div class="no-transports">Aucun transport enregistré</div>';
+    return;
+  }
+
+  const html = `
+    <div class="transports-compact-container">
+      <div class="transports-header">
+        <div class="header-cell checkbox-header">
+          <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+        </div>
+        <div class="header-cell">Référence</div>
+        <div class="header-cell">Trajet</div>
+        <div class="header-cell">Distance</div>
+        <div class="header-cell">Poids</div>
+        <div class="header-cell">kg CO₂e</div>
+        <div class="header-cell">CO₂e/t.km</div>
+        <div class="header-cell">Énergie</div>
+        <div class="header-cell">Consommation</div>
+        <div class="header-cell">Niveau</div>
+        <div class="header-cell">Actions</div>
+      </div>
+      ${transports.map(transport => `
+        <div class="transport-row">
+          <div class="transport-cell checkbox-cell">
+            <input type="checkbox" class="transport-checkbox" value="${transport.id}">
+          </div>
+          <div class="transport-cell">
+            <strong>${transport.ref}</strong>
+            <span class="chip ${transport.type_transport === 'direct' ? 'ok' : 'warning'}">
+              ${transport.type_transport === 'direct' ? 'Direct' : 'Indirect'}
+            </span>
+          </div>
+          <div class="transport-cell">${transport.lieu_collecte} → ${transport.lieu_livraison}</div>
+          <div class="transport-cell">${transport.distance_km} km</div>
+          <div class="transport-cell">${transport.poids_tonnes} t</div>
+          <div class="transport-cell emissions-cell">
+            <span class="number">${transport.emis_kg || 0}</span><span class="unit">kg CO₂e</span>
+          </div>
+          <div class="transport-cell emissions-tkm-cell">
+            <span class="number">${transport.emis_tkm || 0}</span><span class="unit">CO₂e/t.km</span>
+          </div>
+          <div class="transport-cell">${transport.energie || 'N/A'}</div>
+          <div class="transport-cell consumption-cell">${transport.conso_vehicule || 'N/A'} L/100km</div>
+          <div class="transport-cell level-cell">${transport.niveau_calcul || 'N/A'}</div>
+          <div class="transport-cell transport-actions">
+            <button class="btn-icon" title="Modifier" onclick="editTransport(${transport.id})">✎</button>
+            <button class="btn-icon" title="Supprimer" onclick="deleteTransport(${transport.id})">🗑</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  
+  container.innerHTML = html;
+}
+
+// Fonction pour basculer la sélection
+function toggleSelectAll() {
+  const selectAll = document.getElementById('select-all');
+  const checkboxes = document.querySelectorAll('.transport-checkbox');
+  
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = selectAll.checked;
+  });
+}
+
+// Fonction pour éditer un transport
+function editTransport(id) {
+  const transport = transports.find(t => t.id === id);
+  if (!transport) return;
+  
+  currentEditingId = id;
+  document.getElementById('transport-modal-title').textContent = 'Modifier le Transport';
+  
+  // Remplir le formulaire
+  document.getElementById('transport-ref').value = transport.ref || '';
+  document.getElementById('transport-date').value = transport.date_iso || transport.date || '';
+  document.getElementById('transport-lieu-collecte').value = transport.lieu_collecte || '';
+  document.getElementById('transport-lieu-livraison').value = transport.lieu_livraison || '';
+  document.getElementById('transport-poids').value = transport.poids_tonnes || '';
+  document.getElementById('transport-type').value = transport.type_transport || '';
+  document.getElementById('transport-type-vehicule').value = transport.type_vehicule || '';
+  document.getElementById('transport-niveau-calcul').value = transport.niveau_calcul || 'niveau1';
+  document.getElementById('transport-conso-vehicule').value = transport.conso_vehicule || '';
+  document.getElementById('transport-energie').value = transport.energie || '';
+  document.getElementById('transport-distance').value = transport.distance_km || '';
+  document.getElementById('transport-emissions').value = transport.emis_kg || '';
+  document.getElementById('transport-emissions-tkm').value = transport.emis_tkm || '';
+  
+  document.getElementById('transport-modal').style.display = 'block';
+}
+
+// Fonction pour supprimer un transport
+async function deleteTransport(id) {
+  if (!confirm('Êtes-vous sûr de vouloir supprimer ce transport ?')) return;
+  
+  try {
+    const response = await fetch(`/api/transports/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) throw new Error('Erreur lors de la suppression');
+    
+    await loadTransports();
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert('Erreur lors de la suppression du transport');
+  }
+}
+
+// Fonction pour calculer les émissions
+function calculateEmissions() {
+  const distance = parseFloat(document.getElementById('transport-distance').value) || 0;
+  const poids = parseFloat(document.getElementById('transport-poids').value) || 0;
+  const niveau = document.getElementById('transport-niveau-calcul').value;
+  const conso = parseFloat(document.getElementById('transport-conso-vehicule').value) || 0;
+  
+  let emissions = 0;
+  let emissionsTkm = 0;
+  
+  if (niveau === 'niveau1') {
+    // Utiliser les facteurs d'émission paramétrés
+    const selectedOption = document.getElementById('transport-type-vehicule').selectedOptions[0];
+    if (selectedOption && selectedOption.dataset.emissions) {
+      const facteurEmission = parseFloat(selectedOption.dataset.emissions);
+      emissions = (distance / 100) * conso * facteurEmission;
+    }
+  } else {
+    // Calcul basique pour les autres niveaux
+    emissions = (distance / 100) * conso * 3.17; // Facteur par défaut
+  }
+  
+  if (poids > 0) {
+    emissionsTkm = emissions / (distance * poids);
+  }
+  
+  document.getElementById('transport-emissions').value = emissions.toFixed(2);
+  document.getElementById('transport-emissions-tkm').value = emissionsTkm.toFixed(3);
+}
+
+// Fonction pour charger les clients
+async function loadClients() {
+  try {
+    const response = await fetch('/api/clients');
+    if (!response.ok) throw new Error('Erreur lors du chargement des clients');
+    
+    const clients = await response.json();
+    populateClientsDropdown(clients);
+  } catch (error) {
+    console.error('Erreur lors du chargement des clients:', error);
+  }
+}
+
+// Fonction pour peupler le dropdown des clients
+function populateClientsDropdown(clients) {
+  const select = document.getElementById('transport-client');
+  if (!select) return;
+  
+  select.innerHTML = '<option value="">Sélectionnez un client</option>';
+  clients.forEach(client => {
+    const option = document.createElement('option');
+    option.value = client.id;
+    option.textContent = client.nom;
+    select.appendChild(option);
+  });
+}
+
+// Fonction pour mettre à jour les statistiques
+function updateStats() {
+  const totalTransports = transports.length;
+  const totalEmissions = transports.reduce((sum, t) => sum + (parseFloat(t.emis_kg) || 0), 0);
+  const totalDistance = transports.reduce((sum, t) => sum + (parseFloat(t.distance_km) || 0), 0);
+  const totalPoids = transports.reduce((sum, t) => sum + (parseFloat(t.poids_tonnes) || 0), 0);
+  
+  document.getElementById('total-transports').textContent = totalTransports;
+  document.getElementById('total-emissions').textContent = totalEmissions.toFixed(1);
+  document.getElementById('total-distance').textContent = totalDistance.toFixed(0);
+  document.getElementById('total-poids').textContent = totalPoids.toFixed(1);
+}
+
+// Fonction pour charger les types de véhicules
+async function loadTypesVehicules() {
+  try {
+    const response = await fetch('/api/vehicules/types');
+    if (!response.ok) throw new Error('Erreur lors du chargement des types de véhicules');
+    
+    const data = await response.json();
+    if (data.success) {
+      populateVehiculeTypes(data.types_vehicules || []);
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des types de véhicules:', error);
+  }
+}
+
+// Fonction pour peupler le select des types de véhicules
+function populateVehiculeTypes(typesVehicules) {
+  const select = document.getElementById('transport-type-vehicule');
+  if (!select) return;
+  
+  select.innerHTML = '<option value="">Sélectionnez le type de véhicule</option>';
+  
+  if (typesVehicules.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Aucun véhicule configuré';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
+  
+  typesVehicules.forEach(vehicule => {
+    const option = document.createElement('option');
+    option.value = vehicule.value || vehicule.id;
+    option.textContent = vehicule.label || vehicule.nom;
+    option.dataset.conso = vehicule.conso || 0;
+    option.dataset.emissions = vehicule.emissions || 0;
+    select.appendChild(option);
+  });
+}
+
+// Fonction pour charger les énergies
+async function loadEnergies() {
+  try {
+    const response = await fetch('/api/energies');
+    if (!response.ok) throw new Error('Erreur lors du chargement des énergies');
+    
+    const data = await response.json();
+    if (data.success) {
+      populateEnergies(data.energies || []);
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des énergies:', error);
+  }
+}
+
+// Fonction pour peupler le select des énergies
+function populateEnergies(energies) {
+  const select = document.getElementById('transport-energie');
+  if (!select) return;
+  
+  select.innerHTML = '<option value="">Sélectionnez l\'énergie</option>';
+  
+  if (energies.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'Aucune énergie configurée';
+    option.disabled = true;
+    select.appendChild(option);
+    return;
+  }
+  
+  energies.forEach(energie => {
+    const option = document.createElement('option');
+    option.value = energie.identifiant || energie.id;
+    option.textContent = `${energie.nom} (${energie.unite})`;
+    option.dataset.facteur = energie.facteur || 2.7;
+    select.appendChild(option);
+  });
+}
+
+// Fonction pour mettre à jour la consommation automatiquement
+function updateVehiculeConsumption() {
+  const select = document.getElementById('transport-type-vehicule');
+  const consoField = document.getElementById('transport-conso-vehicule');
+  const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
+  
+  if (select.value && niveauCalcul === 'niveau1') {
+    const selectedOption = select.options[select.selectedIndex];
+    const conso = selectedOption.dataset.conso;
+    if (conso) {
+      consoField.value = conso;
+      calculateEmissions();
+    }
+  }
+}
+
+// Fonction pour mettre à jour l'état du champ de consommation
+function updateConsumptionFieldState() {
+  const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
+  const consoField = document.getElementById('transport-conso-vehicule');
+  const consoLabel = consoField.previousElementSibling;
+  
+  if (niveauCalcul === 'niveau1') {
+    consoField.readOnly = true;
+    consoField.style.backgroundColor = '#f5f5f5';
+    consoField.style.cursor = 'not-allowed';
+    consoLabel.innerHTML = 'Consommation du véhicule (L/100km) <small style="color: #666;">(automatique)</small>';
+  } else {
+    consoField.readOnly = false;
+    consoField.style.backgroundColor = '';
+    consoField.style.cursor = '';
+    consoLabel.innerHTML = 'Consommation du véhicule (L/100km) <small style="color: #666;">(saisie manuelle)</small>';
+  }
+}
+
+// Gestionnaire de soumission du formulaire
+document.getElementById('transport-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  const transportData = Object.fromEntries(formData.entries());
+  
+  // Ajouter les champs calculés
+  transportData.emis_kg = document.getElementById('transport-emissions').value;
+  transportData.emis_tkm = document.getElementById('transport-emissions-tkm').value;
+  
+  try {
+    let response;
+    if (currentEditingId) {
+      // Modification
+      response = await fetch(`/api/transports/${currentEditingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(transportData)
+      });
+    } else {
+      // Création
+      response = await fetch('/api/transports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(transportData)
+      });
+    }
+    
+    if (!response.ok) throw new Error('Erreur lors de la sauvegarde');
+    
+    const result = await response.json();
+    if (result.success) {
+      alert('✅ Transport sauvegardé avec succès');
+      closeTransportModal();
+      await loadTransports();
+    } else {
+      alert('❌ Erreur lors de la sauvegarde');
+    }
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert('❌ Erreur de connexion');
+  }
+});
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+  loadTransports();
+  loadClients();
+  loadTypesVehicules();
+  loadEnergies();
+  
+  // Définir la date d'aujourd'hui par défaut
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('transport-date').value = today;
+  
+  // Gestionnaire pour le changement de niveau de calcul
+  document.getElementById('transport-niveau-calcul').addEventListener('change', function() {
+    updateConsumptionFieldState();
+  });
+  
+  // Fermer les modals en cliquant à l'extérieur
+  window.onclick = function(event) {
+    const addChoiceModal = document.getElementById('add-choice-modal');
+    const transportModal = document.getElementById('transport-modal');
+    
+    if (event.target === addChoiceModal) {
+      closeAddChoiceModal();
+    }
+    if (event.target === transportModal) {
+      closeTransportModal();
+    }
+  }
+});
+</script>
+{% endblock %}
