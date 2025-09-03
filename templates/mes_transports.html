@@ -631,7 +631,7 @@ function displayTransports(transportsToShow) {
         </div>
         <div class="transport-cell">
           <span class="number">${transport.emis_kg || 0}</span><span class="unit">kg</span>
-          <br><small>(${transport.emis_tkm || 0} kg/t.km)</small>
+          <span class="unit">(${transport.emis_tkm || 0} kg/t.km)</span>
         </div>
         <div class="transport-cell">
           ${transport.energie || 'N/A'}
