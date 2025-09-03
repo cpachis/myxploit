@@ -86,13 +86,13 @@
 } /* Énergie */
 
 .transports-header .header-cell:nth-child(7) { 
-  min-width: 80px !important; 
-  max-width: 80px !important;
+  min-width: 100px !important; 
+  max-width: 100px !important;
 } /* Consommation */
 
 .transports-header .header-cell:nth-child(8) { 
-  min-width: 70px !important; 
-  max-width: 70px !important;
+  min-width: 80px !important; 
+  max-width: 80px !important;
 } /* Niveau */
 
 .transports-header .header-cell:nth-child(9) { 
@@ -172,13 +172,13 @@
 } /* Énergie */
 
 .transport-cell:nth-child(7) { 
-  min-width: 80px !important; 
-  max-width: 80px !important;
+  min-width: 100px !important; 
+  max-width: 100px !important;
 } /* Consommation */
 
 .transport-cell:nth-child(8) { 
-  min-width: 70px !important; 
-  max-width: 70px !important;
+  min-width: 80px !important; 
+  max-width: 80px !important;
 } /* Niveau */
 
 .transport-cell:nth-child(9) { 
