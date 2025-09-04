@@ -1401,8 +1401,8 @@ function editTransport(id) {
   document.getElementById('transport-conso-vehicule').value = transport.conso_vehicule || '';
   document.getElementById('transport-energie').value = transport.energie || '';
   document.getElementById('transport-distance').value = transport.distance_km || '';
-  document.getElementById('transport-emissions').value = transport.emis_kg || '';
-  document.getElementById('transport-emissions-tkm').value = transport.emis_tkm || '';
+  document.getElementById('transport-kg-co2e').value = transport.emis_kg || '';
+  document.getElementById('transport-co2e-tkm').value = transport.emis_tkm || '';
   // Gérer le type de véhicule (convertir l'ancienne case à cocher)
   const vehiculeType = transport.vehicule_dedie ? 'dedie' : 'mutualise';
   document.getElementById('transport-vehicule-type').value = vehiculeType;
@@ -1470,8 +1470,8 @@ function calculateEmissions() {
     emissionsTkm = emissions / (distance * poids);
   }
   
-  document.getElementById('transport-emissions').value = emissions.toFixed(2);
-  document.getElementById('transport-emissions-tkm').value = emissionsTkm.toFixed(3);
+  document.getElementById('transport-kg-co2e').value = emissions.toFixed(2);
+  document.getElementById('transport-co2e-tkm').value = emissionsTkm.toFixed(3);
 }
 
 // Fonction pour charger les clients
@@ -2011,6 +2011,35 @@ function toggleVehiculeMutualise() {
 // Fonction pour afficher les options véhicule mutualisé
 function showVehiculeMutualiseOptions() {
   alert('🚧 Fonctionnalité "Options véhicule mutualisé" en cours de développement !\n\nCette fonctionnalité permettra de :\n• Configurer les paramètres de mutualisation\n• Définir les règles de partage de véhicule\n• Gérer les coûts et émissions partagés\n• Optimiser les trajets mutualisés');
+}
+
+// Fonction pour réinitialiser le formulaire
+function resetTransportForm() {
+  document.getElementById('transport-form').reset();
+  document.getElementById('transport-modal-title').textContent = 'Nouveau Transport';
+  currentEditingId = null;
+  
+  // Définir la date d'aujourd'hui par défaut
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('transport-date').value = today;
+  
+  // Réinitialiser les champs spécifiques
+  document.getElementById('transport-niveau-calcul').value = 'niveau1';
+  document.getElementById('transport-vehicule-type').value = 'dedie';
+  document.getElementById('transport-poids-pris-en-compte').value = '';
+  document.getElementById('transport-kg-co2e').value = '';
+  document.getElementById('transport-co2e-tkm').value = '';
+  
+  // Masquer les paramètres du véhicule et de l'énergie
+  document.getElementById('vehicule-params').style.display = 'none';
+  document.getElementById('energie-params').style.display = 'none';
+  
+  // Masquer le bouton options véhicule mutualisé
+  document.getElementById('vehicule-mutualise-actions').style.display = 'none';
+  
+  // Mettre à jour l'état des champs
+  updateConsumptionFieldState();
+  toggleVehiculeMutualise();
 }
 
 // Fonction pour ajouter une phase
