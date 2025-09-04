@@ -866,17 +866,27 @@ form button:hover {
   white-space: nowrap;
 }
 
-/* --- Styles pour la pastille Facteur d'émission --- */
+/* --- Styles pour les pastilles (véhicule et facteur d'émission) --- */
+.vehicule-params .param-item,
 .energie-params .param-item {
   background: #f8f9fa;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 1rem;
   text-align: center;
-  min-height: 80px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  width: 100%;
+}
+
+.vehicule-params .param-item {
+  min-height: 100px;
+}
+
+.energie-params .param-item {
+  min-height: 100px;
 }
 
 .energie-params .param-title {
@@ -888,6 +898,7 @@ form button:hover {
   letter-spacing: 0.5px;
 }
 
+.vehicule-params .param-value,
 .energie-params .param-value-centered {
   font-size: 1.1rem;
   font-weight: 700;
@@ -896,5 +907,14 @@ form button:hover {
   align-items: center;
   justify-content: center;
   flex: 1;
+}
+
+.vehicule-params .param-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
