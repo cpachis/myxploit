@@ -1530,14 +1530,33 @@ function updatePastillesOnly() {
   }
   
   // Mettre à jour les émissions par km
-  if (vehiculeEmissionsKm && consoField.value && energieSelect.value) {
-    const energieOption = energieSelect.options[energieSelect.selectedIndex];
-    const facteurEmission = parseFloat(energieOption.dataset.facteur) || 0;
+  if (vehiculeEmissionsKm && consoField.value) {
+    let facteurEmission = 0;
+    
+    // Déterminer le facteur d'émission selon le niveau
+    if (niveauCalcul === 'niveau1') {
+      // En niveau 1, utiliser le facteur du véhicule
+      const typeVehiculeSelect = document.getElementById('transport-type-vehicule');
+      if (typeVehiculeSelect.value) {
+        const selectedOption = typeVehiculeSelect.options[typeVehiculeSelect.selectedIndex];
+        if (selectedOption && selectedOption.dataset.emissions) {
+          facteurEmission = parseFloat(selectedOption.dataset.emissions);
+        }
+      }
+    } else {
+      // En niveau 2, utiliser le facteur de l'énergie
+      if (energieSelect.value) {
+        const energieOption = energieSelect.options[energieSelect.selectedIndex];
+        facteurEmission = parseFloat(energieOption.dataset.facteur) || 0;
+      }
+    }
     
     if (facteurEmission > 0) {
       const consoParKm = parseFloat(consoField.value) / 100; // L/km
       const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
       vehiculeEmissionsKm.textContent = emissionsParKm.toFixed(3) + ' kg CO₂e/km';
+    } else {
+      vehiculeEmissionsKm.textContent = '-';
     }
   }
   
