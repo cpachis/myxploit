@@ -1758,14 +1758,13 @@ function calculateEmissions() {
     }
   }
   
-  // Calcul CO₂e/t.km selon la formule : (consommation / km × facteur d'émission) / (poids en kg × 1000)
+  // Calcul CO₂e/t.km selon la formule : (consommation / km × facteur d'émission) / poids en tonnes
   if (distance > 0 && poidsPrisEnCompte > 0 && consommation > 0) {
     const consommationParKm = consommation / 100; // L/km
-    const poidsEnKg = poidsPrisEnCompte * 1000; // Conversion tonnes en kg
-    emissionsTkm = (consommationParKm * facteurEmission) / (poidsEnKg * 1000);
+    emissionsTkm = (consommationParKm * facteurEmission) / poidsPrisEnCompte;
     
     console.log('Consommation par km (L/km):', consommationParKm);
-    console.log('Poids pris en compte (kg):', poidsEnKg);
+    console.log('Poids pris en compte (tonnes):', poidsPrisEnCompte);
     console.log('CO₂e/t.km calculé:', emissionsTkm);
   }
   
