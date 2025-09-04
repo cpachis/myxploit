@@ -1741,23 +1741,32 @@ function calculateEmissions() {
   if (consommation > 0) {
     // Calcul : (distance/100) × consommation × facteur d'émission
     emissionsKg = (distance / 100) * consommation * facteurEmission;
-    emissionsTkm = emissionsKg / (distance * poids);
     
     console.log('Émissions totales (kg):', emissionsKg);
-    console.log('Émissions t.km (kg):', emissionsTkm);
   }
   
-  // Pour le niveau 1, utiliser les émissions t.km paramétrées du véhicule
-  if (niveauCalcul === 'niveau1') {
+  // Calculer le poids pris en compte pour le calcul CO₂e/t.km
+  let poidsPrisEnCompte = poids;
+  const vehiculeDedie = document.getElementById('transport-vehicule-dedie').checked;
+  if (vehiculeDedie && niveauCalcul === 'niveau1') {
     const typeVehiculeSelect = document.getElementById('transport-type-vehicule');
     const selectedOption = typeVehiculeSelect.options[typeVehiculeSelect.selectedIndex];
-    const emissionsParametrees = selectedOption.dataset.emissions;
+    const chargeUtile = selectedOption.dataset.chargeUtile;
     
-    if (emissionsParametrees) {
-      // Utiliser les émissions t.km paramétrées (converties de g en kg)
-      emissionsTkm = parseFloat(emissionsParametrees) / 1000;
-      console.log('Émissions t.km paramétrées (kg):', emissionsTkm);
+    if (chargeUtile && parseFloat(chargeUtile) > 0) {
+      poidsPrisEnCompte = parseFloat(chargeUtile);
     }
+  }
+  
+  // Calcul CO₂e/t.km selon la formule : (consommation / km × facteur d'émission) / (poids en kg × 1000)
+  if (distance > 0 && poidsPrisEnCompte > 0 && consommation > 0) {
+    const consommationParKm = consommation / 100; // L/km
+    const poidsEnKg = poidsPrisEnCompte * 1000; // Conversion tonnes en kg
+    emissionsTkm = (consommationParKm * facteurEmission) / (poidsEnKg * 1000);
+    
+    console.log('Consommation par km (L/km):', consommationParKm);
+    console.log('Poids pris en compte (kg):', poidsEnKg);
+    console.log('CO₂e/t.km calculé:', emissionsTkm);
   }
   
   // Mettre à jour les champs
@@ -1767,22 +1776,8 @@ function calculateEmissions() {
   // Mettre à jour le poids pris en compte
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
-    let poidsPrisEnCompte = poids;
-    
-    // Si véhicule dédié et niveau 1, utiliser la charge utile du véhicule
-    const vehiculeDedie = document.getElementById('transport-vehicule-dedie').checked;
-    if (vehiculeDedie && niveauCalcul === 'niveau1') {
-      const typeVehiculeSelect = document.getElementById('transport-type-vehicule');
-      const selectedOption = typeVehiculeSelect.options[typeVehiculeSelect.selectedIndex];
-      const chargeUtile = selectedOption.dataset.chargeUtile;
-      
-      if (chargeUtile && parseFloat(chargeUtile) > 0) {
-        poidsPrisEnCompte = parseFloat(chargeUtile);
-        console.log('Véhicule dédié - Poids pris en compte (charge utile):', poidsPrisEnCompte);
-      }
-    }
-    
     poidsPrisEnCompteField.value = poidsPrisEnCompte.toFixed(3);
+    console.log('Poids pris en compte affiché:', poidsPrisEnCompte);
   }
   
   console.log('=== FIN CALCUL ===');
