@@ -1808,7 +1808,7 @@ function updateConsumptionFieldState() {
   const consoField = document.getElementById('transport-conso-vehicule');
   const consoHelp = document.getElementById('conso-help');
   const emissionsTkmField = document.getElementById('transport-co2e-tkm');
-  const emissionsTkmHelp = document.getElementById('emissions-tkm-help');
+  const emissionsTkmHelp = document.querySelector('#transport-co2e-tkm + .form-help');
   
   if (niveauCalcul === 'niveau1') {
     // Niveau 1 : consommation automatique depuis le véhicule
@@ -1825,9 +1825,11 @@ function updateConsumptionFieldState() {
     emissionsTkmField.style.backgroundColor = '#f8f9fa';
     emissionsTkmField.style.cursor = 'not-allowed';
     emissionsTkmField.style.color = '#6c757d';
-    emissionsTkmHelp.innerHTML = 'kg CO₂e/t.km';
-    emissionsTkmHelp.style.color = '#6c757d';
-    emissionsTkmHelp.style.fontStyle = 'italic';
+    if (emissionsTkmHelp) {
+      emissionsTkmHelp.innerHTML = 'kg CO₂e/t.km';
+      emissionsTkmHelp.style.color = '#6c757d';
+      emissionsTkmHelp.style.fontStyle = 'italic';
+    }
     
   } else {
     // Niveaux 2, 3, 4 : consommation manuelle
@@ -1844,9 +1846,11 @@ function updateConsumptionFieldState() {
     emissionsTkmField.style.backgroundColor = '#f8f9fa';
     emissionsTkmField.style.cursor = 'not-allowed';
     emissionsTkmField.style.color = '#6c757d';
-    emissionsTkmHelp.innerHTML = 'kg CO₂e/t.km';
-    emissionsTkmHelp.style.color = '#6b7280';
-    emissionsTkmHelp.style.fontStyle = 'normal';
+    if (emissionsTkmHelp) {
+      emissionsTkmHelp.innerHTML = 'kg CO₂e/t.km';
+      emissionsTkmHelp.style.color = '#6b7280';
+      emissionsTkmHelp.style.fontStyle = 'normal';
+    }
   }
 }
 
