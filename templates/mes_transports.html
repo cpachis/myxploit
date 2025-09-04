@@ -2075,12 +2075,17 @@ function resetTransportForm() {
   document.getElementById('transport-kg-co2e').value = '';
   document.getElementById('transport-co2e-tkm').value = '';
   
-  // Masquer les paramètres du véhicule et de l'énergie
-  document.getElementById('vehicule-params').style.display = 'none';
-  document.getElementById('energie-params').style.display = 'none';
+  // Masquer les paramètres du véhicule
+  const vehiculeParams = document.getElementById('vehicule-params');
+  if (vehiculeParams) {
+    vehiculeParams.style.display = 'none';
+  }
   
   // Masquer le bouton options véhicule mutualisé
-  document.getElementById('vehicule-mutualise-actions').style.display = 'none';
+  const mutualiseActions = document.getElementById('vehicule-mutualise-actions');
+  if (mutualiseActions) {
+    mutualiseActions.style.display = 'none';
+  }
   
   // Mettre à jour l'état des champs
   updateConsumptionFieldState();
@@ -2161,8 +2166,8 @@ document.getElementById('transport-form').addEventListener('submit', async funct
   const transportData = Object.fromEntries(formData.entries());
   
   // Ajouter les champs calculés
-  transportData.emis_kg = document.getElementById('transport-emissions').value;
-  transportData.emis_tkm = document.getElementById('transport-emissions-tkm').value;
+  transportData.emis_kg = document.getElementById('transport-kg-co2e').value;
+  transportData.emis_tkm = document.getElementById('transport-co2e-tkm').value;
   
   // Gérer le type de véhicule (convertir en boolean pour la compatibilité)
   const vehiculeType = document.getElementById('transport-vehicule-type').value;
