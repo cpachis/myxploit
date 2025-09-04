@@ -870,11 +870,12 @@ form button:hover {
 .vehicule-params {
   display: flex !important;
   flex-direction: row !important;
-  gap: 0.5rem !important;
-  flex-wrap: wrap !important;
+  gap: 0.25rem !important;
+  flex-wrap: nowrap !important;
   align-items: stretch !important;
   width: 100% !important;
   overflow-x: auto !important;
+  justify-content: flex-start !important;
 }
 
 .vehicule-params .param-item,
@@ -882,16 +883,16 @@ form button:hover {
   background: #f8f9fa !important;
   border: 1px solid #e0e0e0 !important;
   border-radius: 8px !important;
-  padding: 0.75rem !important;
+  padding: 0.5rem !important;
   text-align: center !important;
-  min-height: 100px !important;
+  min-height: 90px !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
-  flex: 0 0 auto !important;
-  width: 140px !important;
-  min-width: 140px !important;
-  max-width: 140px !important;
+  flex: 0 0 120px !important;
+  width: 120px !important;
+  min-width: 120px !important;
+  max-width: 120px !important;
   box-sizing: border-box !important;
 }
 
@@ -921,6 +922,9 @@ form button:hover {
   align-items: center;
   justify-content: center;
   flex: 1;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 .vehicule-params .param-label {
@@ -936,13 +940,14 @@ form button:hover {
 #vehicule-params {
   display: flex !important;
   flex-direction: row !important;
-  gap: 0.5rem !important;
-  flex-wrap: wrap !important;
+  gap: 0.25rem !important;
+  flex-wrap: nowrap !important;
   align-items: stretch !important;
   width: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
   overflow-x: auto !important;
+  justify-content: flex-start !important;
 }
 
 #vehicule-params .param-item {
@@ -950,17 +955,17 @@ form button:hover {
   flex-direction: column !important;
   justify-content: space-between !important;
   align-items: center !important;
-  flex: 0 0 auto !important;
-  width: 140px !important;
-  min-width: 140px !important;
-  max-width: 140px !important;
+  flex: 0 0 120px !important;
+  width: 120px !important;
+  min-width: 120px !important;
+  max-width: 120px !important;
   margin: 0 !important;
-  padding: 0.75rem !important;
+  padding: 0.5rem !important;
   background: #f8f9fa !important;
   border: 1px solid #e0e0e0 !important;
   border-radius: 8px !important;
   text-align: center !important;
-  min-height: 100px !important;
+  min-height: 90px !important;
   box-sizing: border-box !important;
 }
 
@@ -968,8 +973,8 @@ form button:hover {
 .form-group #vehicule-params {
   display: flex !important;
   flex-direction: row !important;
-  gap: 0.5rem !important;
-  flex-wrap: wrap !important;
+  gap: 0.25rem !important;
+  flex-wrap: nowrap !important;
   align-items: stretch !important;
   width: 100% !important;
   margin: 0 !important;
@@ -977,17 +982,21 @@ form button:hover {
   background: transparent !important;
   border: none !important;
   overflow-x: auto !important;
+  justify-content: flex-start !important;
 }
 
 /* --- Styles spécifiques pour éviter le chevauchement --- */
 .vehicule-params .param-item {
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
-  flex-basis: 140px !important;
-  margin-right: 0.5rem !important;
-}
-
-.vehicule-params .param-item:last-child {
-  margin-right: 0 !important;
+  flex-basis: 120px !important;
+  margin: 0 !important;
+  padding: 0.5rem !important;
+  background: #f8f9fa !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  text-align: center !important;
+  min-height: 90px !important;
+  box-sizing: border-box !important;
 }
 
