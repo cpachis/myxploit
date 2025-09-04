@@ -1225,6 +1225,9 @@ function resetTransportForm() {
   currentEditingId = null;
   document.getElementById('transport-niveau-calcul').value = 'niveau1';
   
+  // Réinitialiser la case à cocher vehicule_dedie
+  document.getElementById('transport-vehicule-dedie').checked = false;
+  
   // Réinitialiser les phases
   phaseCounter = 0;
   document.getElementById('phases-container').innerHTML = '';
@@ -2005,6 +2008,9 @@ document.getElementById('transport-form').addEventListener('submit', async funct
   // Ajouter les champs calculés
   transportData.emis_kg = document.getElementById('transport-emissions').value;
   transportData.emis_tkm = document.getElementById('transport-emissions-tkm').value;
+  
+  // Gérer la case à cocher vehicule_dedie (elle n'apparaît pas dans FormData si non cochée)
+  transportData.vehicule_dedie = document.getElementById('transport-vehicule-dedie').checked;
   
   try {
     let response;

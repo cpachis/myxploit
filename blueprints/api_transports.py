@@ -275,6 +275,7 @@ def api_transports():
                         'type_vehicule': transport.type_vehicule,
                         'energie': transport.energie,
                         'conso_vehicule': transport.conso_vehicule,
+                        'vehicule_dedie': transport.vehicule_dedie,
                         'client': transport.client,
                         'transporteur': transport.transporteur,
                         'description': transport.description,
@@ -402,6 +403,8 @@ def api_transports():
                     transport.energie = data['energie']
                 if 'conso_vehicule' in data:
                     transport.conso_vehicule = float(data['conso_vehicule'])
+                if 'vehicule_dedie' in data:
+                    transport.vehicule_dedie = bool(data['vehicule_dedie'])
                 if 'client' in data:
                     transport.client = data['client']
                 if 'transporteur' in data:
@@ -435,6 +438,7 @@ def api_transports():
                         'type_vehicule': transport.type_vehicule,
                         'energie': transport.energie,
                         'conso_vehicule': transport.conso_vehicule,
+                        'vehicule_dedie': transport.vehicule_dedie,
                         'client': transport.client,
                         'transporteur': transport.transporteur,
                         'description': transport.description
@@ -519,6 +523,7 @@ def api_transports_v2():
                         'type_vehicule': transport.type_vehicule,
                         'energie': transport.energie,
                         'conso_vehicule': transport.conso_vehicule,
+                        'vehicule_dedie': transport.vehicule_dedie,
                         'client': transport.client,
                         'transporteur': transport.transporteur,
                         'description': transport.description,
@@ -671,6 +676,8 @@ def api_transport_v2_detail(transport_id):
                     transport.energie = data['energie']
                 if 'conso_vehicule' in data:
                     transport.conso_vehicule = float(data['conso_vehicule'])
+                if 'vehicule_dedie' in data:
+                    transport.vehicule_dedie = bool(data['vehicule_dedie'])
                 if 'client' in data:
                     transport.client = data['client']
                 if 'transporteur' in data:
@@ -704,6 +711,7 @@ def api_transport_v2_detail(transport_id):
                         'type_vehicule': transport.type_vehicule,
                         'energie': transport.energie,
                         'conso_vehicule': transport.conso_vehicule,
+                        'vehicule_dedie': transport.vehicule_dedie,
                         'client': transport.client,
                         'transporteur': transport.transporteur,
                         'description': transport.description
@@ -894,6 +902,7 @@ def api_transport_by_id(transport_id):
                         'type_vehicule': transport.type_vehicule,
                         'energie': transport.energie,
                         'conso_vehicule': transport.conso_vehicule,
+                        'vehicule_dedie': transport.vehicule_dedie,
                         'client': transport.client,
                         'transporteur': transport.transporteur,
                         'description': transport.description
