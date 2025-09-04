@@ -867,6 +867,13 @@ form button:hover {
 }
 
 /* --- Styles pour les pastilles (véhicule et facteur d'émission) --- */
+.vehicule-params {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .vehicule-params .param-item,
 .energie-params .param-item {
   background: #f8f9fa;
@@ -878,7 +885,8 @@ form button:hover {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  width: 100%;
+  flex: 1;
+  min-width: 120px;
 }
 
 .vehicule-params .param-item {

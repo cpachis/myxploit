@@ -208,16 +208,20 @@
               <!-- Affichage des paramètres du véhicule -->
               <div id="vehicule-params" class="vehicule-params" style="display: none;">
                 <div class="param-item">
-                  <span class="param-label">Consommation :</span>
-                  <span id="vehicule-conso" class="param-value">-</span>
+                  <div class="param-label">Consommation</div>
+                  <div id="vehicule-conso" class="param-value">-</div>
                 </div>
                 <div class="param-item">
-                  <span class="param-label">CO₂e/t.km :</span>
-                  <span id="vehicule-emissions-tkm" class="param-value">-</span>
+                  <div class="param-label">CO₂e/t.km</div>
+                  <div id="vehicule-emissions-tkm" class="param-value">-</div>
                 </div>
                 <div class="param-item">
-                  <span class="param-label">Charge utile :</span>
-                  <span id="vehicule-charge-utile" class="param-value">-</span>
+                  <div class="param-label">Charge utile</div>
+                  <div id="vehicule-charge-utile" class="param-value">-</div>
+                </div>
+                <div class="param-item">
+                  <div class="param-label">Émissions / km</div>
+                  <div id="vehicule-emissions-km" class="param-value">-</div>
                 </div>
               </div>
             </div>
@@ -1663,10 +1667,37 @@ function updateEnergieFacteur() {
       // Afficher le facteur d'émission
       energieFacteur.textContent = facteur + ' kg CO₂e/L';
       energieParams.style.display = 'block';
+      
+      // Mettre à jour les émissions par km si un véhicule est sélectionné
+      updateEmissionsParKm();
     }
   } else {
     // Masquer les paramètres si aucune énergie sélectionnée
     energieParams.style.display = 'none';
+  }
+}
+
+// Fonction pour mettre à jour les émissions par km
+function updateEmissionsParKm() {
+  const vehiculeSelect = document.getElementById('transport-type-vehicule');
+  const energieSelect = document.getElementById('transport-energie');
+  const vehiculeEmissionsKm = document.getElementById('vehicule-emissions-km');
+  
+  if (vehiculeSelect.value && energieSelect.value) {
+    const vehiculeOption = vehiculeSelect.options[vehiculeSelect.selectedIndex];
+    const energieOption = energieSelect.options[energieSelect.selectedIndex];
+    
+    const conso = vehiculeOption.dataset.conso;
+    const facteurEmission = parseFloat(energieOption.dataset.facteur) || 0;
+    
+    if (conso && facteurEmission > 0) {
+      // Calcul: (consommation L/100km / 100) * facteur d'émission
+      const consoParKm = parseFloat(conso) / 100; // L/km
+      const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
+      vehiculeEmissionsKm.textContent = emissionsParKm.toFixed(3) + ' kg CO₂e/km';
+    } else {
+      vehiculeEmissionsKm.textContent = '-';
+    }
   }
 }
 
@@ -1707,6 +1738,25 @@ function updateVehiculeConsumption() {
       } else {
         vehiculeChargeUtile.textContent = 'Non définie';
         console.log('Charge utile non définie - valeur:', chargeUtile);
+      }
+      
+      // Calculer et afficher les émissions par km
+      const vehiculeEmissionsKm = document.getElementById('vehicule-emissions-km');
+      const energieSelect = document.getElementById('transport-energie');
+      let facteurEmission = 0;
+      
+      if (energieSelect.value) {
+        const energieOption = energieSelect.options[energieSelect.selectedIndex];
+        facteurEmission = parseFloat(energieOption.dataset.facteur) || 0;
+      }
+      
+      if (conso && facteurEmission > 0) {
+        // Calcul: (consommation L/100km / 100) * facteur d'émission
+        const consoParKm = parseFloat(conso) / 100; // L/km
+        const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
+        vehiculeEmissionsKm.textContent = emissionsParKm.toFixed(3) + ' kg CO₂e/km';
+      } else {
+        vehiculeEmissionsKm.textContent = '-';
       }
       
       vehiculeParams.style.display = 'block';
