@@ -191,6 +191,20 @@
                 <div id="transport-lieu-livraison-suggestions" class="autocomplete-suggestions"></div>
               </div>
             </div>
+            <div class="form-group">
+              <label for="transport-vehicule-type">Type de véhicule</label>
+              <select id="transport-vehicule-type" name="vehicule_type" onchange="toggleVehiculeMutualise()">
+                <option value="dedie">Véhicule dédié</option>
+                <option value="mutualise">Véhicule mutualisé</option>
+              </select>
+            </div>
+            <div class="form-group" id="vehicule-mutualise-actions" style="display: none;">
+              <label>&nbsp;</label>
+              <button type="button" class="btn-secondary" onclick="showVehiculeMutualiseOptions()">
+                <span class="btn-icon">⚙️</span>
+                Options
+              </button>
+            </div>
           </div>
 
                      <div class="form-row">
@@ -276,12 +290,6 @@
                 <option value="niveau3">📋 Niveau 3 - Données détaillées (consommation réelle)</option>
                 <option value="niveau4">🔬 Niveau 4 - Données précises (mesures directes)</option>
               </select>
-            </div>
-            <div class="form-group checkbox-group">
-              <label class="checkbox-label">
-                <input type="checkbox" id="transport-vehicule-dedie" name="vehicule_dedie" value="1">
-                <span class="checkbox-text">Véhicule dédié</span>
-              </label>
             </div>
           </div>
 
@@ -867,6 +875,13 @@
   border-color: #0ea5e9 !important;
 }
 
+/* Styles pour le bouton Options véhicule mutualisé */
+#vehicule-mutualise-actions .btn-secondary {
+  margin-top: 8px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
 .form-group input[readonly]:focus {
   border-color: #e2e8f0 !important;
   box-shadow: none !important;
@@ -1238,8 +1253,9 @@ function resetTransportForm() {
   currentEditingId = null;
   document.getElementById('transport-niveau-calcul').value = 'niveau1';
   
-  // Réinitialiser la case à cocher vehicule_dedie
-  document.getElementById('transport-vehicule-dedie').checked = false;
+  // Réinitialiser le type de véhicule
+  document.getElementById('transport-vehicule-type').value = 'dedie';
+  document.getElementById('vehicule-mutualise-actions').style.display = 'none';
   
   // Réinitialiser les phases
   phaseCounter = 0;
@@ -1386,7 +1402,10 @@ function editTransport(id) {
   document.getElementById('transport-distance').value = transport.distance_km || '';
   document.getElementById('transport-emissions').value = transport.emis_kg || '';
   document.getElementById('transport-emissions-tkm').value = transport.emis_tkm || '';
-  document.getElementById('transport-vehicule-dedie').checked = transport.vehicule_dedie || false;
+  // Gérer le type de véhicule (convertir l'ancienne case à cocher)
+  const vehiculeType = transport.vehicule_dedie ? 'dedie' : 'mutualise';
+  document.getElementById('transport-vehicule-type').value = vehiculeType;
+  toggleVehiculeMutualise();
   
   // Remplir le poids pris en compte (sera recalculé par calculateEmissions)
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
@@ -1747,8 +1766,8 @@ function calculateEmissions() {
   
   // Calculer le poids pris en compte pour le calcul CO₂e/t.km
   let poidsPrisEnCompte = poids;
-  const vehiculeDedie = document.getElementById('transport-vehicule-dedie').checked;
-  if (vehiculeDedie && niveauCalcul === 'niveau1') {
+  const vehiculeType = document.getElementById('transport-vehicule-type').value;
+  if (vehiculeType === 'dedie' && niveauCalcul === 'niveau1') {
     const typeVehiculeSelect = document.getElementById('transport-type-vehicule');
     const selectedOption = typeVehiculeSelect.options[typeVehiculeSelect.selectedIndex];
     const chargeUtile = selectedOption.dataset.chargeUtile;
@@ -1973,6 +1992,26 @@ function togglePhasesSection() {
   }
 }
 
+// Fonction pour basculer l'affichage des options véhicule mutualisé
+function toggleVehiculeMutualise() {
+  const vehiculeType = document.getElementById('transport-vehicule-type').value;
+  const mutualiseActions = document.getElementById('vehicule-mutualise-actions');
+  
+  if (vehiculeType === 'mutualise') {
+    mutualiseActions.style.display = 'block';
+  } else {
+    mutualiseActions.style.display = 'none';
+  }
+  
+  // Recalculer les émissions car le type de véhicule a changé
+  calculateEmissions();
+}
+
+// Fonction pour afficher les options véhicule mutualisé
+function showVehiculeMutualiseOptions() {
+  alert('🚧 Fonctionnalité "Options véhicule mutualisé" en cours de développement !\n\nCette fonctionnalité permettra de :\n• Configurer les paramètres de mutualisation\n• Définir les règles de partage de véhicule\n• Gérer les coûts et émissions partagés\n• Optimiser les trajets mutualisés');
+}
+
 // Fonction pour ajouter une phase
 function addPhase() {
   phaseCounter++;
@@ -2050,8 +2089,9 @@ document.getElementById('transport-form').addEventListener('submit', async funct
   transportData.emis_kg = document.getElementById('transport-emissions').value;
   transportData.emis_tkm = document.getElementById('transport-emissions-tkm').value;
   
-  // Gérer la case à cocher vehicule_dedie (elle n'apparaît pas dans FormData si non cochée)
-  transportData.vehicule_dedie = document.getElementById('transport-vehicule-dedie').checked;
+  // Gérer le type de véhicule (convertir en boolean pour la compatibilité)
+  const vehiculeType = document.getElementById('transport-vehicule-type').value;
+  transportData.vehicule_dedie = vehiculeType === 'dedie';
   
   try {
     let response;
@@ -2108,8 +2148,8 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Gestionnaire pour la case à cocher "Véhicule dédié"
-  document.getElementById('transport-vehicule-dedie').addEventListener('change', function() {
-    calculateEmissions();
+  document.getElementById('transport-vehicule-type').addEventListener('change', function() {
+    toggleVehiculeMutualise();
   });
   
   // Fermer les modals en cliquant à l'extérieur
