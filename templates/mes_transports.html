@@ -296,32 +296,36 @@
                 <option value="niveau4">🔬 Niveau 4 - Données précises (mesures directes)</option>
               </select>
             </div>
+            <div class="form-group">
+              <label for="transport-distance">Distance (km)</label>
+              <input type="number" id="transport-distance" name="distance" step="0.1" min="0" required placeholder="Ex: 200" onchange="calculateEmissions()" oninput="calculateEmissions()">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-poids">Poids (tonnes) *</label>
+              <input type="number" id="transport-poids" name="poids_tonnes" step="0.001" min="0" required placeholder="Ex: 2.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
+            </div>
+            <div class="form-group">
+              <label for="transport-poids-pris-en-compte">Poids pris en compte (tonnes)</label>
+              <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="Calculé automatiquement">
+              <small class="form-help">Poids saisi ou charge utile du véhicule si "Véhicule dédié" est coché</small>
+            </div>
+            <div class="form-group">
+              <label for="transport-kg-co2e">KgCo²e</label>
+              <input type="number" id="transport-kg-co2e" name="kg_co2e" step="0.001" min="0" readonly placeholder="Calculé automatiquement">
+              <small class="form-help">Émissions totales en kg CO₂e</small>
+            </div>
+            <div class="form-group">
+              <label for="transport-co2e-tkm">Co²e/t.km</label>
+              <input type="number" id="transport-co2e-tkm" name="co2e_tkm" step="0.001" min="0" readonly placeholder="Calculé automatiquement">
+              <small class="form-help">kg CO₂e/t.km</small>
+            </div>
           </div>
 
         </div>
 
-        <div class="form-section">
-          <h3>📊 Distance et calculs</h3>
-          
-                     <div class="form-row">
-             <div class="form-group">
-               <label for="transport-distance">Distance (km) *</label>
-               <input type="number" id="transport-distance" name="distance_km" step="0.1" min="0" placeholder="Ex: 150.5" required onchange="calculateEmissions()" oninput="calculateEmissions()">
-               <small class="form-help">Distance à saisir manuellement</small>
-             </div>
-             <div class="form-group">
-               <label for="transport-emissions">kg CO₂e</label>
-               <input type="number" id="transport-emissions" name="emis_kg" step="0.01" min="0" readonly>
-               <small class="form-help">Émissions totales calculées automatiquement</small>
-             </div>
-             <div class="form-group">
-               <label for="transport-emissions-tkm">CO₂e/t.km</label>
-               <input type="number" id="transport-emissions-tkm" name="emis_tkm" step="0.001" min="0" readonly>
-               <small class="form-help" id="emissions-tkm-help">Émissions par tonne-kilomètre calculées automatiquement</small>
-             </div>
-           </div>
-
-        </div>
 
         <div class="form-section">
           <h3>ℹ️ Informations complémentaires</h3>
