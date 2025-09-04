@@ -31,6 +31,7 @@ def create_models(db):
         type_vehicule = db.Column(db.String(50))
         energie = db.Column(db.String(50))
         conso_vehicule = db.Column(db.Float)
+        vehicule_dedie = db.Column(db.Boolean, default=False)
         client = db.Column(db.String(100))
         transporteur = db.Column(db.String(100))
         description = db.Column(db.Text)

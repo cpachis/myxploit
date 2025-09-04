@@ -224,6 +224,7 @@ def liste_transports_mise_a_jour():
                 'type_vehicule': transport.type_vehicule,
                 'energie': transport.energie,
                 'conso_vehicule': transport.conso_vehicule,
+                'vehicule_dedie': transport.vehicule_dedie,
                 'client': transport.client,
                 'transporteur': transport.transporteur,
                 'description': transport.description,
@@ -316,6 +317,7 @@ def api_transports():
                     type_vehicule=data.get('type_vehicule', ''),
                     energie=data.get('energie', ''),
                     conso_vehicule=float(data.get('conso_vehicule', 0)),
+                    vehicule_dedie=bool(data.get('vehicule_dedie', False)),
                     client=data.get('client', ''),
                     transporteur=data.get('transporteur', ''),
                     description=data.get('description', '')
@@ -853,6 +855,8 @@ def api_transport_by_id(transport_id):
                     transport.energie = data['energie']
                 if 'conso_vehicule' in data:
                     transport.conso_vehicule = float(data['conso_vehicule']) if data['conso_vehicule'] else None
+                if 'vehicule_dedie' in data:
+                    transport.vehicule_dedie = bool(data['vehicule_dedie'])
                 if 'client' in data:
                     transport.client = data['client']
                 if 'transporteur' in data:
