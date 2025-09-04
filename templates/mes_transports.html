@@ -197,6 +197,23 @@
             </div>
           </div>
 
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-vehicule-type">Type de véhicule</label>
+              <select id="transport-vehicule-type" name="vehicule_type" onchange="toggleVehiculeMutualise()">
+                <option value="dedie">Véhicule dédié</option>
+                <option value="mutualise">Véhicule mutualisé</option>
+              </select>
+            </div>
+            <div class="form-group" id="vehicule-mutualise-actions" style="display: none;">
+              <label>&nbsp;</label>
+              <button type="button" class="btn-secondary" onclick="showVehiculeMutualiseOptions()">
+                <span class="btn-icon">⚙️</span>
+                Options
+              </button>
+            </div>
+          </div>
+
                      <div class="form-row">
              <div class="form-group">
                <label for="transport-poids">Poids (tonnes) *</label>
@@ -285,20 +302,6 @@
                 <option value="niveau3">📋 Niveau 3 - Données détaillées (consommation réelle)</option>
                 <option value="niveau4">🔬 Niveau 4 - Données précises (mesures directes)</option>
               </select>
-            </div>
-            <div class="form-group">
-              <label for="transport-vehicule-type">Type de véhicule</label>
-              <select id="transport-vehicule-type" name="vehicule_type" onchange="toggleVehiculeMutualise()">
-                <option value="dedie">Véhicule dédié</option>
-                <option value="mutualise">Véhicule mutualisé</option>
-              </select>
-            </div>
-            <div class="form-group" id="vehicule-mutualise-actions" style="display: none;">
-              <label>&nbsp;</label>
-              <button type="button" class="btn-secondary" onclick="showVehiculeMutualiseOptions()">
-                <span class="btn-icon">⚙️</span>
-                Options
-              </button>
             </div>
           </div>
 
