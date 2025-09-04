@@ -168,11 +168,11 @@
           <div class="form-row">
             <div class="form-group">
               <label for="transport-ref">Référence du transport *</label>
-              <input type="text" id="transport-ref" name="ref" required placeholder="Ex: T001">
+              <input type="text" id="transport-ref" name="ref" required placeholder="Ex: T001" onchange="calculateEmissions()" oninput="calculateEmissions()">
             </div>
             <div class="form-group">
               <label for="transport-date">Date du transport *</label>
-              <input type="date" id="transport-date" name="date" required>
+              <input type="date" id="transport-date" name="date" required onchange="calculateEmissions()">
             </div>
           </div>
 
@@ -180,14 +180,14 @@
             <div class="form-group">
               <label for="transport-lieu-collecte">Lieu de collecte *</label>
               <div class="autocomplete-container">
-                <input type="text" id="transport-lieu-collecte" name="lieu_collecte" required placeholder="Ex: Paris, France ou 75001" autocomplete="off">
+                <input type="text" id="transport-lieu-collecte" name="lieu_collecte" required placeholder="Ex: Paris, France ou 75001" autocomplete="off" onchange="calculateEmissions()" oninput="calculateEmissions()">
                 <div id="transport-lieu-collecte-suggestions" class="autocomplete-suggestions"></div>
               </div>
             </div>
             <div class="form-group">
               <label for="transport-lieu-livraison">Lieu de livraison *</label>
               <div class="autocomplete-container">
-                <input type="text" id="transport-lieu-livraison" name="lieu_livraison" required placeholder="Ex: Lyon, France ou 69001" autocomplete="off">
+                <input type="text" id="transport-lieu-livraison" name="lieu_livraison" required placeholder="Ex: Lyon, France ou 69001" autocomplete="off" onchange="calculateEmissions()" oninput="calculateEmissions()">
                 <div id="transport-lieu-livraison-suggestions" class="autocomplete-suggestions"></div>
               </div>
             </div>
@@ -239,7 +239,7 @@
             </div>
             <div class="form-group">
               <label for="transport-vehicule-type">Type de trajet</label>
-              <select id="transport-vehicule-type" name="vehicule_type" onchange="toggleVehiculeMutualise()">
+              <select id="transport-vehicule-type" name="vehicule_type" onchange="toggleVehiculeMutualise(); calculateEmissions();">
                 <option value="dedie">Véhicule dédié</option>
                 <option value="mutualise">Véhicule mutualisé</option>
               </select>
