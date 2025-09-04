@@ -237,25 +237,16 @@
             </div>
           </div>
 
-                     <div class="form-row">
-             <div class="form-group">
-               <label for="transport-poids">Poids (tonnes) *</label>
-               <input type="number" id="transport-poids" name="poids_tonnes" step="0.001" min="0" required placeholder="Ex: 2.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
-             </div>
-             <div class="form-group">
-               <label for="transport-poids-pris-en-compte">Poids pris en compte (tonnes)</label>
-               <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="Calculé automatiquement">
-               <small class="form-help">Poids saisi ou charge utile du véhicule si "Véhicule dédié" est coché</small>
-             </div>
-             <div class="form-group">
-               <label for="transport-type">Type de transport *</label>
-               <select id="transport-type" name="type_transport" required onchange="togglePhasesSection()">
-                 <option value="">Sélectionnez le type</option>
-                 <option value="direct">🚛 Direct - Transport direct du point A au point B</option>
-                 <option value="indirect">🔄 Indirect - Transport avec étapes intermédiaires</option>
-               </select>
-             </div>
-           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transport-type">Type de transport *</label>
+              <select id="transport-type" name="type_transport" required onchange="togglePhasesSection()">
+                <option value="">Sélectionnez le type</option>
+                <option value="direct">🚛 Direct - Transport direct du point A au point B</option>
+                <option value="indirect">🔄 Indirect - Transport avec étapes intermédiaires</option>
+              </select>
+            </div>
+          </div>
 
            <!-- Section des phases pour transport indirect -->
            <div id="phases-section" class="phases-section" style="display: none;">
