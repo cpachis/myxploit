@@ -287,7 +287,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="transport-conso-vehicule">Consommation du véhicule (L/100km)</label>
-              <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
+              <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5" onchange="calculateEmissions(); updateVehiculeConsumption();" oninput="calculateEmissions(); updateVehiculeConsumption();">
               <small class="form-help" id="conso-help">Consommation spécifique du véhicule utilisé</small>
             </div>
           </div>
@@ -1440,32 +1440,81 @@ async function deleteTransport(id) {
 
 // Fonction pour calculer les émissions
 function calculateEmissions() {
+  console.log('=== CALCUL ÉMISSIONS ===');
+  
   const distance = parseFloat(document.getElementById('transport-distance').value) || 0;
   const poids = parseFloat(document.getElementById('transport-poids').value) || 0;
   const niveau = document.getElementById('transport-niveau-calcul').value;
   const conso = parseFloat(document.getElementById('transport-conso-vehicule').value) || 0;
   
+  console.log('Distance:', distance);
+  console.log('Poids:', poids);
+  console.log('Niveau calcul:', niveau);
+  
   let emissions = 0;
   let emissionsTkm = 0;
+  let facteurEmission = 0;
+  let poidsPrisEnCompte = poids;
   
+  // Déterminer le facteur d'émission selon le niveau
   if (niveau === 'niveau1') {
-    // Utiliser les facteurs d'émission paramétrés
+    // Utiliser les facteurs d'émission paramétrés du véhicule
     const selectedOption = document.getElementById('transport-type-vehicule').selectedOptions[0];
     if (selectedOption && selectedOption.dataset.emissions) {
-      const facteurEmission = parseFloat(selectedOption.dataset.emissions);
-      emissions = (distance / 100) * conso * facteurEmission;
+      facteurEmission = parseFloat(selectedOption.dataset.emissions);
+    }
+    
+    // En niveau 1, utiliser la charge utile du véhicule si "Véhicule dédié"
+    const vehiculeType = document.getElementById('transport-vehicule-type').value;
+    if (vehiculeType === 'dedie' && selectedOption && selectedOption.dataset.chargeUtile) {
+      poidsPrisEnCompte = parseFloat(selectedOption.dataset.chargeUtile);
     }
   } else {
-    // Calcul basique pour les autres niveaux
-    emissions = (distance / 100) * conso * 3.17; // Facteur par défaut
+    // En niveau 2, utiliser le facteur d'émission de l'énergie sélectionnée
+    const energieSelect = document.getElementById('transport-energie');
+    if (energieSelect && energieSelect.selectedOptions[0] && energieSelect.selectedOptions[0].dataset.facteur) {
+      facteurEmission = parseFloat(energieSelect.selectedOptions[0].dataset.facteur);
+    } else {
+      facteurEmission = 3.1; // Facteur par défaut
+    }
   }
   
-  if (poids > 0) {
-    emissionsTkm = emissions / (distance * poids);
+  console.log('Consommation:', conso);
+  console.log('Facteur émission:', facteurEmission);
+  
+  // Calcul des émissions totales
+  if (distance > 0 && conso > 0 && facteurEmission > 0) {
+    emissions = (distance / 100) * conso * facteurEmission;
   }
   
+  console.log('Émissions totales (kg):', emissions);
+  
+  // Calcul des émissions par tonne-kilomètre
+  if (poidsPrisEnCompte > 0) {
+    const consoParKm = conso / 100; // L/km
+    emissionsTkm = (consoParKm * facteurEmission) / poidsPrisEnCompte;
+  }
+  
+  console.log('Consommation par km (L/km):', conso / 100);
+  console.log('Poids pris en compte (tonnes):', poidsPrisEnCompte);
+  console.log('CO₂e/t.km calculé:', emissionsTkm);
+  
+  // Mettre à jour les champs
   document.getElementById('transport-kg-co2e').value = emissions.toFixed(2);
   document.getElementById('transport-co2e-tkm').value = emissionsTkm.toFixed(3);
+  
+  // Mettre à jour le poids pris en compte
+  const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
+  if (poidsPrisEnCompteField) {
+    poidsPrisEnCompteField.value = poidsPrisEnCompte.toFixed(3);
+    console.log('Poids pris en compte affiché:', poidsPrisEnCompte.toFixed(3));
+  }
+  
+  // Mettre à jour les pastilles
+  updateVehiculeConsumption();
+  updateEnergieFacteur();
+  
+  console.log('=== FIN CALCUL ===');
 }
 
 // Fonction pour charger les clients
@@ -1712,11 +1761,16 @@ function updateVehiculeConsumption() {
     const chargeUtile = selectedOption.dataset.chargeUtile;
     
     if (conso) {
-      // Mettre à jour le champ de consommation
-      consoField.value = conso;
-      
-      // Afficher les paramètres du véhicule
-      vehiculeConso.textContent = conso + ' L/100km';
+      // En niveau 1, utiliser la consommation du véhicule paramétrée
+      // En niveau 2, utiliser la consommation saisie par l'utilisateur
+      if (niveauCalcul === 'niveau1') {
+        consoField.value = conso;
+        vehiculeConso.textContent = conso + ' L/100km';
+      } else {
+        // En niveau 2, afficher la consommation saisie
+        const consoSaisie = consoField.value || conso;
+        vehiculeConso.textContent = consoSaisie + ' L/100km';
+      }
       
       // Convertir les émissions de grammes en kg et afficher
       const emissionsKg = emissions ? (parseFloat(emissions) / 1000).toFixed(3) : '-';
@@ -1745,11 +1799,21 @@ function updateVehiculeConsumption() {
         facteurEmission = parseFloat(energieOption.dataset.facteur) || 0;
       }
       
-      if (conso && facteurEmission > 0) {
-        // Calcul: (consommation L/100km / 100) * facteur d'émission
-        const consoParKm = parseFloat(conso) / 100; // L/km
-        const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
-        vehiculeEmissionsKm.textContent = emissionsParKm.toFixed(3) + ' kg CO₂e/km';
+      if (facteurEmission > 0) {
+        // Utiliser la consommation appropriée selon le niveau
+        let consoPourCalcul = conso;
+        if (niveauCalcul === 'niveau2') {
+          consoPourCalcul = consoField.value || conso;
+        }
+        
+        if (consoPourCalcul) {
+          // Calcul: (consommation L/100km / 100) * facteur d'émission
+          const consoParKm = parseFloat(consoPourCalcul) / 100; // L/km
+          const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
+          vehiculeEmissionsKm.textContent = emissionsParKm.toFixed(3) + ' kg CO₂e/km';
+        } else {
+          vehiculeEmissionsKm.textContent = '-';
+        }
       } else {
         vehiculeEmissionsKm.textContent = '-';
       }
@@ -1767,81 +1831,6 @@ function updateVehiculeConsumption() {
   }
 }
 
-// Fonction pour calculer les émissions
-function calculateEmissions() {
-  const distance = parseFloat(document.getElementById('transport-distance').value) || 0;
-  const poids = parseFloat(document.getElementById('transport-poids').value) || 0;
-  const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
-  const consoField = document.getElementById('transport-conso-vehicule');
-  const energieSelect = document.getElementById('transport-energie');
-  const emissionsField = document.getElementById('transport-kg-co2e');
-  const emissionsTkmField = document.getElementById('transport-co2e-tkm');
-  
-  console.log('=== CALCUL ÉMISSIONS ===');
-  console.log('Distance:', distance);
-  console.log('Poids:', poids);
-  console.log('Niveau calcul:', niveauCalcul);
-  
-  if (distance === 0 || poids === 0) {
-    emissionsField.value = '0.00';
-    emissionsTkmField.value = '0.000';
-    return;
-  }
-  
-  let emissionsKg = 0;
-  let emissionsTkm = 0;
-  
-  // Pour tous les niveaux : calcul basé sur consommation et facteur d'émission
-  const consommation = parseFloat(consoField.value) || 0;
-  const energieOption = energieSelect.options[energieSelect.selectedIndex];
-  const facteurEmission = parseFloat(energieOption.dataset.facteur) || 2.7;
-  
-  console.log('Consommation:', consommation);
-  console.log('Facteur émission:', facteurEmission);
-  
-  if (consommation > 0) {
-    // Calcul : (distance/100) × consommation × facteur d'émission
-    emissionsKg = (distance / 100) * consommation * facteurEmission;
-    
-    console.log('Émissions totales (kg):', emissionsKg);
-  }
-  
-  // Calculer le poids pris en compte pour le calcul CO₂e/t.km
-  let poidsPrisEnCompte = poids;
-  const vehiculeType = document.getElementById('transport-vehicule-type').value;
-  if (vehiculeType === 'dedie' && niveauCalcul === 'niveau1') {
-    const typeVehiculeSelect = document.getElementById('transport-type-vehicule');
-    const selectedOption = typeVehiculeSelect.options[typeVehiculeSelect.selectedIndex];
-    const chargeUtile = selectedOption.dataset.chargeUtile;
-    
-    if (chargeUtile && parseFloat(chargeUtile) > 0) {
-      poidsPrisEnCompte = parseFloat(chargeUtile);
-    }
-  }
-  
-  // Calcul CO₂e/t.km selon la formule : (consommation / km × facteur d'émission) / poids en tonnes
-  if (distance > 0 && poidsPrisEnCompte > 0 && consommation > 0) {
-    const consommationParKm = consommation / 100; // L/km
-    emissionsTkm = (consommationParKm * facteurEmission) / poidsPrisEnCompte;
-    
-    console.log('Consommation par km (L/km):', consommationParKm);
-    console.log('Poids pris en compte (tonnes):', poidsPrisEnCompte);
-    console.log('CO₂e/t.km calculé:', emissionsTkm);
-  }
-  
-  // Mettre à jour les champs
-  emissionsField.value = emissionsKg.toFixed(2);
-  emissionsTkmField.value = emissionsTkm.toFixed(3);
-  
-  // Mettre à jour le poids pris en compte
-  const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
-  if (poidsPrisEnCompteField) {
-    poidsPrisEnCompteField.value = poidsPrisEnCompte.toFixed(3);
-    console.log('Poids pris en compte affiché:', poidsPrisEnCompte);
-  }
-  
-  console.log('=== FIN CALCUL ===');
-}
 
 // Fonction pour mettre à jour l'état du champ de consommation
 function updateConsumptionFieldState() {
