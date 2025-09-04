@@ -2169,6 +2169,9 @@ document.getElementById('transport-form').addEventListener('submit', async funct
   transportData.emis_kg = document.getElementById('transport-kg-co2e').value;
   transportData.emis_tkm = document.getElementById('transport-co2e-tkm').value;
   
+  // Ajouter la consommation du véhicule (modifiable en niveau 2)
+  transportData.conso_vehicule = document.getElementById('transport-conso-vehicule').value;
+  
   // Gérer le type de véhicule (convertir en boolean pour la compatibilité)
   const vehiculeType = document.getElementById('transport-vehicule-type').value;
   transportData.vehicule_dedie = vehiculeType === 'dedie';
