@@ -201,6 +201,7 @@
              <div class="form-group">
                <label for="transport-poids-pris-en-compte">Poids pris en compte (tonnes)</label>
                <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="Calculé automatiquement">
+               <small class="form-help">Poids saisi ou charge utile du véhicule si "Véhicule dédié" est coché</small>
              </div>
              <div class="form-group">
                <label for="transport-type">Type de transport *</label>
@@ -1387,10 +1388,10 @@ function editTransport(id) {
   document.getElementById('transport-emissions-tkm').value = transport.emis_tkm || '';
   document.getElementById('transport-vehicule-dedie').checked = transport.vehicule_dedie || false;
   
-  // Remplir le poids pris en compte
+  // Remplir le poids pris en compte (sera recalculé par calculateEmissions)
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
-    poidsPrisEnCompteField.value = transport.poids_tonnes || '';
+    poidsPrisEnCompteField.value = '';
   }
   
   // Mettre à jour l'état des champs selon le niveau de calcul
@@ -1766,7 +1767,22 @@ function calculateEmissions() {
   // Mettre à jour le poids pris en compte
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
-    poidsPrisEnCompteField.value = poids.toFixed(3);
+    let poidsPrisEnCompte = poids;
+    
+    // Si véhicule dédié et niveau 1, utiliser la charge utile du véhicule
+    const vehiculeDedie = document.getElementById('transport-vehicule-dedie').checked;
+    if (vehiculeDedie && niveauCalcul === 'niveau1') {
+      const typeVehiculeSelect = document.getElementById('transport-type-vehicule');
+      const selectedOption = typeVehiculeSelect.options[typeVehiculeSelect.selectedIndex];
+      const chargeUtile = selectedOption.dataset.chargeUtile;
+      
+      if (chargeUtile && parseFloat(chargeUtile) > 0) {
+        poidsPrisEnCompte = parseFloat(chargeUtile);
+        console.log('Véhicule dédié - Poids pris en compte (charge utile):', poidsPrisEnCompte);
+      }
+    }
+    
+    poidsPrisEnCompteField.value = poidsPrisEnCompte.toFixed(3);
   }
   
   console.log('=== FIN CALCUL ===');
@@ -2095,6 +2111,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // Gestionnaire pour le changement de niveau de calcul
   document.getElementById('transport-niveau-calcul').addEventListener('change', function() {
     updateConsumptionFieldState();
+  });
+  
+  // Gestionnaire pour la case à cocher "Véhicule dédié"
+  document.getElementById('transport-vehicule-dedie').addEventListener('change', function() {
+    calculateEmissions();
   });
   
   // Fermer les modals en cliquant à l'extérieur
