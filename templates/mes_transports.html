@@ -222,6 +222,21 @@
               </div>
             </div>
             <div class="form-group">
+              <label for="transport-energie">Énergie utilisée</label>
+              <select id="transport-energie" name="energie" onchange="updateEnergieFacteur(); calculateEmissions();">
+                <option value="">Sélectionnez l'énergie</option>
+                <!-- Les options seront chargées dynamiquement -->
+              </select>
+              
+              <!-- Affichage du facteur d'émission -->
+              <div id="energie-params" class="energie-params" style="display: none;">
+                <div class="param-item">
+                  <span class="param-label">Facteur d'émission :</span>
+                  <span id="energie-facteur" class="param-value">-</span>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
               <label for="transport-vehicule-type">Type de trajet</label>
               <select id="transport-vehicule-type" name="vehicule_type" onchange="toggleVehiculeMutualise()">
                 <option value="dedie">Véhicule dédié</option>
@@ -273,25 +288,6 @@
               <label for="transport-conso-vehicule">Consommation du véhicule (L/100km)</label>
               <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
               <small class="form-help" id="conso-help">Consommation spécifique du véhicule utilisé</small>
-            </div>
-            <div class="form-group">
-              <label for="transport-energie">Énergie utilisée</label>
-              <select id="transport-energie" name="energie" onchange="updateEnergieFacteur(); calculateEmissions();">
-                <option value="">Sélectionnez l'énergie</option>
-                <!-- Les options seront chargées dynamiquement -->
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <!-- Affichage du facteur d'émission -->
-              <div id="energie-params" class="energie-params" style="display: none;">
-                <div class="param-item">
-                  <span class="param-label">Facteur d'émission :</span>
-                  <span id="energie-facteur" class="param-value">-</span>
-                </div>
-              </div>
             </div>
           </div>
 
