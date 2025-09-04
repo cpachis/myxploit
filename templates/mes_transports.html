@@ -199,7 +199,30 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="transport-vehicule-type">Type de véhicule</label>
+              <label for="transport-type-vehicule">Type de véhicule</label>
+              <select id="transport-type-vehicule" name="type_vehicule" onchange="updateVehiculeConsumption(); calculateEmissions();">
+                <option value="">Sélectionnez le type de véhicule</option>
+                <!-- Les options seront chargées dynamiquement -->
+              </select>
+              
+              <!-- Affichage des paramètres du véhicule -->
+              <div id="vehicule-params" class="vehicule-params" style="display: none;">
+                <div class="param-item">
+                  <span class="param-label">Consommation :</span>
+                  <span id="vehicule-conso" class="param-value">-</span>
+                </div>
+                <div class="param-item">
+                  <span class="param-label">CO₂e/t.km :</span>
+                  <span id="vehicule-emissions-tkm" class="param-value">-</span>
+                </div>
+                <div class="param-item">
+                  <span class="param-label">Charge utile :</span>
+                  <span id="vehicule-charge-utile" class="param-value">-</span>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="transport-vehicule-type">Type de trajet</label>
               <select id="transport-vehicule-type" name="vehicule_type" onchange="toggleVehiculeMutualise()">
                 <option value="dedie">Véhicule dédié</option>
                 <option value="mutualise">Véhicule mutualisé</option>
@@ -270,29 +293,6 @@
           </div>
 
           <div class="form-row">
-            <div class="form-group">
-              <label for="transport-type-vehicule">Type de véhicule</label>
-              <select id="transport-type-vehicule" name="type_vehicule" onchange="updateVehiculeConsumption(); calculateEmissions();">
-                <option value="">Sélectionnez le type de véhicule</option>
-                <!-- Les options seront chargées dynamiquement -->
-              </select>
-              
-              <!-- Affichage des paramètres du véhicule -->
-              <div id="vehicule-params" class="vehicule-params" style="display: none;">
-                <div class="param-item">
-                  <span class="param-label">Consommation :</span>
-                  <span id="vehicule-conso" class="param-value">-</span>
-                </div>
-                <div class="param-item">
-                  <span class="param-label">CO₂e/t.km :</span>
-                  <span id="vehicule-emissions-tkm" class="param-value">-</span>
-                </div>
-                <div class="param-item">
-                  <span class="param-label">Charge utile :</span>
-                  <span id="vehicule-charge-utile" class="param-value">-</span>
-                </div>
-              </div>
-            </div>
             <div class="form-group">
               <label for="transport-niveau-calcul">Type de calcul</label>
               <select id="transport-niveau-calcul" name="niveau_calcul" onchange="updateConsumptionFieldState(); calculateEmissions();">
