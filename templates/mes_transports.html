@@ -264,6 +264,19 @@
               </div>
             </div>
             <div class="form-group">
+              <label for="transport-niveau-calcul">Type de calcul</label>
+              <select id="transport-niveau-calcul" name="niveau_calcul" onchange="updateConsumptionFieldState(); calculateEmissions();">
+                <option value="">Sélectionnez le niveau de calcul</option>
+                <option value="niveau1" selected>📊 Niveau 1 - Valeurs agrégées (données moyennes)</option>
+                <option value="niveau2">📈 Niveau 2 - Données spécifiques (facteurs d'émission)</option>
+                <option value="niveau3">📋 Niveau 3 - Données détaillées (consommation réelle)</option>
+                <option value="niveau4">🔬 Niveau 4 - Données précises (mesures directes)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
               <label for="transport-energie">Énergie utilisée</label>
               <select id="transport-energie" name="energie" onchange="updateEnergieFacteur(); calculateEmissions();">
                 <option value="">Sélectionnez l'énergie</option>
@@ -278,29 +291,13 @@
                 </div>
               </div>
             </div>
-          </div>
-
-          <div class="form-row">
             <div class="form-group">
-              <label for="transport-niveau-calcul">Type de calcul</label>
-              <select id="transport-niveau-calcul" name="niveau_calcul" onchange="updateConsumptionFieldState(); calculateEmissions();">
-                <option value="">Sélectionnez le niveau de calcul</option>
-                <option value="niveau1" selected>📊 Niveau 1 - Valeurs agrégées (données moyennes)</option>
-                <option value="niveau2">📈 Niveau 2 - Données spécifiques (facteurs d'émission)</option>
-                <option value="niveau3">📋 Niveau 3 - Données détaillées (consommation réelle)</option>
-                <option value="niveau4">🔬 Niveau 4 - Données précises (mesures directes)</option>
-              </select>
+              <label for="transport-conso-vehicule">Consommation du véhicule (L/100km)</label>
+              <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
+              <small class="form-help" id="conso-help">Consommation spécifique du véhicule utilisé</small>
             </div>
           </div>
 
-                     <div class="form-row">
-             <div class="form-group">
-               <label for="transport-conso-vehicule">Consommation du véhicule (L/100km)</label>
-               <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
-               <small class="form-help" id="conso-help">Consommation spécifique du véhicule utilisé</small>
-             </div>
-
-           </div>
         </div>
 
         <div class="form-section">
