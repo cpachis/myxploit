@@ -1,3 +1,4 @@
+je le cop
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -99,6 +100,39 @@ app.register_blueprint(invitations_extended_bp)
 app.register_blueprint(debug_bp, url_prefix='/debug')
 app.register_blueprint(utils_bp)
 app.register_blueprint(import_csv_bp)
+
+# Initialisation de la base de données avec migration automatique
+with app.app_context():
+    try:
+        db.create_all()
+        
+        # Vérifier et ajouter la colonne vehicule_dedie si elle n'existe pas
+        try:
+            result = db.session.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'transports' 
+                AND column_name = 'vehicule_dedie'
+            """))
+            
+            if not result.fetchone():
+                logger.info("🔧 Ajout de la colonne vehicule_dedie...")
+                db.session.execute(text("""
+                    ALTER TABLE transports 
+                    ADD COLUMN vehicule_dedie BOOLEAN DEFAULT FALSE
+                """))
+                db.session.commit()
+                logger.info("✅ Colonne vehicule_dedie ajoutée avec succès")
+            else:
+                logger.info("✅ Colonne vehicule_dedie existe déjà")
+                
+        except Exception as migration_error:
+            logger.warning(f"⚠️ Erreur lors de la vérification/ajout de vehicule_dedie: {str(migration_error)}")
+            # Ne pas faire échouer l'initialisation pour cette erreur
+        
+        logger.info("✅ Base de données initialisée avec succès")
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de l'initialisation de la base de données: {str(e)}")
 
 # Configuration du login manager
 login_manager.login_view = 'login'
