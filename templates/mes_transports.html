@@ -223,6 +223,10 @@
                   <div class="param-label">Émissions / km</div>
                   <div id="vehicule-emissions-km" class="param-value">-</div>
                 </div>
+                <div class="param-item">
+                  <div class="param-label">Facteur d'émission</div>
+                  <div id="energie-facteur" class="param-value">-</div>
+                </div>
               </div>
             </div>
             <div class="form-group">
@@ -232,13 +236,6 @@
                 <!-- Les options seront chargées dynamiquement -->
               </select>
               
-              <!-- Affichage du facteur d'émission -->
-              <div id="energie-params" class="energie-params" style="display: none;">
-                <div class="param-item">
-                  <div class="param-title">Facteur d'émission</div>
-                  <div class="param-value-centered" id="energie-facteur">-</div>
-                </div>
-              </div>
             </div>
             <div class="form-group">
               <label for="transport-vehicule-type">Type de trajet</label>
@@ -1656,7 +1653,6 @@ function populateEnergies(energies) {
 // Fonction pour mettre à jour l'affichage du facteur d'émission
 function updateEnergieFacteur() {
   const energieSelect = document.getElementById('transport-energie');
-  const energieParams = document.getElementById('energie-params');
   const energieFacteur = document.getElementById('energie-facteur');
   
   if (energieSelect.value) {
@@ -1664,16 +1660,15 @@ function updateEnergieFacteur() {
     const facteur = selectedOption.dataset.facteur;
     
     if (facteur) {
-      // Afficher le facteur d'émission
+      // Afficher le facteur d'émission dans la pastille
       energieFacteur.textContent = facteur + ' kg CO₂e/L';
-      energieParams.style.display = 'block';
       
       // Mettre à jour les émissions par km si un véhicule est sélectionné
       updateEmissionsParKm();
     }
   } else {
-    // Masquer les paramètres si aucune énergie sélectionnée
-    energieParams.style.display = 'none';
+    // Effacer le facteur d'émission si aucune énergie sélectionnée
+    energieFacteur.textContent = '-';
   }
 }
 
@@ -1760,6 +1755,9 @@ function updateVehiculeConsumption() {
       }
       
       vehiculeParams.style.display = 'block';
+      
+      // Mettre à jour le facteur d'émission si une énergie est sélectionnée
+      updateEnergieFacteur();
       
       calculateEmissions();
     }
