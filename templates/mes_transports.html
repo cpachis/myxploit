@@ -287,7 +287,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="transport-conso-vehicule">Consommation du véhicule (L/100km)</label>
-              <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5" onchange="calculateEmissions(); updateVehiculeConsumption();" oninput="calculateEmissions(); updateVehiculeConsumption();">
+              <input type="number" id="transport-conso-vehicule" name="conso_vehicule" step="0.1" min="0" placeholder="Ex: 35.5" onchange="calculateEmissions();" oninput="calculateEmissions();">
               <small class="form-help" id="conso-help">Consommation spécifique du véhicule utilisé</small>
             </div>
           </div>
@@ -1510,11 +1510,39 @@ function calculateEmissions() {
     console.log('Poids pris en compte affiché:', poidsPrisEnCompte.toFixed(3));
   }
   
-  // Mettre à jour les pastilles
-  updateVehiculeConsumption();
-  updateEnergieFacteur();
+  // Mettre à jour les pastilles (sans récursion)
+  updatePastillesOnly();
   
   console.log('=== FIN CALCUL ===');
+}
+
+// Fonction pour mettre à jour les pastilles sans déclencher de calculs
+function updatePastillesOnly() {
+  const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
+  const consoField = document.getElementById('transport-conso-vehicule');
+  const vehiculeConso = document.getElementById('vehicule-conso');
+  const vehiculeEmissionsKm = document.getElementById('vehicule-emissions-km');
+  const energieSelect = document.getElementById('transport-energie');
+  
+  // Mettre à jour la consommation dans la pastille
+  if (vehiculeConso && consoField.value) {
+    vehiculeConso.textContent = consoField.value + ' L/100km';
+  }
+  
+  // Mettre à jour les émissions par km
+  if (vehiculeEmissionsKm && consoField.value && energieSelect.value) {
+    const energieOption = energieSelect.options[energieSelect.selectedIndex];
+    const facteurEmission = parseFloat(energieOption.dataset.facteur) || 0;
+    
+    if (facteurEmission > 0) {
+      const consoParKm = parseFloat(consoField.value) / 100; // L/km
+      const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
+      vehiculeEmissionsKm.textContent = emissionsParKm.toFixed(3) + ' kg CO₂e/km';
+    }
+  }
+  
+  // Mettre à jour le facteur d'émission
+  updateEnergieFacteur();
 }
 
 // Fonction pour charger les clients
@@ -1822,8 +1850,6 @@ function updateVehiculeConsumption() {
       
       // Mettre à jour le facteur d'émission si une énergie est sélectionnée
       updateEnergieFacteur();
-      
-      calculateEmissions();
     }
   } else {
     // Masquer les paramètres si aucun véhicule sélectionné
