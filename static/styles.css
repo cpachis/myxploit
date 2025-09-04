@@ -866,3 +866,35 @@ form button:hover {
   white-space: nowrap;
 }
 
+/* --- Styles pour la pastille Facteur d'émission --- */
+.energie-params .param-item {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.energie-params .param-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.energie-params .param-value-centered {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #4caf50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
