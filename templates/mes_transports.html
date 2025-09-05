@@ -1447,7 +1447,18 @@ function calculateEmissions() {
   const distance = parseFloat(document.getElementById('transport-distance').value) || 0;
   const poids = parseFloat(document.getElementById('transport-poids').value) || 0;
   const niveau = document.getElementById('transport-niveau-calcul').value;
-  const conso = parseFloat(document.getElementById('transport-conso-vehicule').value) || 0;
+  let conso = parseFloat(document.getElementById('transport-conso-vehicule').value) || 0;
+  
+  // En niveau 1, forcer l'utilisation de la consommation du véhicule
+  if (niveau === 'niveau1') {
+    const selectedOption = document.getElementById('transport-type-vehicule').selectedOptions[0];
+    if (selectedOption && selectedOption.dataset.conso) {
+      conso = parseFloat(selectedOption.dataset.conso);
+      // S'assurer que le champ affiche la bonne valeur
+      document.getElementById('transport-conso-vehicule').value = conso;
+      console.log('Niveau 1: Consommation forcée à', conso, 'L/100km');
+    }
+  }
   
   console.log('Distance:', distance);
   console.log('Poids:', poids);
@@ -1829,11 +1840,14 @@ function updateVehiculeConsumption() {
     const chargeUtile = selectedOption.dataset.chargeUtile;
     
     if (conso) {
-      // En niveau 1, utiliser la consommation du véhicule paramétrée
+      // En niveau 1, utiliser OBLIGATOIREMENT la consommation du véhicule paramétrée
       // En niveau 2, utiliser la consommation saisie par l'utilisateur
       if (niveauCalcul === 'niveau1') {
+        // Forcer la consommation du véhicule en niveau 1
         consoField.value = conso;
+        consoField.readOnly = true;
         vehiculeConso.textContent = conso + ' L/100km';
+        console.log('Niveau 1: Consommation forcée à', conso, 'L/100km');
       } else {
         // En niveau 2, afficher la consommation saisie
         const consoSaisie = consoField.value || conso;
