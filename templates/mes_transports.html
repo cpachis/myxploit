@@ -1492,18 +1492,6 @@ function calculateEmissions() {
     emissions = emissionsParKm * distance;
   }
   
-  // Alternative: utiliser les données des pastilles si disponibles
-  const vehiculeEmissionsKm = document.getElementById('vehicule-emissions-km');
-  if (vehiculeEmissionsKm && vehiculeEmissionsKm.textContent && vehiculeEmissionsKm.textContent !== '-') {
-    // Extraire la valeur numérique des émissions par km depuis la pastille
-    const emissionsKmText = vehiculeEmissionsKm.textContent;
-    const emissionsKmMatch = emissionsKmText.match(/(\d+\.?\d*)/);
-    if (emissionsKmMatch) {
-      const emissionsParKmFromPastille = parseFloat(emissionsKmMatch[1]);
-      emissions = emissionsParKmFromPastille * distance;
-      console.log('Émissions calculées depuis pastille:', emissionsParKmFromPastille, '×', distance, '=', emissions);
-    }
-  }
   
   console.log('Émissions par km (kg CO₂e/km):', (conso / 100) * facteurEmission);
   console.log('Émissions totales (kg):', emissions);
