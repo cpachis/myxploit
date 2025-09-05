@@ -257,7 +257,7 @@
             </div>
             <div class="form-group">
               <label for="transport-poids-pris-en-compte">Poids pris en compte (tonnes)</label>
-              <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="Calculé automatiquement">
+              <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="Poids du véhicule">
             </div>
           </div>
 
@@ -1268,6 +1268,7 @@ function resetTransportForm() {
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
     poidsPrisEnCompteField.value = '';
+    poidsPrisEnCompteField.placeholder = 'Poids du véhicule';
   }
   
   calculateEmissions();
@@ -1406,6 +1407,7 @@ function editTransport(id) {
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
     poidsPrisEnCompteField.value = '';
+    poidsPrisEnCompteField.placeholder = 'Poids du véhicule';
   }
   
   // Mettre à jour l'état des champs selon le niveau de calcul
@@ -1484,9 +1486,13 @@ function calculateEmissions() {
   
   // Calcul des émissions totales
   if (distance > 0 && conso > 0 && facteurEmission > 0) {
-    emissions = (distance / 100) * conso * facteurEmission;
+    // Calculer d'abord les émissions par km
+    const emissionsParKm = (conso / 100) * facteurEmission;
+    // Puis multiplier par la distance
+    emissions = emissionsParKm * distance;
   }
   
+  console.log('Émissions par km (kg CO₂e/km):', (conso / 100) * facteurEmission);
   console.log('Émissions totales (kg):', emissions);
   
   // Calcul des émissions par tonne-kilomètre
@@ -1507,6 +1513,7 @@ function calculateEmissions() {
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
     poidsPrisEnCompteField.value = poidsPrisEnCompte.toFixed(3);
+    poidsPrisEnCompteField.placeholder = poidsPrisEnCompte.toFixed(3) + ' t';
     console.log('Poids pris en compte affiché:', poidsPrisEnCompte.toFixed(3));
   }
   
@@ -2106,6 +2113,7 @@ function resetTransportForm() {
   document.getElementById('transport-niveau-calcul').value = 'niveau1';
   document.getElementById('transport-vehicule-type').value = 'dedie';
   document.getElementById('transport-poids-pris-en-compte').value = '';
+  document.getElementById('transport-poids-pris-en-compte').placeholder = 'Poids du véhicule';
   document.getElementById('transport-kg-co2e').value = '';
   document.getElementById('transport-co2e-tkm').value = '';
   
