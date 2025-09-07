@@ -232,6 +232,10 @@
                   <div id="vehicule-kg-co2e" class="param-value">-</div>
                 </div>
                 <div class="param-item">
+                  <div class="param-label">Trajet à vide</div>
+                  <div id="vehicule-trajet-vide" class="param-value">-</div>
+                </div>
+                <div class="param-item">
                   <div class="param-label">Co²e/t.km</div>
                   <div id="vehicule-co2e-tkm" class="param-value">-</div>
                 </div>
@@ -881,11 +885,11 @@
 /* Styles pour l'affichage des paramètres du véhicule et de l'énergie */
 .vehicule-params, .energie-params {
   margin-top: 8px;
-  padding: 12px;
+  padding: 10px;
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .param-item {
@@ -908,9 +912,9 @@
   font-weight: 600;
   color: #059669;
   background-color: #ecfdf5;
-  padding: 2px 8px;
+  padding: 2px 6px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 /* Styles pour les cases à cocher */
@@ -1534,11 +1538,21 @@ function calculateEmissions() {
   
   // Mettre à jour les pastilles
   const vehiculeKgCo2e = document.getElementById('vehicule-kg-co2e');
+  const vehiculeTrajetVide = document.getElementById('vehicule-trajet-vide');
   const vehiculeCo2eTkm = document.getElementById('vehicule-co2e-tkm');
   
   if (vehiculeKgCo2e) {
     vehiculeKgCo2e.textContent = emissions.toFixed(2) + ' kg CO₂e';
   }
+  
+  // Calcul du trajet à vide: consommation au km × facteur d'émission × distance
+  if (vehiculeTrajetVide && distance > 0 && conso > 0 && facteurEmission > 0) {
+    const consoParKm = conso / 100; // L/km
+    const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
+    const trajetVide = emissionsParKm * distance; // kg CO₂e
+    vehiculeTrajetVide.textContent = trajetVide.toFixed(2) + ' kg CO₂e';
+  }
+  
   if (vehiculeCo2eTkm) {
     vehiculeCo2eTkm.textContent = emissionsTkm.toFixed(3) + ' kg CO₂e/t.km';
   }
@@ -1683,11 +1697,19 @@ function updateKgCo2ePastilles() {
       
       // Mettre à jour les pastilles
       const vehiculeKgCo2e = document.getElementById('vehicule-kg-co2e');
+      const vehiculeTrajetVide = document.getElementById('vehicule-trajet-vide');
       const vehiculeCo2eTkm = document.getElementById('vehicule-co2e-tkm');
       
       if (vehiculeKgCo2e) {
         vehiculeKgCo2e.textContent = emissions.toFixed(2) + ' kg CO₂e';
       }
+      
+      // Calcul du trajet à vide: consommation au km × facteur d'émission × distance
+      if (vehiculeTrajetVide) {
+        const trajetVide = emissionsParKm * distance; // kg CO₂e
+        vehiculeTrajetVide.textContent = trajetVide.toFixed(2) + ' kg CO₂e';
+      }
+      
       if (vehiculeCo2eTkm) {
         vehiculeCo2eTkm.textContent = emissionsTkm.toFixed(3) + ' kg CO₂e/t.km';
       }
