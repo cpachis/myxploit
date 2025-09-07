@@ -1508,9 +1508,11 @@ function calculateEmissions() {
   console.log('Émissions totales (kg):', emissions);
   
   // Calcul des émissions par tonne-kilomètre
+  // Formule: (Consommation / km × facteur d'émission) / poids en tonnes
   if (poidsPrisEnCompte > 0) {
     const consoParKm = conso / 100; // L/km
-    emissionsTkm = (consoParKm * facteurEmission) / poidsPrisEnCompte;
+    const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
+    emissionsTkm = emissionsParKm / poidsPrisEnCompte; // kg CO₂e/t.km
   }
   
   console.log('Consommation par km (L/km):', conso / 100);
