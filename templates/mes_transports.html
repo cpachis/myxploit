@@ -125,6 +125,46 @@
     <!-- Les transports seront chargés dynamiquement -->
   </div>
 
+  <!-- Modal de gestion des transports mutualisés -->
+  <div id="vehicule-mutualise-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Gestion des Transports Mutualisés</h2>
+        <button class="close-btn" onclick="closeVehiculeMutualiseModal()">&times;</button>
+      </div>
+      
+      <div class="transport-form">
+        <div class="form-section">
+          <h3>Transports dans le véhicule</h3>
+          <div id="mutualise-transports-list" class="mutualise-transports-list">
+            <!-- Les transports seront ajoutés dynamiquement -->
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn-primary" onclick="addMutualiseTransport()">
+              <span class="btn-icon">➕</span>
+              Ajouter un transport
+            </button>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h3>Résumé des émissions</h3>
+          <div class="emissions-summary">
+            <div class="summary-item">
+              <span class="summary-label">Total des poids :</span>
+              <span id="total-poids-mutualise" class="summary-value">0.000 t</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Émissions totales :</span>
+              <span id="total-emissions-mutualise" class="summary-value">0.000 kg CO₂e</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de choix d'ajout -->
   <div id="add-choice-modal" class="modal">
     <div class="modal-content choice-modal">
@@ -879,6 +919,124 @@
   font-size: 0.9rem;
 }
 
+/* Styles pour le modal des transports mutualisés */
+.mutualise-transports-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #f8fafc;
+}
+
+.mutualise-transport-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 15px;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 10px;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.mutualise-transport-item:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.1);
+}
+
+.mutualise-transport-item:last-child {
+  margin-bottom: 0;
+}
+
+.mutualise-transport-item input {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+}
+
+.mutualise-transport-item input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.mutualise-transport-item .quote-part {
+  font-weight: 600;
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 6px 12px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.mutualise-transport-item .actions {
+  display: flex;
+  gap: 5px;
+}
+
+.mutualise-transport-item .btn-icon {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.mutualise-transport-item .btn-edit {
+  color: #667eea;
+}
+
+.mutualise-transport-item .btn-edit:hover {
+  background-color: #e0e7ff;
+}
+
+.mutualise-transport-item .btn-delete {
+  color: #ef4444;
+}
+
+.mutualise-transport-item .btn-delete:hover {
+  background-color: #fee2e2;
+}
+
+.emissions-summary {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.summary-item:last-child {
+  margin-bottom: 0;
+}
+
+.summary-label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.summary-value {
+  font-weight: 600;
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
 .form-group input[readonly]:focus {
   border-color: #e2e8f0 !important;
   box-shadow: none !important;
@@ -1616,6 +1774,11 @@ function calculateEmissions() {
       }
       console.log('Émissions finales mises à jour:', finalEmissions);
     }
+  }
+  
+  // Recalculer les quote-parts des transports mutualisés si nécessaire
+  if (typeof recalculateAllMutualiseQuoteParts === 'function') {
+    recalculateAllMutualiseQuoteParts();
   }
   
   console.log('=== FIN CALCUL ===');
@@ -2488,5 +2651,178 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 });
+
+// ===== GESTION DES TRANSPORTS MUTUALISÉS =====
+
+// Variable pour stocker les transports mutualisés
+let mutualiseTransports = [];
+
+// Fonction pour afficher le modal des transports mutualisés
+function showVehiculeMutualiseOptions() {
+  const modal = document.getElementById('vehicule-mutualise-modal');
+  modal.style.display = 'block';
+  loadMutualiseTransports();
+}
+
+// Fonction pour fermer le modal des transports mutualisés
+function closeVehiculeMutualiseModal() {
+  const modal = document.getElementById('vehicule-mutualise-modal');
+  modal.style.display = 'none';
+}
+
+// Fonction pour charger et afficher les transports mutualisés
+function loadMutualiseTransports() {
+  const container = document.getElementById('mutualise-transports-list');
+  
+  if (mutualiseTransports.length === 0) {
+    container.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">Aucun transport mutualisé</div>';
+  } else {
+    container.innerHTML = mutualiseTransports.map((transport, index) => `
+      <div class="mutualise-transport-item" data-index="${index}">
+        <input type="text" value="${transport.reference || ''}" placeholder="Référence" onchange="updateMutualiseTransport(${index})" oninput="updateMutualiseTransport(${index})">
+        <input type="number" value="${transport.poids || ''}" step="0.001" min="0" placeholder="Poids (t)" onchange="updateMutualiseTransport(${index})" oninput="updateMutualiseTransport(${index})">
+        <div class="quote-part">${transport.quotePart || '0.000'} kg CO₂e</div>
+        <div class="actions">
+          <button class="btn-icon btn-edit" onclick="editMutualiseTransport(${index})" title="Modifier">✎</button>
+          <button class="btn-icon btn-delete" onclick="deleteMutualiseTransport(${index})" title="Supprimer">🗑</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  updateMutualiseSummary();
+}
+
+// Fonction pour ajouter un nouveau transport mutualisé
+function addMutualiseTransport() {
+  const newTransport = {
+    reference: '',
+    poids: 0,
+    quotePart: 0
+  };
+  
+  mutualiseTransports.push(newTransport);
+  loadMutualiseTransports();
+  
+  // Focus sur le premier champ de la nouvelle ligne
+  const lastItem = document.querySelector('.mutualise-transport-item:last-child input');
+  if (lastItem) {
+    lastItem.focus();
+  }
+}
+
+// Fonction pour mettre à jour un transport mutualisé
+function updateMutualiseTransport(index) {
+  const item = document.querySelector(`[data-index="${index}"]`);
+  if (!item) return;
+  
+  const inputs = item.querySelectorAll('input');
+  const reference = inputs[0].value;
+  const poids = parseFloat(inputs[1].value) || 0;
+  
+  mutualiseTransports[index].reference = reference;
+  mutualiseTransports[index].poids = poids;
+  
+  // Calculer la quote-part des émissions
+  calculateMutualiseQuotePart(index);
+  updateMutualiseSummary();
+}
+
+// Fonction pour calculer la quote-part des émissions
+function calculateMutualiseQuotePart(index) {
+  const transport = mutualiseTransports[index];
+  if (!transport) return;
+  
+  // Récupérer les paramètres du transport principal
+  const distance = parseFloat(document.getElementById('transport-distance').value) || 0;
+  const conso = parseFloat(document.getElementById('transport-conso-vehicule').value) || 0;
+  const facteurEmission = getCurrentFacteurEmission();
+  const chargeUtile = parseFloat(document.getElementById('transport-poids-pris-en-compte').value) || 0;
+  
+  if (distance > 0 && conso > 0 && facteurEmission > 0 && chargeUtile > 0) {
+    // Calcul des émissions totales du véhicule
+    const consoParKm = conso / 100; // L/km
+    const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
+    const emissionsTotalKm = emissionsParKm * distance; // kg CO₂e total
+    
+    // Calcul de la quote-part pour ce transport
+    const ratioPoids = transport.poids / chargeUtile; // ratio poids transport / charge utile
+    const quotePart = emissionsTotalKm * ratioPoids; // kg CO₂e pour ce transport
+    
+    transport.quotePart = quotePart;
+    
+    // Mettre à jour l'affichage
+    const item = document.querySelector(`[data-index="${index}"]`);
+    if (item) {
+      const quotePartElement = item.querySelector('.quote-part');
+      if (quotePartElement) {
+        quotePartElement.textContent = quotePart.toFixed(3) + ' kg CO₂e';
+      }
+    }
+  } else {
+    transport.quotePart = 0;
+    const item = document.querySelector(`[data-index="${index}"]`);
+    if (item) {
+      const quotePartElement = item.querySelector('.quote-part');
+      if (quotePartElement) {
+        quotePartElement.textContent = '0.000 kg CO₂e';
+      }
+    }
+  }
+}
+
+// Fonction pour récupérer le facteur d'émission actuel
+function getCurrentFacteurEmission() {
+  const niveau = document.getElementById('transport-niveau-calcul').value;
+  
+  if (niveau === 'niveau1') {
+    const energieSelect = document.getElementById('transport-energie');
+    if (energieSelect && energieSelect.selectedOptions[0] && energieSelect.selectedOptions[0].dataset.facteur) {
+      return parseFloat(energieSelect.selectedOptions[0].dataset.facteur);
+    }
+  } else {
+    const energieSelect = document.getElementById('transport-energie');
+    if (energieSelect && energieSelect.selectedOptions[0] && energieSelect.selectedOptions[0].dataset.facteur) {
+      return parseFloat(energieSelect.selectedOptions[0].dataset.facteur);
+    }
+  }
+  
+  return 3.1; // Facteur par défaut
+}
+
+// Fonction pour modifier un transport mutualisé
+function editMutualiseTransport(index) {
+  const item = document.querySelector(`[data-index="${index}"]`);
+  if (!item) return;
+  
+  const inputs = item.querySelectorAll('input');
+  inputs[0].focus();
+  inputs[0].select();
+}
+
+// Fonction pour supprimer un transport mutualisé
+function deleteMutualiseTransport(index) {
+  if (confirm('Êtes-vous sûr de vouloir supprimer ce transport ?')) {
+    mutualiseTransports.splice(index, 1);
+    loadMutualiseTransports();
+  }
+}
+
+// Fonction pour mettre à jour le résumé des émissions
+function updateMutualiseSummary() {
+  const totalPoids = mutualiseTransports.reduce((sum, transport) => sum + (transport.poids || 0), 0);
+  const totalEmissions = mutualiseTransports.reduce((sum, transport) => sum + (transport.quotePart || 0), 0);
+  
+  document.getElementById('total-poids-mutualise').textContent = totalPoids.toFixed(3) + ' t';
+  document.getElementById('total-emissions-mutualise').textContent = totalEmissions.toFixed(3) + ' kg CO₂e';
+}
+
+// Fonction pour recalculer toutes les quote-parts (appelée quand les paramètres changent)
+function recalculateAllMutualiseQuoteParts() {
+  mutualiseTransports.forEach((_, index) => {
+    calculateMutualiseQuotePart(index);
+  });
+  updateMutualiseSummary();
+}
 </script>
 {% endblock %}
