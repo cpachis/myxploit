@@ -2642,12 +2642,16 @@ document.addEventListener('DOMContentLoaded', function() {
   window.onclick = function(event) {
     const addChoiceModal = document.getElementById('add-choice-modal');
     const transportModal = document.getElementById('transport-modal');
+    const vehiculeMutualiseModal = document.getElementById('vehicule-mutualise-modal');
     
     if (event.target === addChoiceModal) {
       closeAddChoiceModal();
     }
     if (event.target === transportModal) {
       closeTransportModal();
+    }
+    if (event.target === vehiculeMutualiseModal) {
+      closeVehiculeMutualiseModal();
     }
   }
 });
@@ -2656,6 +2660,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Variable pour stocker les transports mutualisés
 let mutualiseTransports = [];
+
+// Fonction pour basculer l'affichage du bouton Options pour véhicule mutualisé
+function toggleVehiculeMutualise() {
+  const vehiculeType = document.getElementById('transport-vehicule-type').value;
+  const mutualiseActions = document.getElementById('vehicule-mutualise-actions');
+  
+  if (vehiculeType === 'mutualise') {
+    mutualiseActions.style.display = 'block';
+  } else {
+    mutualiseActions.style.display = 'none';
+    // Fermer le modal si il est ouvert
+    closeVehiculeMutualiseModal();
+  }
+}
 
 // Fonction pour afficher le modal des transports mutualisés
 function showVehiculeMutualiseOptions() {
