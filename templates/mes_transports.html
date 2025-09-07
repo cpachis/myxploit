@@ -1552,6 +1552,7 @@ function calculateEmissions() {
     const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
     const trajetVide = emissionsParKm * distance; // kg CO₂e total (consommation en L au km × nombre de kilomètres × facteur d'émission)
     vehiculeTrajetVide.textContent = trajetVide.toFixed(2) + ' kg CO₂e';
+    console.log('KgCo²e (avec trajets à vide) - Conso par km:', consoParKm, 'Facteur:', facteurEmission, 'Distance:', distance, 'Résultat:', trajetVide);
   }
   
   if (vehiculeCo2eTkm) {
@@ -2426,14 +2427,19 @@ document.addEventListener('DOMContentLoaded', function() {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('transport-date').value = today;
   
+  // Calculer les émissions au chargement initial
+  calculateEmissions();
+  
   // Gestionnaire pour le changement de niveau de calcul
   document.getElementById('transport-niveau-calcul').addEventListener('change', function() {
     updateConsumptionFieldState();
+    calculateEmissions(); // Recalculer automatiquement
   });
   
   // Gestionnaire pour la case à cocher "Véhicule dédié"
   document.getElementById('transport-vehicule-type').addEventListener('change', function() {
     toggleVehiculeMutualise();
+    calculateEmissions(); // Recalculer automatiquement
   });
   
   // Fermer les modals en cliquant à l'extérieur
