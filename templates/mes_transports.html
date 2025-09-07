@@ -1536,12 +1536,10 @@ function calculateEmissions() {
   console.log('Émissions totales (kg):', emissions);
   
   // Calcul des émissions par tonne-kilomètre
-  // Formule: ((consommation d'énergie / km / charge utile en kg) * 1000) * facteur d'émission
+  // Formule: (consommation en L/km / charge utile en T) * facteur d'émission
   if (poidsPrisEnCompte > 0) {
     const consoParKm = conso / 100; // L/km
-    const chargeUtileEnKg = poidsPrisEnCompte * 1000; // Convertir tonnes en kg
-    const consoParKg = consoParKm / chargeUtileEnKg; // L/km/kg
-    emissionsTkm = (consoParKg * 1000) * facteurEmission; // kg CO₂e/t.km
+    emissionsTkm = (consoParKm / poidsPrisEnCompte) * facteurEmission; // kg CO₂e/t.km
   }
   
   console.log('Consommation par km (L/km):', conso / 100);
@@ -1567,7 +1565,7 @@ function calculateEmissions() {
   }
   
   if (vehiculeCo2eTkm) {
-    vehiculeCo2eTkm.textContent = emissionsTkm.toFixed(3) + ' kg CO₂e/t.km';
+    vehiculeCo2eTkm.textContent = (emissionsTkm * 1000).toFixed(1) + ' g CO₂e/t.km';
   }
   
   // Mettre à jour le poids pris en compte
@@ -1699,10 +1697,8 @@ function updateKgCo2ePastilles() {
       const emissions = emissionsTotalKm * ratioPoids; // kg CO₂e final avec quote-part
       
       // Calcul des émissions par tonne-kilomètre
-      // Formule: ((consommation d'énergie / km / charge utile en kg) * 1000) * facteur d'émission
-      const chargeUtileEnKg = poidsPrisEnCompte * 1000; // Convertir tonnes en kg
-      const consoParKg = consoParKm / chargeUtileEnKg; // L/km/kg
-      const emissionsTkm = (consoParKg * 1000) * facteurEmission; // kg CO₂e/t.km
+      // Formule: (consommation en L/km / charge utile en T) * facteur d'émission
+      const emissionsTkm = (consoParKm / poidsPrisEnCompte) * facteurEmission; // kg CO₂e/t.km
       
       // Mettre à jour les pastilles
       const vehiculeKgCo2e = document.getElementById('vehicule-kg-co2e');
@@ -1720,7 +1716,7 @@ function updateKgCo2ePastilles() {
       }
       
       if (vehiculeCo2eTkm) {
-        vehiculeCo2eTkm.textContent = emissionsTkm.toFixed(3) + ' kg CO₂e/t.km';
+        vehiculeCo2eTkm.textContent = (emissionsTkm * 1000).toFixed(1) + ' g CO₂e/t.km';
       }
     }
   }
