@@ -1498,11 +1498,12 @@ function calculateEmissions() {
   // Calcul des émissions totales
   if (distance > 0 && conso > 0 && facteurEmission > 0) {
     if (niveau === 'niveau1') {
-      // En niveau 1: Consommation au km × facteur d'émissions × nombre de km × (poids transport / charge utile)
+      // En niveau 1: (consommation d'énergie au km × facteur d'émission) × (poids du transport / charge utile)
       const consoParKm = conso / 100; // L/km
       const ratioPoids = poids / poidsPrisEnCompte; // ratio poids transport / charge utile
-      emissions = consoParKm * facteurEmission * distance * ratioPoids;
-      console.log('Niveau 1 - Ratio poids:', ratioPoids, 'Émissions avec ratio:', emissions);
+      const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
+      emissions = emissionsParKm * ratioPoids; // kg CO₂e (sans distance)
+      console.log('Niveau 1 - Émissions par km:', emissionsParKm, 'Ratio poids:', ratioPoids, 'Émissions finales:', emissions);
     } else {
       // Autres niveaux: émissions par km × distance
       const emissionsParKm = (conso / 100) * facteurEmission;
@@ -1554,7 +1555,17 @@ function calculateEmissions() {
     const emissionsKmMatch = emissionsKmText.match(/(\d+\.?\d*)/);
     if (emissionsKmMatch) {
       const emissionsParKmFromPastille = parseFloat(emissionsKmMatch[1]);
-      const finalEmissions = emissionsParKmFromPastille * distance;
+      let finalEmissions;
+      
+      if (niveau === 'niveau1') {
+        // En niveau 1: (consommation d'énergie au km × facteur d'émission) × (poids du transport / charge utile)
+        const ratioPoids = poids / poidsPrisEnCompte;
+        finalEmissions = emissionsParKmFromPastille * ratioPoids;
+      } else {
+        // Autres niveaux: émissions par km × distance
+        finalEmissions = emissionsParKmFromPastille * distance;
+      }
+      
       const vehiculeKgCo2e = document.getElementById('vehicule-kg-co2e');
       if (vehiculeKgCo2e) {
         vehiculeKgCo2e.textContent = finalEmissions.toFixed(2) + ' kg CO₂e';
