@@ -227,6 +227,14 @@
                   <div class="param-label">Facteur d'émission</div>
                   <div id="energie-facteur" class="param-value">-</div>
                 </div>
+                <div class="param-item">
+                  <div class="param-label">KgCo²e</div>
+                  <div id="vehicule-kg-co2e" class="param-value">-</div>
+                </div>
+                <div class="param-item">
+                  <div class="param-label">Co²e/t.km</div>
+                  <div id="vehicule-co2e-tkm" class="param-value">-</div>
+                </div>
               </div>
             </div>
             <div class="form-group">
@@ -246,7 +254,7 @@
             </div>
             <div class="form-group">
               <label for="transport-poids-pris-en-compte">Charge utile (t)</label>
-              <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="Valeur calculée" onchange="calculateEmissions()" oninput="calculateEmissions()">
+              <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="0.000" onchange="calculateEmissions()" oninput="calculateEmissions()">
             </div>
             <div class="form-group" id="vehicule-mutualise-actions" style="display: none;">
               <label>&nbsp;</label>
@@ -305,18 +313,6 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="transport-kg-co2e">KgCo²e</label>
-              <input type="number" id="transport-kg-co2e" name="kg_co2e" step="0.001" min="0" readonly placeholder="Calculé automatiquement">
-              <small class="form-help">Émissions totales en kg CO₂e</small>
-            </div>
-            <div class="form-group">
-              <label for="transport-co2e-tkm">Co²e/t.km</label>
-              <input type="number" id="transport-co2e-tkm" name="co2e_tkm" step="0.001" min="0" readonly placeholder="Calculé automatiquement">
-              <small class="form-help">kg CO₂e/t.km</small>
-            </div>
-          </div>
 
         </div>
 
@@ -1268,7 +1264,7 @@ function resetTransportForm() {
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
     poidsPrisEnCompteField.value = '';
-    poidsPrisEnCompteField.placeholder = 'Valeur calculée';
+    poidsPrisEnCompteField.placeholder = '0.000';
   }
   
   calculateEmissions();
@@ -1396,8 +1392,6 @@ function editTransport(id) {
   document.getElementById('transport-conso-vehicule').value = transport.conso_vehicule || '';
   document.getElementById('transport-energie').value = transport.energie || '';
   document.getElementById('transport-distance').value = transport.distance_km || '';
-  document.getElementById('transport-kg-co2e').value = transport.emis_kg || '';
-  document.getElementById('transport-co2e-tkm').value = transport.emis_tkm || '';
   // Gérer le type de véhicule (convertir l'ancienne case à cocher)
   const vehiculeType = transport.vehicule_dedie ? 'dedie' : 'mutualise';
   document.getElementById('transport-vehicule-type').value = vehiculeType;
@@ -1407,7 +1401,7 @@ function editTransport(id) {
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
     poidsPrisEnCompteField.value = '';
-    poidsPrisEnCompteField.placeholder = 'Valeur calculée';
+    poidsPrisEnCompteField.placeholder = '0.000';
   }
   
   // Mettre à jour l'état des champs selon le niveau de calcul
@@ -1532,16 +1526,22 @@ function calculateEmissions() {
   console.log('Poids pris en compte (tonnes):', poidsPrisEnCompte);
   console.log('CO₂e/t.km calculé:', emissionsTkm);
   
-  // Mettre à jour les champs
-  document.getElementById('transport-kg-co2e').value = emissions.toFixed(2);
-  document.getElementById('transport-co2e-tkm').value = emissionsTkm.toFixed(3);
+  // Mettre à jour les pastilles
+  const vehiculeKgCo2e = document.getElementById('vehicule-kg-co2e');
+  const vehiculeCo2eTkm = document.getElementById('vehicule-co2e-tkm');
+  
+  if (vehiculeKgCo2e) {
+    vehiculeKgCo2e.textContent = emissions.toFixed(2) + ' kg CO₂e';
+  }
+  if (vehiculeCo2eTkm) {
+    vehiculeCo2eTkm.textContent = emissionsTkm.toFixed(3) + ' kg CO₂e/t.km';
+  }
   
   // Mettre à jour le poids pris en compte
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
     poidsPrisEnCompteField.value = poidsPrisEnCompte.toFixed(3);
-    poidsPrisEnCompteField.placeholder = poidsPrisEnCompte.toFixed(3) + ' t';
-    console.log('Poids pris en compte affiché:', poidsPrisEnCompte.toFixed(3));
+    console.log('Charge utile affichée:', poidsPrisEnCompte.toFixed(3));
   }
   
   // Mettre à jour les pastilles (sans récursion)
@@ -1555,7 +1555,10 @@ function calculateEmissions() {
     if (emissionsKmMatch) {
       const emissionsParKmFromPastille = parseFloat(emissionsKmMatch[1]);
       const finalEmissions = emissionsParKmFromPastille * distance;
-      document.getElementById('transport-kg-co2e').value = finalEmissions.toFixed(2);
+      const vehiculeKgCo2e = document.getElementById('vehicule-kg-co2e');
+      if (vehiculeKgCo2e) {
+        vehiculeKgCo2e.textContent = finalEmissions.toFixed(2) + ' kg CO₂e';
+      }
       console.log('Émissions finales mises à jour:', finalEmissions);
     }
   }
@@ -1875,15 +1878,24 @@ function updateVehiculeConsumption() {
       
       // Afficher la charge utile
       const vehiculeChargeUtile = document.getElementById('vehicule-charge-utile');
+      const chargeUtileField = document.getElementById('transport-poids-pris-en-compte');
       console.log('Charge utile récupérée:', chargeUtile);
       console.log('Type de charge utile:', typeof chargeUtile);
       console.log('Dataset complet:', selectedOption.dataset);
       
       if (chargeUtile && chargeUtile !== '0' && chargeUtile !== 'null' && chargeUtile !== 'undefined' && chargeUtile !== '') {
         vehiculeChargeUtile.textContent = chargeUtile + ' t';
+        // Mettre à jour le champ avec la valeur du véhicule
+        if (chargeUtileField) {
+          chargeUtileField.value = chargeUtile;
+        }
       } else {
         vehiculeChargeUtile.textContent = 'Non définie';
         console.log('Charge utile non définie - valeur:', chargeUtile);
+        // Vider le champ si pas de charge utile définie
+        if (chargeUtileField) {
+          chargeUtileField.value = '';
+        }
       }
       
       // Calculer et afficher les émissions par km
@@ -1932,8 +1944,6 @@ function updateConsumptionFieldState() {
   const niveauCalcul = document.getElementById('transport-niveau-calcul').value;
   const consoField = document.getElementById('transport-conso-vehicule');
   const consoHelp = document.getElementById('conso-help');
-  const emissionsTkmField = document.getElementById('transport-co2e-tkm');
-  const emissionsTkmHelp = document.querySelector('#transport-co2e-tkm + .form-help');
   const chargeUtileField = document.getElementById('transport-poids-pris-en-compte');
   
   if (niveauCalcul === 'niveau1') {
@@ -1946,16 +1956,6 @@ function updateConsumptionFieldState() {
     consoHelp.style.color = '#6c757d';
     consoHelp.style.fontStyle = 'italic';
     
-    // CO₂e/t.km également en lecture seule pour le niveau 1
-    emissionsTkmField.readOnly = true;
-    emissionsTkmField.style.backgroundColor = '#f8f9fa';
-    emissionsTkmField.style.cursor = 'not-allowed';
-    emissionsTkmField.style.color = '#6c757d';
-    if (emissionsTkmHelp) {
-      emissionsTkmHelp.innerHTML = 'kg CO₂e/t.km';
-      emissionsTkmHelp.style.color = '#6c757d';
-      emissionsTkmHelp.style.fontStyle = 'italic';
-    }
     
     // Charge utile en lecture seule pour le niveau 1
     if (chargeUtileField) {
@@ -1975,16 +1975,6 @@ function updateConsumptionFieldState() {
     consoHelp.style.color = '#6b7280';
     consoHelp.style.fontStyle = 'normal';
     
-    // CO₂e/t.km calculé automatiquement pour les autres niveaux
-    emissionsTkmField.readOnly = true;
-    emissionsTkmField.style.backgroundColor = '#f8f9fa';
-    emissionsTkmField.style.cursor = 'not-allowed';
-    emissionsTkmField.style.color = '#6c757d';
-    if (emissionsTkmHelp) {
-      emissionsTkmHelp.innerHTML = 'kg CO₂e/t.km';
-      emissionsTkmHelp.style.color = '#6b7280';
-      emissionsTkmHelp.style.fontStyle = 'normal';
-    }
     
     // Charge utile modifiable pour les niveaux 2, 3, 4
     if (chargeUtileField) {
@@ -2173,9 +2163,7 @@ function resetTransportForm() {
   document.getElementById('transport-niveau-calcul').value = 'niveau1';
   document.getElementById('transport-vehicule-type').value = 'dedie';
   document.getElementById('transport-poids-pris-en-compte').value = '';
-  document.getElementById('transport-poids-pris-en-compte').placeholder = 'Poids du véhicule';
-  document.getElementById('transport-kg-co2e').value = '';
-  document.getElementById('transport-co2e-tkm').value = '';
+  document.getElementById('transport-poids-pris-en-compte').placeholder = '0.000';
   
   // Masquer les paramètres du véhicule
   const vehiculeParams = document.getElementById('vehicule-params');
@@ -2267,9 +2255,23 @@ document.getElementById('transport-form').addEventListener('submit', async funct
   const formData = new FormData(this);
   const transportData = Object.fromEntries(formData.entries());
   
-  // Ajouter les champs calculés
-  transportData.emis_kg = document.getElementById('transport-kg-co2e').value;
-  transportData.emis_tkm = document.getElementById('transport-co2e-tkm').value;
+  // Ajouter les champs calculés depuis les pastilles
+  const vehiculeKgCo2e = document.getElementById('vehicule-kg-co2e');
+  const vehiculeCo2eTkm = document.getElementById('vehicule-co2e-tkm');
+  
+  if (vehiculeKgCo2e && vehiculeKgCo2e.textContent && vehiculeKgCo2e.textContent !== '-') {
+    const kgCo2eMatch = vehiculeKgCo2e.textContent.match(/(\d+\.?\d*)/);
+    if (kgCo2eMatch) {
+      transportData.emis_kg = kgCo2eMatch[1];
+    }
+  }
+  
+  if (vehiculeCo2eTkm && vehiculeCo2eTkm.textContent && vehiculeCo2eTkm.textContent !== '-') {
+    const co2eTkmMatch = vehiculeCo2eTkm.textContent.match(/(\d+\.?\d*)/);
+    if (co2eTkmMatch) {
+      transportData.emis_tkm = co2eTkmMatch[1];
+    }
+  }
   
   // Ajouter la consommation du véhicule (modifiable en niveau 2)
   transportData.conso_vehicule = document.getElementById('transport-conso-vehicule').value;
