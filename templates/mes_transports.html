@@ -232,7 +232,7 @@
                   <div id="vehicule-kg-co2e" class="param-value">-</div>
                 </div>
                 <div class="param-item">
-                  <div class="param-label">Trajet à vide</div>
+                  <div class="param-label">KgCo²e (avec trajets à vide)</div>
                   <div id="vehicule-trajet-vide" class="param-value">-</div>
                 </div>
                 <div class="param-item">
@@ -1546,11 +1546,11 @@ function calculateEmissions() {
     vehiculeKgCo2e.textContent = emissions.toFixed(2) + ' kg CO₂e';
   }
   
-  // Calcul du trajet à vide: consommation au km × facteur d'émission × distance (sans quote-part)
+  // Calcul KgCo²e (avec trajets à vide): consommation en L au km × nombre de kilomètres × facteur d'émission
   if (vehiculeTrajetVide && distance > 0 && conso > 0 && facteurEmission > 0) {
     const consoParKm = conso / 100; // L/km
     const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
-    const trajetVide = emissionsParKm * distance; // kg CO₂e total sans quote-part
+    const trajetVide = emissionsParKm * distance; // kg CO₂e total (consommation en L au km × nombre de kilomètres × facteur d'émission)
     vehiculeTrajetVide.textContent = trajetVide.toFixed(2) + ' kg CO₂e';
   }
   
@@ -1698,9 +1698,9 @@ function updateKgCo2ePastilles() {
         vehiculeKgCo2e.textContent = emissions.toFixed(2) + ' kg CO₂e';
       }
       
-      // Calcul du trajet à vide: consommation au km × facteur d'émission × distance (sans quote-part)
+      // Calcul KgCo²e (avec trajets à vide): consommation en L au km × nombre de kilomètres × facteur d'émission
       if (vehiculeTrajetVide) {
-        const trajetVide = emissionsTotalKm; // kg CO₂e total sans quote-part
+        const trajetVide = emissionsTotalKm; // kg CO₂e total (consommation en L au km × nombre de kilomètres × facteur d'émission)
         vehiculeTrajetVide.textContent = trajetVide.toFixed(2) + ' kg CO₂e';
       }
       
