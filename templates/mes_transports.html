@@ -55,7 +55,7 @@
       <div class="stat-icon">⚖️</div>
       <div class="stat-content">
         <div class="stat-number" id="total-poids">0</div>
-        <div class="stat-label">tonnes transportées</div>
+        <div class="stat-label">t transportées</div>
       </div>
     </div>
   </div>
@@ -244,6 +244,10 @@
                 <option value="mutualise">Véhicule mutualisé</option>
               </select>
             </div>
+            <div class="form-group">
+              <label for="transport-poids-pris-en-compte">Charge utile (t)</label>
+              <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="Charge utile du véhicule">
+            </div>
             <div class="form-group" id="vehicule-mutualise-actions" style="display: none;">
               <label>&nbsp;</label>
               <button type="button" class="btn-secondary" onclick="showVehiculeMutualiseOptions()">
@@ -252,12 +256,8 @@
               </button>
             </div>
             <div class="form-group">
-              <label for="transport-poids">Poids (tonnes) *</label>
+              <label for="transport-poids">Poids (t) *</label>
               <input type="number" id="transport-poids" name="poids_tonnes" step="0.001" min="0" required placeholder="Ex: 2.5" onchange="calculateEmissions()" oninput="calculateEmissions()">
-            </div>
-            <div class="form-group">
-              <label for="transport-poids-pris-en-compte">Poids pris en compte (tonnes)</label>
-              <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="Poids du véhicule">
             </div>
           </div>
 
@@ -1268,7 +1268,7 @@ function resetTransportForm() {
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
     poidsPrisEnCompteField.value = '';
-    poidsPrisEnCompteField.placeholder = 'Poids du véhicule';
+    poidsPrisEnCompteField.placeholder = 'Charge utile du véhicule';
   }
   
   calculateEmissions();
@@ -1407,7 +1407,7 @@ function editTransport(id) {
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
     poidsPrisEnCompteField.value = '';
-    poidsPrisEnCompteField.placeholder = 'Poids du véhicule';
+    poidsPrisEnCompteField.placeholder = 'Charge utile du véhicule';
   }
   
   // Mettre à jour l'état des champs selon le niveau de calcul
@@ -1497,10 +1497,17 @@ function calculateEmissions() {
   
   // Calcul des émissions totales
   if (distance > 0 && conso > 0 && facteurEmission > 0) {
-    // Calculer d'abord les émissions par km
-    const emissionsParKm = (conso / 100) * facteurEmission;
-    // Puis multiplier par la distance
-    emissions = emissionsParKm * distance;
+    if (niveau === 'niveau1') {
+      // En niveau 1: Consommation au km × facteur d'émissions × nombre de km × (poids transport / charge utile)
+      const consoParKm = conso / 100; // L/km
+      const ratioPoids = poids / poidsPrisEnCompte; // ratio poids transport / charge utile
+      emissions = consoParKm * facteurEmission * distance * ratioPoids;
+      console.log('Niveau 1 - Ratio poids:', ratioPoids, 'Émissions avec ratio:', emissions);
+    } else {
+      // Autres niveaux: émissions par km × distance
+      const emissionsParKm = (conso / 100) * facteurEmission;
+      emissions = emissionsParKm * distance;
+    }
   }
   
   
