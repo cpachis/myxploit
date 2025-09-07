@@ -246,7 +246,7 @@
             </div>
             <div class="form-group">
               <label for="transport-poids-pris-en-compte">Charge utile (t)</label>
-              <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="Charge utile du véhicule">
+              <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="Valeur calculée" onchange="calculateEmissions()" oninput="calculateEmissions()">
             </div>
             <div class="form-group" id="vehicule-mutualise-actions" style="display: none;">
               <label>&nbsp;</label>
@@ -1268,7 +1268,7 @@ function resetTransportForm() {
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
     poidsPrisEnCompteField.value = '';
-    poidsPrisEnCompteField.placeholder = 'Charge utile du véhicule';
+    poidsPrisEnCompteField.placeholder = 'Valeur calculée';
   }
   
   calculateEmissions();
@@ -1407,7 +1407,7 @@ function editTransport(id) {
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
   if (poidsPrisEnCompteField) {
     poidsPrisEnCompteField.value = '';
-    poidsPrisEnCompteField.placeholder = 'Charge utile du véhicule';
+    poidsPrisEnCompteField.placeholder = 'Valeur calculée';
   }
   
   // Mettre à jour l'état des champs selon le niveau de calcul
@@ -1483,6 +1483,12 @@ function calculateEmissions() {
       poidsPrisEnCompte = parseFloat(selectedOption.dataset.chargeUtile);
     }
   } else {
+    // En niveau 2+, utiliser la valeur saisie manuellement dans le champ
+    const chargeUtileField = document.getElementById('transport-poids-pris-en-compte');
+    if (chargeUtileField && chargeUtileField.value) {
+      poidsPrisEnCompte = parseFloat(chargeUtileField.value);
+    }
+    
     // En niveau 2, utiliser le facteur d'émission de l'énergie sélectionnée
     const energieSelect = document.getElementById('transport-energie');
     if (energieSelect && energieSelect.selectedOptions[0] && energieSelect.selectedOptions[0].dataset.facteur) {
@@ -1928,6 +1934,7 @@ function updateConsumptionFieldState() {
   const consoHelp = document.getElementById('conso-help');
   const emissionsTkmField = document.getElementById('transport-co2e-tkm');
   const emissionsTkmHelp = document.querySelector('#transport-co2e-tkm + .form-help');
+  const chargeUtileField = document.getElementById('transport-poids-pris-en-compte');
   
   if (niveauCalcul === 'niveau1') {
     // Niveau 1 : consommation automatique depuis le véhicule
@@ -1950,6 +1957,14 @@ function updateConsumptionFieldState() {
       emissionsTkmHelp.style.fontStyle = 'italic';
     }
     
+    // Charge utile en lecture seule pour le niveau 1
+    if (chargeUtileField) {
+      chargeUtileField.readOnly = true;
+      chargeUtileField.style.backgroundColor = '#f8f9fa';
+      chargeUtileField.style.cursor = 'not-allowed';
+      chargeUtileField.style.color = '#6c757d';
+    }
+    
   } else {
     // Niveaux 2, 3, 4 : consommation manuelle
     consoField.readOnly = false;
@@ -1969,6 +1984,14 @@ function updateConsumptionFieldState() {
       emissionsTkmHelp.innerHTML = 'kg CO₂e/t.km';
       emissionsTkmHelp.style.color = '#6b7280';
       emissionsTkmHelp.style.fontStyle = 'normal';
+    }
+    
+    // Charge utile modifiable pour les niveaux 2, 3, 4
+    if (chargeUtileField) {
+      chargeUtileField.readOnly = false;
+      chargeUtileField.style.backgroundColor = '';
+      chargeUtileField.style.cursor = '';
+      chargeUtileField.style.color = '';
     }
   }
 }
