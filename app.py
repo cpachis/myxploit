@@ -142,33 +142,35 @@ with app.app_context():
 
 @login_manager.user_loader
 def load_user(user_id):
-    """Charge un utilisateur depuis la base de données - MODE DÉVELOPPEMENT"""
-    # Pour le développement, retourner un utilisateur fictif
-    if app.config.get('DEBUG', False):
-        class DevUser:
-            def __init__(self):
-                self.id = 1
-                self.email = "dev@myxploit.com"
-                self.type_utilisateur = "admin"
-                self.statut = "actif"
-                self.is_authenticated = True
-                self.is_active = True
-                self.is_anonymous = False
-            
-            def get_id(self):
-                return str(self.id)
-            
-            def check_password(self, password):
-                return True  # Accepter n'importe quel mot de passe en dev
+    """Charge un utilisateur depuis la base de données - AUTHENTIFICATION DÉSACTIVÉE"""
+    # TEMPORAIRE: Désactiver l'authentification pour le développement
+    class DevUser:
+        def __init__(self):
+            self.id = 1
+            self.email = "dev@myxploit.com"
+            self.nom = "Utilisateur Développement"
+            self.telephone = "0123456789"
+            self.adresse = "123 Rue de Dev"
+            self.type_utilisateur = "admin"
+            self.statut = "actif"
+            self.is_authenticated = True
+            self.is_active = True
+            self.is_anonymous = False
         
-        return DevUser()
+        def get_id(self):
+            return str(self.id)
+        
+        def check_password(self, password):
+            return True  # Accepter n'importe quel mot de passe
     
-    # Mode production - charger depuis la base de données
-    try:
-        return User.query.get(int(user_id))
-    except Exception as e:
-        logger.error(f"Erreur lors du chargement de l'utilisateur {user_id}: {str(e)}")
-        return None
+    return DevUser()
+    
+    # Mode production - charger depuis la base de données (DÉSACTIVÉ TEMPORAIREMENT)
+    # try:
+    #     return User.query.get(int(user_id))
+    # except Exception as e:
+    #     logger.error(f"Erreur lors du chargement de l'utilisateur {user_id}: {str(e)}")
+    #     return None
 
 # ============================================================================
 # ROUTE DE DÉVELOPPEMENT - CONNEXION AUTOMATIQUE
@@ -177,29 +179,28 @@ def load_user(user_id):
 @app.route('/dev-login')
 def dev_login():
     """Route de développement pour se connecter automatiquement"""
-    if app.config.get('DEBUG', False):
-        from flask_login import login_user
+    from flask_login import login_user
+    
+    class DevUser:
+        def __init__(self):
+            self.id = 1
+            self.email = "dev@myxploit.com"
+            self.nom = "Utilisateur Développement"
+            self.telephone = "0123456789"
+            self.adresse = "123 Rue de Dev"
+            self.type_utilisateur = "admin"
+            self.statut = "actif"
+            self.is_authenticated = True
+            self.is_active = True
+            self.is_anonymous = False
         
-        class DevUser:
-            def __init__(self):
-                self.id = 1
-                self.email = "dev@myxploit.com"
-                self.type_utilisateur = "admin"
-                self.statut = "actif"
-                self.is_authenticated = True
-                self.is_active = True
-                self.is_anonymous = False
-            
-            def get_id(self):
-                return str(self.id)
-        
-        dev_user = DevUser()
-        login_user(dev_user)
-        flash('Connexion automatique en mode développement', 'success')
-        return redirect(url_for('main.homepage'))
-    else:
-        flash('Cette route n\'est disponible qu\'en mode développement', 'danger')
-        return redirect(url_for('main.homepage'))
+        def get_id(self):
+            return str(self.id)
+    
+    dev_user = DevUser()
+    login_user(dev_user)
+    flash('Connexion automatique activée', 'success')
+    return redirect(url_for('main.homepage'))
 
 # ============================================================================
 # ROUTES MIGRÉES VERS LES BLUEPRINTS
