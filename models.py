@@ -10,6 +10,12 @@ from datetime import datetime
 
 def create_models(db):
     """Crée tous les modèles avec la base de données fournie"""
+    # Vérifier si les modèles existent déjà
+    if hasattr(create_models, '_models_created'):
+        return create_models._models_created
+    
+    # Marquer que les modèles sont en cours de création
+    create_models._models_created = {}
     
     class Transport(db.Model):
         """Modèle pour les transports"""
@@ -199,8 +205,8 @@ def create_models(db):
         assigne_at = db.Column(db.DateTime)
         livre_at = db.Column(db.DateTime)
 
-    # Retourner un dictionnaire avec tous les modèles
-    return {
+    # Stocker les modèles dans le cache
+    create_models._models_created = {
         'Transport': Transport,
         'Vehicule': Vehicule,
         'Energie': Energie,
@@ -210,3 +216,6 @@ def create_models(db):
         'Transporteur': Transporteur,
         'TransportOrder': TransportOrder
     }
+    
+    # Retourner les modèles
+    return create_models._models_created
