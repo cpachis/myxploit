@@ -15,76 +15,103 @@
         </div>
     </div>
 
-    <!-- Statistiques -->
+    <!-- Pastilles de navigation -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ total_orders }}</h4>
-                            <p class="mb-0">Total des bons</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-file-alt fa-2x"></i>
-                        </div>
-                    </div>
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-plus-circle fa-3x mb-3"></i>
+                    <h4>CRÉATION</h4>
+                    <p class="mb-3">Créer un nouveau transport</p>
+                    <a href="{{ url_for('customer.nouveau_bon') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-plus"></i> Nouveau transport
+                    </a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ orders_en_attente }}</h4>
-                            <p class="mb-0">En attente</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-clock fa-2x"></i>
-                        </div>
-                    </div>
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-edit fa-3x mb-3"></i>
+                    <h4>MODIFICATION</h4>
+                    <p class="mb-3">Modifier un transport existant</p>
+                    <a href="{{ url_for('customer.dashboard') }}#liste" class="btn btn-light btn-sm">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ orders_assignes }}</h4>
-                            <p class="mb-0">Assignés</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-truck fa-2x"></i>
-                        </div>
-                    </div>
+            <div class="card bg-info text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-list fa-3x mb-3"></i>
+                    <h4>LISTE</h4>
+                    <p class="mb-3">Voir tous les transports</p>
+                    <a href="{{ url_for('customer.dashboard') }}#liste" class="btn btn-light btn-sm">
+                        <i class="fas fa-list"></i> Voir la liste
+                    </a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ orders_livres }}</h4>
-                            <p class="mb-0">Livrés</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-check-circle fa-2x"></i>
-                        </div>
-                    </div>
+            <div class="card bg-success text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                    <h4>DASHBOARD</h4>
+                    <p class="mb-3">Statistiques et vue d'ensemble</p>
+                    <a href="{{ url_for('customer.dashboard') }}#stats" class="btn btn-light btn-sm">
+                        <i class="fas fa-chart-bar"></i> Statistiques
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques détaillées -->
+    <div id="stats" class="row mb-4">
+        <div class="col-12">
+            <h5><i class="fas fa-chart-pie"></i> Statistiques détaillées</h5>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h4 class="text-primary">{{ total_orders }}</h4>
+                    <p class="mb-0 text-muted">Total des bons</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h4 class="text-warning">{{ orders_en_attente }}</h4>
+                    <p class="mb-0 text-muted">En attente</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h4 class="text-info">{{ orders_assignes }}</h4>
+                    <p class="mb-0 text-muted">Assignés</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h4 class="text-success">{{ orders_livres }}</h4>
+                    <p class="mb-0 text-muted">Livrés</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Liste des bons de transport -->
-    <div class="row">
+    <div id="liste" class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Mes bons de transport</h5>
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Mes bons de transport</h5>
                 </div>
                 <div class="card-body">
                     {% if orders %}
