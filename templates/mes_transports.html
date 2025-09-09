@@ -1719,33 +1719,7 @@ function calculateEmissions() {
   console.log('Poids pris en compte (tonnes):', poidsPrisEnCompte);
   console.log('CO₂e/t.km calculé:', emissionsTkm);
   
-  // Mettre à jour les pastilles
-  const vehiculeKgCo2e = document.getElementById('vehicule-kg-co2e');
-  const vehiculeTrajetVide = document.getElementById('vehicule-trajet-vide');
-  const vehiculeCo2eTkm = document.getElementById('vehicule-co2e-tkm');
-  
-  if (vehiculeKgCo2e) {
-    vehiculeKgCo2e.textContent = emissions.toFixed(2) + ' kg CO₂e';
-  }
-  
-  // Calcul KgCo²e (avec trajets à vide): consommation au 100 / 100 * distance * facteur d'émission
-  if (vehiculeTrajetVide && distance > 0 && conso > 0 && facteurEmission > 0) {
-    const consoParKm = conso / 100; // L/km (ex: 16L/100 = 0.16 L/km)
-    const trajetVide = consoParKm * distance * facteurEmission; // kg CO₂e total
-    vehiculeTrajetVide.textContent = trajetVide.toFixed(2) + ' kg CO₂e';
-    console.log('=== DEBUG TRAJET VIDE ===');
-    console.log('Conso/100:', conso, 'L/100km');
-    console.log('Conso par km:', consoParKm, 'L/km');
-    console.log('Distance:', distance, 'km');
-    console.log('Facteur émission:', facteurEmission, 'kg CO₂e/L');
-    console.log('Calcul:', consoParKm, '*', distance, '*', facteurEmission, '=', trajetVide);
-    console.log('Résultat attendu: 0.16 * 100 * 3.1 = 49.6 kg CO₂e');
-    console.log('=== FIN DEBUG ===');
-  }
-  
-  if (vehiculeCo2eTkm) {
-    vehiculeCo2eTkm.textContent = (emissionsTkm * 1000).toFixed(1) + ' g CO₂e/t.km';
-  }
+  // Les pastilles KgCo²e, Trajet à vide et Co²e/t.km sont maintenant gérées par updateKgCo2ePastilles()
   
   // Mettre à jour le poids pris en compte
   const poidsPrisEnCompteField = document.getElementById('transport-poids-pris-en-compte');
@@ -1759,28 +1733,6 @@ function calculateEmissions() {
   
   // Mettre à jour les pastilles KgCo²e et Co²e/t.km
   updateKgCo2ePastilles();
-  
-  // Recalculer les émissions totales après mise à jour des pastilles
-  const vehiculeEmissionsKm = document.getElementById('vehicule-emissions-km');
-  if (vehiculeEmissionsKm && vehiculeEmissionsKm.textContent && vehiculeEmissionsKm.textContent !== '-') {
-    const emissionsKmText = vehiculeEmissionsKm.textContent;
-    const emissionsKmMatch = emissionsKmText.match(/(\d+\.?\d*)/);
-    if (emissionsKmMatch) {
-      const emissionsParKmFromPastille = parseFloat(emissionsKmMatch[1]);
-      let finalEmissions;
-      
-      // Tous les niveaux: (consommation d'énergie au km × facteur d'émission × distance) × (poids du transport / charge utile)
-      const ratioPoids = poids / poidsPrisEnCompte;
-      const emissionsTotalKm = emissionsParKmFromPastille * distance;
-      finalEmissions = emissionsTotalKm * ratioPoids;
-      
-      const vehiculeKgCo2e = document.getElementById('vehicule-kg-co2e');
-      if (vehiculeKgCo2e) {
-        vehiculeKgCo2e.textContent = finalEmissions.toFixed(2) + ' kg CO₂e';
-      }
-      console.log('Émissions finales mises à jour:', finalEmissions);
-    }
-  }
   
   // Recalculer les quote-parts des transports mutualisés si nécessaire
   if (typeof recalculateAllMutualiseQuoteParts === 'function') {
