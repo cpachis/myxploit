@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}My Customer Xploit - Bon {{ order.numero_bon }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>🚛 Bon de transport {{ order.numero_bon }}</h1>
+                <div>
+                    <a href="{{ url_for('customer.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <a href="{{ url_for('customer.imprimer_bon', id=order.id) }}" class="btn btn-primary">
+                        <i class="fas fa-print"></i> Imprimer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations générales -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Informations générales</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Numéro de bon :</strong> {{ order.numero_bon }}</p>
+                            <p><strong>Code-barres :</strong> <code>{{ order.code_barre }}</code></p>
+                            <p><strong>Statut :</strong> 
+                                {% if order.statut == 'en_attente' %}
+                                    <span class="badge bg-warning">En attente</span>
+                                {% elif order.statut == 'assigne' %}
+                                    <span class="badge bg-info">Assigné</span>
+                                {% elif order.statut == 'en_cours' %}
+                                    <span class="badge bg-primary">En cours</span>
+                                {% elif order.statut == 'livre' %}
+                                    <span class="badge bg-success">Livré</span>
+                                {% elif order.statut == 'annule' %}
+                                    <span class="badge bg-danger">Annulé</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Date de création :</strong> {{ order.created_at.strftime('%d/%m/%Y à %H:%M') }}</p>
+                            <p><strong>Date d'enlèvement :</strong> {{ order.date_enlevement.strftime('%d/%m/%Y') if order.date_enlevement else '-' }}</p>
+                            <p><strong>Date de livraison souhaitée :</strong> {{ order.date_livraison_souhaitee.strftime('%d/%m/%Y') if order.date_livraison_souhaitee else '-' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations expéditeur et destinataire -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">📤 Expéditeur</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>{{ order.expediteur_nom }}</strong></p>
+                            {% if order.expediteur_contact %}
+                                <p><i class="fas fa-user"></i> {{ order.expediteur_contact }}</p>
+                            {% endif %}
+                            <p><i class="fas fa-map-marker-alt"></i> {{ order.expediteur_adresse }}</p>
+                            {% if order.expediteur_telephone %}
+                                <p><i class="fas fa-phone"></i> {{ order.expediteur_telephone }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">📥 Destinataire</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>{{ order.destinataire_nom }}</strong></p>
+                            {% if order.destinataire_contact %}
+                                <p><i class="fas fa-user"></i> {{ order.destinataire_contact }}</p>
+                            {% endif %}
+                            <p><i class="fas fa-map-marker-alt"></i> {{ order.destinataire_adresse }}</p>
+                            {% if order.destinataire_telephone %}
+                                <p><i class="fas fa-phone"></i> {{ order.destinataire_telephone }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations colis -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">📦 Informations colis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <p><strong>Type :</strong> {{ order.type_colis|title }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Nombre :</strong> {{ order.nombre_colis }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Poids :</strong> {{ order.poids_kg }} kg</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Dimensions :</strong> {{ order.dimensions or '-' }}</p>
+                        </div>
+                    </div>
+                    {% if order.description_colis %}
+                        <p><strong>Description :</strong> {{ order.description_colis }}</p>
+                    {% endif %}
+                    {% if order.valeur_colis %}
+                        <p><strong>Valeur :</strong> {{ order.valeur_colis }} €</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Instructions spéciales -->
+            {% if order.instructions_speciales %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">⚠️ Instructions spéciales</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ order.instructions_speciales }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Informations de suivi -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 Suivi du transport</h5>
+                </div>
+                <div class="card-body">
+                    {% if order.distance_km %}
+                        <p><strong>Distance :</strong> {{ order.distance_km }} km</p>
+                    {% endif %}
+                    {% if order.emis_kg %}
+                        <p><strong>Émissions CO₂ :</strong> {{ order.emis_kg }} kg</p>
+                    {% endif %}
+                    {% if order.emis_tkm %}
+                        <p><strong>Émissions par t.km :</strong> {{ order.emis_tkm }} kg CO₂/t.km</p>
+                    {% endif %}
+                    {% if order.cout_transport %}
+                        <p><strong>Coût du transport :</strong> {{ order.cout_transport }} €</p>
+                    {% endif %}
+                    
+                    {% if order.statut == 'en_attente' %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Votre bon de transport est en attente d'assignation à un transporteur.
+                        </div>
+                    {% elif order.statut == 'assigne' %}
+                        <div class="alert alert-primary">
+                            <i class="fas fa-truck"></i> Votre transport a été assigné à un transporteur.
+                        </div>
+                    {% elif order.statut == 'en_cours' %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-shipping-fast"></i> Votre transport est en cours.
+                        </div>
+                    {% elif order.statut == 'livre' %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Votre transport a été livré avec succès !
+                        </div>
+                    {% elif order.statut == 'annule' %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i> Votre transport a été annulé.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🔧 Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('customer.imprimer_bon', id=order.id) }}" class="btn btn-primary">
+                            <i class="fas fa-print"></i> Imprimer le bon
+                        </a>
+                        <a href="{{ url_for('customer.telecharger_pdf', id=order.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-download"></i> Télécharger PDF
+                        </a>
+                        <a href="{{ url_for('customer.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list"></i> Retour à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

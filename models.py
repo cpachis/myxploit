@@ -141,6 +141,64 @@ def create_models(db):
         created_at = db.Column(db.DateTime, default=datetime.utcnow)
         updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    class TransportOrder(db.Model):
+        """Modèle pour les bons de transport créés par les clients"""
+        __tablename__ = 'transport_orders'
+        
+        id = db.Column(db.Integer, primary_key=True)
+        numero_bon = db.Column(db.String(50), unique=True, nullable=False)
+        code_barre = db.Column(db.String(100), unique=True, nullable=False)
+        
+        # Informations client
+        client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
+        client_nom = db.Column(db.String(100), nullable=False)
+        client_email = db.Column(db.String(120), nullable=False)
+        client_telephone = db.Column(db.String(20))
+        client_adresse = db.Column(db.Text)
+        
+        # Informations expéditeur
+        expediteur_nom = db.Column(db.String(100), nullable=False)
+        expediteur_adresse = db.Column(db.Text, nullable=False)
+        expediteur_contact = db.Column(db.String(100))
+        expediteur_telephone = db.Column(db.String(20))
+        
+        # Informations destinataire
+        destinataire_nom = db.Column(db.String(100), nullable=False)
+        destinataire_adresse = db.Column(db.Text, nullable=False)
+        destinataire_contact = db.Column(db.String(100))
+        destinataire_telephone = db.Column(db.String(20))
+        
+        # Informations colis
+        type_colis = db.Column(db.String(50), nullable=False)  # colis, palette, autre
+        nombre_colis = db.Column(db.Integer, default=1)
+        poids_kg = db.Column(db.Float, nullable=False)
+        dimensions = db.Column(db.String(100))  # L x l x H
+        description_colis = db.Column(db.Text)
+        valeur_colis = db.Column(db.Float)
+        
+        # Informations transport
+        date_enlevement = db.Column(db.Date, nullable=False)
+        date_livraison_souhaitee = db.Column(db.Date)
+        instructions_speciales = db.Column(db.Text)
+        urgence = db.Column(db.String(20), default='normal')  # normal, urgent, très urgent
+        
+        # Statut et suivi
+        statut = db.Column(db.String(20), default='en_attente')  # en_attente, assigne, en_cours, livre, annule
+        transporteur_id = db.Column(db.Integer, db.ForeignKey('transporteurs.id'))
+        transport_id = db.Column(db.Integer, db.ForeignKey('transports.id'))
+        
+        # Données calculées (remplies par le transporteur)
+        distance_km = db.Column(db.Float)
+        emis_kg = db.Column(db.Float)
+        emis_tkm = db.Column(db.Float)
+        cout_transport = db.Column(db.Float)
+        
+        # Métadonnées
+        created_at = db.Column(db.DateTime, default=datetime.utcnow)
+        updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+        assigne_at = db.Column(db.DateTime)
+        livre_at = db.Column(db.DateTime)
+
     # Retourner un dictionnaire avec tous les modèles
     return {
         'Transport': Transport,
@@ -149,5 +207,6 @@ def create_models(db):
         'Invitation': Invitation,
         'User': User,
         'Client': Client,
-        'Transporteur': Transporteur
+        'Transporteur': Transporteur,
+        'TransportOrder': TransportOrder
     }

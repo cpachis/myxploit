@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}My Customer Xploit - Nouveau bon de transport{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>🚛 Nouveau bon de transport</h1>
+                <a href="{{ url_for('customer.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('customer.creer_bon') }}">
+        <div class="row">
+            <!-- Informations expéditeur -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📤 Informations expéditeur</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="expediteur_nom" class="form-label">Nom de l'entreprise *</label>
+                                    <input type="text" class="form-control" id="expediteur_nom" name="expediteur_nom" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="expediteur_contact" class="form-label">Personne de contact</label>
+                                    <input type="text" class="form-control" id="expediteur_contact" name="expediteur_contact">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expediteur_adresse" class="form-label">Adresse complète *</label>
+                            <textarea class="form-control" id="expediteur_adresse" name="expediteur_adresse" rows="3" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="expediteur_telephone" class="form-label">Téléphone</label>
+                                    <input type="tel" class="form-control" id="expediteur_telephone" name="expediteur_telephone">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations destinataire -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📥 Informations destinataire</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="destinataire_nom" class="form-label">Nom de l'entreprise *</label>
+                                    <input type="text" class="form-control" id="destinataire_nom" name="destinataire_nom" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="destinataire_contact" class="form-label">Personne de contact</label>
+                                    <input type="text" class="form-control" id="destinataire_contact" name="destinataire_contact">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="destinataire_adresse" class="form-label">Adresse complète *</label>
+                            <textarea class="form-control" id="destinataire_adresse" name="destinataire_adresse" rows="3" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="destinataire_telephone" class="form-label">Téléphone</label>
+                                    <input type="tel" class="form-control" id="destinataire_telephone" name="destinataire_telephone">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Informations colis -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📦 Informations colis</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="type_colis" class="form-label">Type de colis *</label>
+                                    <select class="form-select" id="type_colis" name="type_colis" required>
+                                        <option value="">Sélectionner...</option>
+                                        <option value="colis">Colis</option>
+                                        <option value="palette">Palette</option>
+                                        <option value="autre">Autre</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nombre_colis" class="form-label">Nombre de colis</label>
+                                    <input type="number" class="form-control" id="nombre_colis" name="nombre_colis" value="1" min="1">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="poids_kg" class="form-label">Poids (kg) *</label>
+                                    <input type="number" class="form-control" id="poids_kg" name="poids_kg" step="0.1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dimensions" class="form-label">Dimensions (L x l x H)</label>
+                                    <input type="text" class="form-control" id="dimensions" name="dimensions" placeholder="ex: 60x40x30 cm">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description_colis" class="form-label">Description du colis</label>
+                            <textarea class="form-control" id="description_colis" name="description_colis" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="valeur_colis" class="form-label">Valeur du colis (€)</label>
+                            <input type="number" class="form-control" id="valeur_colis" name="valeur_colis" step="0.01">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations transport -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🚛 Informations transport</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="date_enlevement" class="form-label">Date d'enlèvement *</label>
+                                    <input type="date" class="form-control" id="date_enlevement" name="date_enlevement" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="date_livraison_souhaitee" class="form-label">Date de livraison souhaitée</label>
+                                    <input type="date" class="form-control" id="date_livraison_souhaitee" name="date_livraison_souhaitee">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="urgence" class="form-label">Niveau d'urgence</label>
+                            <select class="form-select" id="urgence" name="urgence">
+                                <option value="normal">Normal</option>
+                                <option value="urgent">Urgent</option>
+                                <option value="tres_urgent">Très urgent</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="instructions_speciales" class="form-label">Instructions spéciales</label>
+                            <textarea class="form-control" id="instructions_speciales" name="instructions_speciales" rows="3" placeholder="Ex: Livraison entre 9h et 17h, code d'accès, etc."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('customer.dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Créer le bon de transport
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Définir la date d'aujourd'hui par défaut
+document.getElementById('date_enlevement').value = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

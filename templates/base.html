@@ -21,7 +21,9 @@
             <li><a href="{{ url_for('clients.clients') }}">👥 Mes Clients</a></li>
             <li><a href="{{ url_for('transporteurs.transporteurs') }}">🚚 Mes Transporteurs</a></li>
             <li><a href="{{ url_for('transports.mes_transports') }}">📦 Mes Transports</a></li>
-            <li><a href="{{ url_for('expeditions.mes_expeditions') }}">🚛 Mes Expéditions</a></li>
+                        <li><a href="{{ url_for('expeditions.mes_expeditions') }}">🚛 Mes Expéditions</a></li>
+                        <li><a href="{{ url_for('customer.dashboard') }}">👤 My Customer Xploit</a></li>
+                        <li><a href="{{ url_for('transport_management.dashboard') }}">🚛 Gestion des Transports</a></li>
             <li><a href="{{ url_for('main.dashboard') }}">📊 Mon Dashboard</a></li>
             <li class="dropdown-submenu">
               <a href="#">⚙️ Paramètres</a>
@@ -79,6 +81,14 @@
       <a href="{{ url_for('expeditions.mes_expeditions') }}" class="submenu-item">
         <span class="submenu-icon">🚛</span>
         <span class="submenu-text">Mes Expéditions</span>
+      </a>
+      <a href="{{ url_for('customer.dashboard') }}" class="submenu-item">
+        <span class="submenu-icon">👤</span>
+        <span class="submenu-text">My Customer Xploit</span>
+      </a>
+      <a href="{{ url_for('transport_management.dashboard') }}" class="submenu-item">
+        <span class="submenu-icon">🚛</span>
+        <span class="submenu-text">Gestion des Transports</span>
       </a>
       <a href="{{ url_for('main.dashboard') }}" class="submenu-item">
         <span class="submenu-icon">📊</span>

@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Gérer Transport - {{ order.numero_bon }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>🚛 Gérer Transport {{ order.numero_bon }}</h1>
+                <a href="{{ url_for('transport_management.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('transport_management.gerer_transport_post', order_id=order.id) }}">
+        <div class="row">
+            <!-- Informations du transport -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📊 Informations du transport</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="statut" class="form-label">Statut du transport *</label>
+                                    <select class="form-select" id="statut" name="statut" required>
+                                        <option value="assigne" {% if order.statut == 'assigne' %}selected{% endif %}>Assigné</option>
+                                        <option value="en_cours" {% if order.statut == 'en_cours' %}selected{% endif %}>En cours</option>
+                                        <option value="livre" {% if order.statut == 'livre' %}selected{% endif %}>Livré</option>
+                                        <option value="annule" {% if order.statut == 'annule' %}selected{% endif %}>Annulé</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="cout_transport" class="form-label">Coût du transport (€)</label>
+                                    <input type="number" class="form-control" id="cout_transport" name="cout_transport" 
+                                           value="{{ order.cout_transport or '' }}" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="distance_km" class="form-label">Distance (km) *</label>
+                                    <input type="number" class="form-control" id="distance_km" name="distance_km" 
+                                           value="{{ transport.distance_km or '' }}" step="0.1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="emis_kg" class="form-label">Émissions CO₂ (kg)</label>
+                                    <input type="number" class="form-control" id="emis_kg" name="emis_kg" 
+                                           value="{{ transport.emis_kg or '' }}" step="0.1" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="emis_tkm" class="form-label">Émissions par t.km (kg CO₂/t.km)</label>
+                                    <input type="number" class="form-control" id="emis_tkm" name="emis_tkm" 
+                                           value="{{ transport.emis_tkm or '' }}" step="0.1" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calcul des émissions -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">🌱 Calcul des émissions carbone</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="vehicule_id" class="form-label">Type de véhicule</label>
+                                    <select class="form-select" id="vehicule_id" name="vehicule_id">
+                                        <option value="">Sélectionner un véhicule...</option>
+                                        {% for vehicule in vehicules %}
+                                        <option value="{{ vehicule.id }}" 
+                                                data-conso="{{ vehicule.consommation }}"
+                                                data-emissions="{{ vehicule.emissions }}">
+                                            {{ vehicule.nom }} ({{ vehicule.consommation }}L/100km)
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="energie_id" class="form-label">Type d'énergie</label>
+                                    <select class="form-select" id="energie_id" name="energie_id">
+                                        <option value="">Sélectionner une énergie...</option>
+                                        {% for energie in energies %}
+                                        <option value="{{ energie.id }}" 
+                                                data-facteur="{{ energie.facteur_emission }}">
+                                            {{ energie.nom }} ({{ energie.facteur_emission }} kg CO₂/L)
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Calcul automatique :</strong> Les émissions seront calculées automatiquement 
+                            en fonction du véhicule, de l'énergie et de la distance.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations du bon -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📋 Détails du bon</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Numéro :</strong> {{ order.numero_bon }}</p>
+                        <p><strong>Client :</strong> {{ order.client_nom }}</p>
+                        <p><strong>Poids :</strong> {{ order.poids_kg }} kg</p>
+                        <p><strong>Type :</strong> {{ order.type_colis|title }}</p>
+                        <p><strong>Urgence :</strong> {{ order.urgence|title }}</p>
+                        
+                        <hr>
+                        
+                        <h6>📤 Expéditeur</h6>
+                        <p class="small"><strong>{{ order.expediteur_nom }}</strong></p>
+                        <p class="small">{{ order.expediteur_adresse }}</p>
+                        
+                        <h6>📥 Destinataire</h6>
+                        <p class="small"><strong>{{ order.destinataire_nom }}</strong></p>
+                        <p class="small">{{ order.destinataire_adresse }}</p>
+                        
+                        {% if order.instructions_speciales %}
+                        <hr>
+                        <h6>⚠️ Instructions</h6>
+                        <p class="small">{{ order.instructions_speciales }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Mettre à jour
+                            </button>
+                            <a href="{{ url_for('customer.voir_bon', id=order.id) }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-eye"></i> Voir le bon
+                            </a>
+                            <a href="{{ url_for('transport_management.dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-list"></i> Retour à la liste
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Calcul automatique des émissions
+function calculerEmissions() {
+    const vehiculeSelect = document.getElementById('vehicule_id');
+    const energieSelect = document.getElementById('energie_id');
+    const distanceInput = document.getElementById('distance_km');
+    const poidsKg = {{ order.poids_kg }};
+    
+    const vehicule = vehiculeSelect.selectedOptions[0];
+    const energie = energieSelect.selectedOptions[0];
+    const distance = parseFloat(distanceInput.value) || 0;
+    
+    if (vehicule && energie && distance > 0) {
+        const conso = parseFloat(vehicule.dataset.conso) || 0;
+        const facteurEmission = parseFloat(energie.dataset.facteur) || 0;
+        
+        // Calcul des émissions
+        const consoL = (conso / 100) * distance; // Consommation en litres
+        const emissionsKg = consoL * facteurEmission; // Émissions en kg CO₂
+        const emissionsTkm = (emissionsKg / (poidsKg / 1000)); // Émissions par t.km
+        
+        document.getElementById('emis_kg').value = emissionsKg.toFixed(2);
+        document.getElementById('emis_tkm').value = emissionsTkm.toFixed(2);
+    }
+}
+
+// Écouter les changements
+document.getElementById('vehicule_id').addEventListener('change', calculerEmissions);
+document.getElementById('energie_id').addEventListener('change', calculerEmissions);
+document.getElementById('distance_km').addEventListener('input', calculerEmissions);
+</script>
+{% endblock %}

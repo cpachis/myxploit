@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Assigner Transport - {{ order.numero_bon }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>🚛 Assigner Transport {{ order.numero_bon }}</h1>
+                <a href="{{ url_for('transport_management.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations du bon de transport -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Informations du bon</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Numéro :</strong> {{ order.numero_bon }}</p>
+                            <p><strong>Client :</strong> {{ order.client_nom }}</p>
+                            <p><strong>Poids :</strong> {{ order.poids_kg }} kg</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Date enlèvement :</strong> {{ order.date_enlevement.strftime('%d/%m/%Y') if order.date_enlevement else '-' }}</p>
+                            <p><strong>Urgence :</strong> {{ order.urgence|title }}</p>
+                            <p><strong>Type :</strong> {{ order.type_colis|title }}</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>📤 Expéditeur</h6>
+                            <p><strong>{{ order.expediteur_nom }}</strong></p>
+                            <p class="small">{{ order.expediteur_adresse }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>📥 Destinataire</h6>
+                            <p><strong>{{ order.destinataire_nom }}</strong></p>
+                            <p class="small">{{ order.destinataire_adresse }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if order.instructions_speciales %}
+                    <hr>
+                    <h6>⚠️ Instructions spéciales</h6>
+                    <p class="small">{{ order.instructions_speciales }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire d'assignation -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">👤 Assigner à un transporteur</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('transport_management.assigner_transport_post', order_id=order.id) }}">
+                        <div class="mb-3">
+                            <label for="transporteur_id" class="form-label">Sélectionner un transporteur *</label>
+                            <select class="form-select" id="transporteur_id" name="transporteur_id" required>
+                                <option value="">Choisir un transporteur...</option>
+                                {% for transporteur in transporteurs %}
+                                <option value="{{ transporteur.id }}">
+                                    {{ transporteur.nom }} 
+                                    {% if transporteur.telephone %}
+                                        - {{ transporteur.telephone }}
+                                    {% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Information :</strong> Une fois assigné, le transport sera créé automatiquement 
+                            et le transporteur pourra le gérer et renseigner les émissions carbone.
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('transport_management.dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-plus"></i> Assigner le transport
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

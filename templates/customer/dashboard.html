@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}My Customer Xploit - Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>🚛 My Customer Xploit</h1>
+                <a href="{{ url_for('customer.nouveau_bon') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nouveau bon de transport
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ total_orders }}</h4>
+                            <p class="mb-0">Total des bons</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-file-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ orders_en_attente }}</h4>
+                            <p class="mb-0">En attente</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ orders_assignes }}</h4>
+                            <p class="mb-0">Assignés</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-truck fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ orders_livres }}</h4>
+                            <p class="mb-0">Livrés</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des bons de transport -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Mes bons de transport</h5>
+                </div>
+                <div class="card-body">
+                    {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>N° Bon</th>
+                                        <th>Expéditeur</th>
+                                        <th>Destinataire</th>
+                                        <th>Poids</th>
+                                        <th>Date enlèvement</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ order.numero_bon }}</strong>
+                                        </td>
+                                        <td>{{ order.expediteur_nom }}</td>
+                                        <td>{{ order.destinataire_nom }}</td>
+                                        <td>{{ order.poids_kg }} kg</td>
+                                        <td>{{ order.date_enlevement.strftime('%d/%m/%Y') if order.date_enlevement else '-' }}</td>
+                                        <td>
+                                            {% if order.statut == 'en_attente' %}
+                                                <span class="badge bg-warning">En attente</span>
+                                            {% elif order.statut == 'assigne' %}
+                                                <span class="badge bg-info">Assigné</span>
+                                            {% elif order.statut == 'en_cours' %}
+                                                <span class="badge bg-primary">En cours</span>
+                                            {% elif order.statut == 'livre' %}
+                                                <span class="badge bg-success">Livré</span>
+                                            {% elif order.statut == 'annule' %}
+                                                <span class="badge bg-danger">Annulé</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ url_for('customer.voir_bon', id=order.id) }}" 
+                                                   class="btn btn-sm btn-outline-primary" title="Voir">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('customer.imprimer_bon', id=order.id) }}" 
+                                                   class="btn btn-sm btn-outline-secondary" title="Imprimer">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Aucun bon de transport</h5>
+                            <p class="text-muted">Créez votre premier bon de transport pour commencer</p>
+                            <a href="{{ url_for('customer.nouveau_bon') }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Créer un bon
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

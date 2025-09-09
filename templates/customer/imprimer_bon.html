@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bon de transport {{ order.numero_bon }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-page { 
+                page-break-after: always;
+                margin: 0;
+                padding: 20px;
+            }
+            body { 
+                margin: 0;
+                padding: 0;
+                font-size: 12px;
+            }
+            .card { 
+                border: 1px solid #000 !important;
+                margin-bottom: 10px;
+            }
+            .card-header { 
+                background-color: #f8f9fa !important;
+                border-bottom: 1px solid #000 !important;
+            }
+        }
+        
+        .print-page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+        }
+        
+        .qr-code {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .footer {
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            margin-top: 20px;
+            font-size: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-page">
+        <!-- En-tête -->
+        <div class="header">
+            <div class="row">
+                <div class="col-8">
+                    <h1 class="mb-0">🚛 MyXploit</h1>
+                    <h2 class="mb-0">Bon de Transport</h2>
+                    <p class="mb-0 text-muted">Numéro: <strong>{{ order.numero_bon }}</strong></p>
+                </div>
+                <div class="col-4 text-end">
+                    <img src="data:image/png;base64,{{ qr_data }}" class="qr-code" alt="QR Code">
+                    <p class="mb-0 small">Code: {{ order.code_barre }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations générales -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">📋 Informations générales</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Numéro de bon :</strong> {{ order.numero_bon }}</p>
+                        <p><strong>Date de création :</strong> {{ order.created_at.strftime('%d/%m/%Y à %H:%M') }}</p>
+                        <p><strong>Date d'enlèvement :</strong> {{ order.date_enlevement.strftime('%d/%m/%Y') if order.date_enlevement else '-' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Statut :</strong> 
+                            {% if order.statut == 'en_attente' %}
+                                <span class="badge bg-warning">En attente</span>
+                            {% elif order.statut == 'assigne' %}
+                                <span class="badge bg-info">Assigné</span>
+                            {% elif order.statut == 'en_cours' %}
+                                <span class="badge bg-primary">En cours</span>
+                            {% elif order.statut == 'livre' %}
+                                <span class="badge bg-success">Livré</span>
+                            {% elif order.statut == 'annule' %}
+                                <span class="badge bg-danger">Annulé</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Urgence :</strong> {{ order.urgence|title }}</p>
+                        {% if order.date_livraison_souhaitee %}
+                            <p><strong>Livraison souhaitée :</strong> {{ order.date_livraison_souhaitee.strftime('%d/%m/%Y') }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expéditeur et destinataire -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">📤 Expéditeur</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>{{ order.expediteur_nom }}</strong></p>
+                        {% if order.expediteur_contact %}
+                            <p class="mb-1"><i class="fas fa-user"></i> {{ order.expediteur_contact }}</p>
+                        {% endif %}
+                        <p class="mb-1"><i class="fas fa-map-marker-alt"></i> {{ order.expediteur_adresse }}</p>
+                        {% if order.expediteur_telephone %}
+                            <p class="mb-0"><i class="fas fa-phone"></i> {{ order.expediteur_telephone }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">📥 Destinataire</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>{{ order.destinataire_nom }}</strong></p>
+                        {% if order.destinataire_contact %}
+                            <p class="mb-1"><i class="fas fa-user"></i> {{ order.destinataire_contact }}</p>
+                        {% endif %}
+                        <p class="mb-1"><i class="fas fa-map-marker-alt"></i> {{ order.destinataire_adresse }}</p>
+                        {% if order.destinataire_telephone %}
+                            <p class="mb-0"><i class="fas fa-phone"></i> {{ order.destinataire_telephone }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations colis -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">📦 Informations colis</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <p><strong>Type :</strong> {{ order.type_colis|title }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Nombre :</strong> {{ order.nombre_colis }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Poids :</strong> {{ order.poids_kg }} kg</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Dimensions :</strong> {{ order.dimensions or '-' }}</p>
+                    </div>
+                </div>
+                {% if order.description_colis %}
+                    <p><strong>Description :</strong> {{ order.description_colis }}</p>
+                {% endif %}
+                {% if order.valeur_colis %}
+                    <p><strong>Valeur :</strong> {{ order.valeur_colis }} €</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Instructions spéciales -->
+        {% if order.instructions_speciales %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">⚠️ Instructions spéciales</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ order.instructions_speciales }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Informations de suivi -->
+        {% if order.distance_km or order.emis_kg or order.cout_transport %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Informations de suivi</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if order.distance_km %}
+                    <div class="col-md-4">
+                        <p><strong>Distance :</strong> {{ order.distance_km }} km</p>
+                    </div>
+                    {% endif %}
+                    {% if order.emis_kg %}
+                    <div class="col-md-4">
+                        <p><strong>Émissions CO₂ :</strong> {{ order.emis_kg }} kg</p>
+                    </div>
+                    {% endif %}
+                    {% if order.cout_transport %}
+                    <div class="col-md-4">
+                        <p><strong>Coût :</strong> {{ order.cout_transport }} €</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Signature -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <p><strong>Signature expéditeur :</strong></p>
+                        <div style="height: 50px; border-bottom: 1px solid #000;"></div>
+                        <p class="small text-muted">Date : _______________</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <p><strong>Signature destinataire :</strong></p>
+                        <div style="height: 50px; border-bottom: 1px solid #000;"></div>
+                        <p class="small text-muted">Date : _______________</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pied de page -->
+        <div class="footer">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>MyXploit</strong> - Plateforme de gestion des transports</p>
+                    <p>www.myxploit.com | contact@myxploit.com</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p>Bon généré le {{ order.created_at.strftime('%d/%m/%Y à %H:%M') }}</p>
+                    <p>Code-barres : {{ order.code_barre }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Boutons d'action (masqués à l'impression) -->
+    <div class="no-print text-center mt-3">
+        <button onclick="window.print()" class="btn btn-primary me-2">
+            <i class="fas fa-print"></i> Imprimer
+        </button>
+        <a href="{{ url_for('customer.voir_bon', id=order.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
