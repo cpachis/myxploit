@@ -68,7 +68,16 @@
                     <p class="mb-0 text-muted">Numéro: <strong>{{ order.numero_bon }}</strong></p>
                 </div>
                 <div class="col-4 text-end">
-                    <img src="data:image/png;base64,{{ qr_data }}" class="qr-code" alt="QR Code">
+                    {% if qr_data %}
+                        <img src="data:image/png;base64,{{ qr_data }}" class="qr-code" alt="QR Code">
+                    {% else %}
+                        <div class="qr-code bg-light border d-flex align-items-center justify-content-center">
+                            <div class="text-center">
+                                <i class="fas fa-qrcode fa-2x text-muted"></i>
+                                <p class="mb-0 small text-muted">QR Code non disponible</p>
+                            </div>
+                        </div>
+                    {% endif %}
                     <p class="mb-0 small">Code: {{ order.code_barre }}</p>
                 </div>
             </div>

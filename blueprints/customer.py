@@ -7,10 +7,17 @@ from flask import Blueprint, render_template, request, jsonify, flash, redirect,
 from flask_login import login_required, current_user
 import logging
 import uuid
-import qrcode
 import io
 import base64
 from datetime import datetime, date
+
+# Import optionnel de qrcode
+try:
+    import qrcode
+    QRCODE_AVAILABLE = True
+except ImportError:
+    QRCODE_AVAILABLE = False
+    print("⚠️ Module qrcode non disponible. Les QR codes ne seront pas générés.")
 
 logger = logging.getLogger(__name__)
 
@@ -153,17 +160,23 @@ def imprimer_bon(id):
             flash('Bon de transport non trouvé', 'error')
             return redirect(url_for('customer.dashboard'))
         
-        # Générer le QR code
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(f"BON:{order.code_barre}")
-        qr.make(fit=True)
-        
-        qr_img = qr.make_image(fill_color="black", back_color="white")
-        
-        # Convertir en base64 pour l'affichage
-        buffer = io.BytesIO()
-        qr_img.save(buffer, format='PNG')
-        qr_data = base64.b64encode(buffer.getvalue()).decode()
+        # Générer le QR code si disponible
+        qr_data = None
+        if QRCODE_AVAILABLE:
+            try:
+                qr = qrcode.QRCode(version=1, box_size=10, border=5)
+                qr.add_data(f"BON:{order.code_barre}")
+                qr.make(fit=True)
+                
+                qr_img = qr.make_image(fill_color="black", back_color="white")
+                
+                # Convertir en base64 pour l'affichage
+                buffer = io.BytesIO()
+                qr_img.save(buffer, format='PNG')
+                qr_data = base64.b64encode(buffer.getvalue()).decode()
+            except Exception as e:
+                logger.warning(f"Erreur génération QR code: {str(e)}")
+                qr_data = None
         
         return render_template('customer/imprimer_bon.html', order=order, qr_data=qr_data)
     
