@@ -1852,6 +1852,7 @@ function updateKgCo2ePastilles() {
   console.log('Valeurs reçues:', { distance, poids, niveau, conso });
   
   if (distance > 0 && conso > 0) {
+    console.log('Conditions remplies, calcul en cours...');
     let facteurEmission = 0;
     let poidsPrisEnCompte = poids;
     
@@ -1883,13 +1884,18 @@ function updateKgCo2ePastilles() {
       }
     }
     
+    console.log('Facteur émission:', facteurEmission, 'Poids pris en compte:', poidsPrisEnCompte);
+    
     if (facteurEmission > 0 && poidsPrisEnCompte > 0) {
+      console.log('Calcul des émissions...');
       // Calcul des émissions avec quote-part
       const consoParKm = conso / 100; // L/km
       const ratioPoids = poids / poidsPrisEnCompte; // ratio poids transport / charge utile
       const emissionsParKm = consoParKm * facteurEmission; // kg CO₂e/km
       const emissionsTotalKm = emissionsParKm * distance; // kg CO₂e pour la distance totale
       const emissions = emissionsTotalKm * ratioPoids; // kg CO₂e final avec quote-part
+      
+      console.log('Calculs intermédiaires:', { consoParKm, ratioPoids, emissionsParKm, emissionsTotalKm, emissions });
       
       // Calcul des émissions par tonne-kilomètre
       // Formule: (consommation en L/km / charge utile en T) * facteur d'émission
@@ -1922,6 +1928,25 @@ function updateKgCo2ePastilles() {
         vehiculeCo2eTkm.textContent = (emissionsTkm * 1000).toFixed(1) + ' g CO₂e/t.km';
         console.log('Co²e/t.km mis à jour:', (emissionsTkm * 1000).toFixed(1) + ' g CO₂e/t.km');
       }
+    } else {
+      console.log('Conditions non remplies - Facteur émission:', facteurEmission, 'Poids pris en compte:', poidsPrisEnCompte);
+    }
+  } else {
+    console.log('Conditions de base non remplies - Distance:', distance, 'Consommation:', conso);
+    
+    // Mettre à jour les pastilles avec des valeurs par défaut
+    const vehiculeKgCo2e = document.getElementById('vehicule-kg-co2e');
+    const vehiculeTrajetVide = document.getElementById('vehicule-trajet-vide');
+    const vehiculeCo2eTkm = document.getElementById('vehicule-co2e-tkm');
+    
+    if (vehiculeKgCo2e) {
+      vehiculeKgCo2e.textContent = '0.00 kg CO₂e';
+    }
+    if (vehiculeTrajetVide) {
+      vehiculeTrajetVide.textContent = '0.00 kg CO₂e';
+    }
+    if (vehiculeCo2eTkm) {
+      vehiculeCo2eTkm.textContent = '0.0 g CO₂e/t.km';
     }
   }
 }
