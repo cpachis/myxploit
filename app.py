@@ -164,6 +164,27 @@ def load_user(user_id):
             return True  # Accepter n'importe quel mot de passe
     
     return DevUser()
+
+@login_manager.request_loader
+def load_user_from_request(request):
+    """Charge automatiquement un utilisateur fictif pour toutes les requêtes"""
+    class DevUser:
+        def __init__(self):
+            self.id = 1
+            self.email = "dev@myxploit.com"
+            self.nom = "Utilisateur Développement"
+            self.telephone = "0123456789"
+            self.adresse = "123 Rue de Dev"
+            self.type_utilisateur = "admin"
+            self.statut = "actif"
+            self.is_authenticated = True
+            self.is_active = True
+            self.is_anonymous = False
+        
+        def get_id(self):
+            return str(self.id)
+    
+    return DevUser()
     
     # Mode production - charger depuis la base de données (DÉSACTIVÉ TEMPORAIREMENT)
     # try:
@@ -200,7 +221,22 @@ def dev_login():
     dev_user = DevUser()
     login_user(dev_user)
     flash('Connexion automatique activée', 'success')
-    return redirect(url_for('main.homepage'))
+    return redirect(url_for('customer.dashboard'))
+
+@app.route('/test-customer')
+def test_customer():
+    """Route de test pour vérifier l'accès customer"""
+    return f"""
+    <html>
+    <head><title>Test Customer</title></head>
+    <body>
+        <h1>Test Customer Access</h1>
+        <p>Si vous voyez cette page, l'application fonctionne.</p>
+        <p><a href="/dev-login">Se connecter automatiquement</a></p>
+        <p><a href="/customer">Aller à My Customer Xploit</a></p>
+    </body>
+    </html>
+    """
 
 # ============================================================================
 # ROUTES MIGRÉES VERS LES BLUEPRINTS
