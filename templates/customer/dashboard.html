@@ -3,116 +3,265 @@
 {% block title %}My Customer Xploit - Tableau de bord{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1>🚛 My Customer Xploit</h1>
-                <a href="{{ url_for('customer.nouveau_bon') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Nouveau bon de transport
-                </a>
-            </div>
-        </div>
-    </div>
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .action-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        height: 100%;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card {
+        background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+        border: none;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .main-content {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 0;
+    }
+    
+    .welcome-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+</style>
 
-    <!-- Pastilles de navigation -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-plus-circle fa-3x mb-3"></i>
-                    <h4>CRÉATION</h4>
-                    <p class="mb-3">Créer un nouveau transport</p>
-                    <a href="{{ url_for('customer.nouveau_bon') }}" class="btn btn-light btn-sm">
-                        <i class="fas fa-plus"></i> Nouveau transport
+<div class="main-content">
+    <!-- En-tête avec gradient -->
+    <div class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">
+                        <i class="fas fa-truck me-3"></i>
+                        My Customer Xploit
+                    </h1>
+                    <p class="mb-0 fs-5">Gérez vos transports en toute simplicité</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('customer.nouveau_bon') }}" class="btn btn-light btn-lg px-4">
+                        <i class="fas fa-plus me-2"></i>
+                        Nouveau Transport
                     </a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-edit fa-3x mb-3"></i>
-                    <h4>MODIFICATION</h4>
-                    <p class="mb-3">Modifier un transport existant</p>
-                    <a href="{{ url_for('customer.dashboard') }}#liste" class="btn btn-light btn-sm">
-                        <i class="fas fa-edit"></i> Modifier
-                    </a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-list fa-3x mb-3"></i>
-                    <h4>LISTE</h4>
-                    <p class="mb-3">Voir tous les transports</p>
-                    <a href="{{ url_for('customer.dashboard') }}#liste" class="btn btn-light btn-sm">
-                        <i class="fas fa-list"></i> Voir la liste
-                    </a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-chart-bar fa-3x mb-3"></i>
-                    <h4>DASHBOARD</h4>
-                    <p class="mb-3">Statistiques et vue d'ensemble</p>
-                    <a href="{{ url_for('customer.dashboard') }}#stats" class="btn btn-light btn-sm">
-                        <i class="fas fa-chart-bar"></i> Statistiques
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistiques détaillées -->
-    <div id="stats" class="row mb-4">
-        <div class="col-12">
-            <h5><i class="fas fa-chart-pie"></i> Statistiques détaillées</h5>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-light">
-                <div class="card-body text-center">
-                    <h4 class="text-primary">{{ total_orders }}</h4>
-                    <p class="mb-0 text-muted">Total des bons</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-light">
-                <div class="card-body text-center">
-                    <h4 class="text-warning">{{ orders_en_attente }}</h4>
-                    <p class="mb-0 text-muted">En attente</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-light">
-                <div class="card-body text-center">
-                    <h4 class="text-info">{{ orders_assignes }}</h4>
-                    <p class="mb-0 text-muted">Assignés</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-light">
-                <div class="card-body text-center">
-                    <h4 class="text-success">{{ orders_livres }}</h4>
-                    <p class="mb-0 text-muted">Livrés</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Liste des bons de transport -->
-    <div id="liste" class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-list"></i> Mes bons de transport</h5>
+    <div class="container-fluid">
+        <!-- Section d'accueil -->
+        <div class="welcome-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="text-primary mb-3">
+                        <i class="fas fa-home me-2"></i>
+                        Bienvenue dans votre espace client
+                    </h3>
+                    <p class="text-muted mb-0">
+                        Créez, suivez et gérez vos transports de marchandises en quelques clics.
+                        Utilisez les outils ci-dessous pour naviguer dans votre interface.
+                    </p>
                 </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-flex justify-content-end">
+                        <div class="text-center me-4">
+                            <h2 class="text-primary mb-0">{{ total_orders }}</h2>
+                            <small class="text-muted">Transports</small>
+                        </div>
+                        <div class="text-center">
+                            <h2 class="text-success mb-0">{{ orders_livres }}</h2>
+                            <small class="text-muted">Livrés</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions principales -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-4">
+                    <i class="fas fa-tools me-2"></i>
+                    Actions principales
+                </h4>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="action-card bg-primary text-white">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-plus-circle fa-4x"></i>
+                        </div>
+                        <h4 class="mb-3">CRÉATION</h4>
+                        <p class="mb-4">Créez un nouveau bon de transport avec tous les détails nécessaires</p>
+                        <a href="{{ url_for('customer.nouveau_bon') }}" class="btn btn-light btn-lg w-100">
+                            <i class="fas fa-plus me-2"></i>
+                            Créer un transport
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="action-card bg-warning text-white">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-edit fa-4x"></i>
+                        </div>
+                        <h4 class="mb-3">MODIFICATION</h4>
+                        <p class="mb-4">Modifiez les informations d'un transport existant</p>
+                        <a href="#liste" class="btn btn-light btn-lg w-100" onclick="scrollToSection('liste')">
+                            <i class="fas fa-edit me-2"></i>
+                            Modifier
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="action-card bg-info text-white">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-list fa-4x"></i>
+                        </div>
+                        <h4 class="mb-3">LISTE</h4>
+                        <p class="mb-4">Consultez tous vos transports et leur statut</p>
+                        <a href="#liste" class="btn btn-light btn-lg w-100" onclick="scrollToSection('liste')">
+                            <i class="fas fa-list me-2"></i>
+                            Voir la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="action-card bg-success text-white">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-chart-line fa-4x"></i>
+                        </div>
+                        <h4 class="mb-3">DASHBOARD</h4>
+                        <p class="mb-4">Analysez vos statistiques et performances</p>
+                        <a href="#stats" class="btn btn-light btn-lg w-100" onclick="scrollToSection('stats')">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Statistiques
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques détaillées -->
+        <div id="stats" class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Statistiques détaillées
+                    </h4>
+                    <small class="text-muted">Mise à jour en temps réel</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card">
+                    <div class="card-body text-center p-4">
+                        <div class="d-flex align-items-center justify-content-center mb-3">
+                            <div class="bg-primary text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-file-alt fa-2x"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-primary mb-0">{{ total_orders }}</h2>
+                                <small class="text-muted">Total des bons</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card">
+                    <div class="card-body text-center p-4">
+                        <div class="d-flex align-items-center justify-content-center mb-3">
+                            <div class="bg-warning text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-warning mb-0">{{ orders_en_attente }}</h2>
+                                <small class="text-muted">En attente</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card">
+                    <div class="card-body text-center p-4">
+                        <div class="d-flex align-items-center justify-content-center mb-3">
+                            <div class="bg-info text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-truck fa-2x"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-info mb-0">{{ orders_assignes }}</h2>
+                                <small class="text-muted">Assignés</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-card">
+                    <div class="card-body text-center p-4">
+                        <div class="d-flex align-items-center justify-content-center mb-3">
+                            <div class="bg-success text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-success mb-0">{{ orders_livres }}</h2>
+                                <small class="text-muted">Livrés</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des bons de transport -->
+        <div id="liste" class="row">
+            <div class="col-12">
+                <div class="card" style="border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <div class="card-header bg-white" style="border-radius: 15px 15px 0 0; border-bottom: 1px solid #e9ecef;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-primary">
+                                <i class="fas fa-list me-2"></i> 
+                                Mes bons de transport
+                            </h5>
+                            <span class="badge bg-primary fs-6">{{ total_orders }} transport{{ 's' if total_orders > 1 else '' }}</span>
+                        </div>
+                    </div>
                 <div class="card-body">
                     {% if orders %}
                         <div class="table-responsive">
@@ -181,7 +330,66 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
 </div>
+
+<script>
+// Fonction pour un défilement fluide vers les sections
+function scrollToSection(sectionId) {
+    const element = document.getElementById(sectionId);
+    if (element) {
+        element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+}
+
+// Animation des cartes au survol
+document.addEventListener('DOMContentLoaded', function() {
+    // Ajouter des effets d'animation aux cartes
+    const actionCards = document.querySelectorAll('.action-card');
+    actionCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Animation des statistiques
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px) scale(1.01)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Effet de pulsation pour les boutons d'action
+    const actionButtons = document.querySelectorAll('.action-card .btn');
+    actionButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+});
+
+// Fonction pour actualiser les statistiques (pour usage futur)
+function refreshStats() {
+    // Cette fonction peut être utilisée pour actualiser les statistiques via AJAX
+    console.log('Actualisation des statistiques...');
+}
+</script>
 {% endblock %}
 
