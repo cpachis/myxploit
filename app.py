@@ -275,6 +275,24 @@ def debug_auth():
     </html>
     """
 
+@app.route('/customer-simple')
+def customer_simple():
+    """Route de test simplifiée pour My Customer Xploit"""
+    from flask_login import current_user
+    return f"""
+    <html>
+    <head><title>My Customer Xploit - Test</title></head>
+    <body>
+        <h1> My Customer Xploit - Test</h1>
+        <p>Interface simplifiée pour test</p>
+        <p>Utilisateur connecté : {current_user.email}</p>
+        <p>Si vous voyez cette page, le problème vient du template ou de la logique complexe.</p>
+        <p><a href="/customer">Essayer la vraie route customer</a></p>
+        <p><a href="/test-customer">Retour au test</a></p>
+    </body>
+    </html>
+    """
+
 # ============================================================================
 # ROUTES MIGRÉES VERS LES BLUEPRINTS
 # ============================================================================
