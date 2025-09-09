@@ -168,6 +168,11 @@ def load_user(user_id):
 @login_manager.request_loader
 def load_user_from_request(request):
     """Charge automatiquement un utilisateur fictif pour toutes les requêtes"""
+    # Vérifier si l'utilisateur est déjà connecté
+    from flask_login import current_user
+    if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
+        return current_user
+    
     class DevUser:
         def __init__(self):
             self.id = 1
@@ -226,14 +231,46 @@ def dev_login():
 @app.route('/test-customer')
 def test_customer():
     """Route de test pour vérifier l'accès customer"""
+    from flask_login import current_user
     return f"""
     <html>
     <head><title>Test Customer</title></head>
     <body>
         <h1>Test Customer Access</h1>
         <p>Si vous voyez cette page, l'application fonctionne.</p>
+        <p><strong>État de l'authentification :</strong></p>
+        <ul>
+            <li>Connecté : {current_user.is_authenticated if hasattr(current_user, 'is_authenticated') else 'N/A'}</li>
+            <li>Utilisateur : {current_user.email if hasattr(current_user, 'email') else 'N/A'}</li>
+            <li>ID : {current_user.get_id() if hasattr(current_user, 'get_id') else 'N/A'}</li>
+        </ul>
         <p><a href="/dev-login">Se connecter automatiquement</a></p>
         <p><a href="/customer">Aller à My Customer Xploit</a></p>
+        <p><a href="/debug-auth">Debug Auth</a></p>
+    </body>
+    </html>
+    """
+
+@app.route('/debug-auth')
+def debug_auth():
+    """Route de débogage pour l'authentification"""
+    from flask_login import current_user
+    return f"""
+    <html>
+    <head><title>Debug Auth</title></head>
+    <body>
+        <h1>Debug Authentification</h1>
+        <h2>État de current_user :</h2>
+        <ul>
+            <li>Type : {type(current_user)}</li>
+            <li>is_authenticated : {getattr(current_user, 'is_authenticated', 'N/A')}</li>
+            <li>is_active : {getattr(current_user, 'is_active', 'N/A')}</li>
+            <li>is_anonymous : {getattr(current_user, 'is_anonymous', 'N/A')}</li>
+            <li>email : {getattr(current_user, 'email', 'N/A')}</li>
+            <li>id : {getattr(current_user, 'id', 'N/A')}</li>
+            <li>get_id() : {current_user.get_id() if hasattr(current_user, 'get_id') else 'N/A'}</li>
+        </ul>
+        <p><a href="/test-customer">Retour au test</a></p>
     </body>
     </html>
     """
