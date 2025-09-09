@@ -38,6 +38,14 @@ def dashboard():
     try:
         models = get_models()
         TransportOrder = models['TransportOrder']
+        db = models['db']
+        
+        # S'assurer que la table existe
+        try:
+            TransportOrder.query.first()
+        except Exception:
+            # Créer la table si elle n'existe pas
+            db.create_all()
         
         # Récupérer les bons de transport du client
         orders = TransportOrder.query.filter_by(client_id=current_user.id).order_by(TransportOrder.created_at.desc()).all()
@@ -74,6 +82,13 @@ def creer_bon():
         models = get_models()
         TransportOrder = models['TransportOrder']
         db = models['db']
+        
+        # S'assurer que la table existe
+        try:
+            TransportOrder.query.first()
+        except Exception:
+            # Créer la table si elle n'existe pas
+            db.create_all()
         
         # Générer un numéro de bon unique
         numero_bon = f"TX{datetime.now().strftime('%Y%m%d')}{str(uuid.uuid4())[:8].upper()}"

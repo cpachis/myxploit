@@ -28,6 +28,14 @@ def dashboard():
         models = get_models()
         TransportOrder = models['TransportOrder']
         Transport = models['Transport']
+        db = models['db']
+        
+        # S'assurer que les tables existent
+        try:
+            TransportOrder.query.first()
+        except Exception:
+            # Créer les tables si elles n'existent pas
+            db.create_all()
         
         # Récupérer tous les bons de transport
         orders = TransportOrder.query.order_by(TransportOrder.created_at.desc()).all()
