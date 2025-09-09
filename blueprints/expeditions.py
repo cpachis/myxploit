@@ -1,7 +1,9 @@
+"""
+Blueprint pour les routes liées aux expéditions
+"""
+
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from models import create_models
-from extensions import db
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,18 +11,23 @@ logger = logging.getLogger(__name__)
 # Créer le blueprint
 expeditions_bp = Blueprint('expeditions', __name__)
 
-# Récupérer les modèles
-models = create_models(db)
-Transport = models['Transport']
-Client = models['Client']
-Vehicule = models['Vehicule']
-Energie = models['Energie']
+# Import des modèles (sera fait dynamiquement depuis app.py)
+def get_models():
+    """Récupère les modèles depuis l'application Flask"""
+    from models import create_models
+    from flask import current_app
+    return create_models(current_app.extensions['sqlalchemy'].db)
 
 @expeditions_bp.route('/expeditions')
 @login_required
 def mes_expeditions():
     """Page principale des expéditions"""
     try:
+        # Récupérer les modèles
+        models = get_models()
+        Transport = models['Transport']
+        Client = models['Client']
+        
         # Récupérer les transports de l'utilisateur connecté
         transports = Transport.query.filter_by(user_id=current_user.id).all()
         
@@ -69,6 +76,11 @@ def mes_expeditions():
 def api_expeditions():
     """API pour récupérer les expéditions en JSON"""
     try:
+        # Récupérer les modèles
+        models = get_models()
+        Transport = models['Transport']
+        Client = models['Client']
+        
         # Récupérer les transports de l'utilisateur connecté
         transports = Transport.query.filter_by(user_id=current_user.id).all()
         
