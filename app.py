@@ -137,7 +137,7 @@ with app.app_context():
         logger.error(f"❌ Erreur lors de l'initialisation de la base de données: {str(e)}")
 
 # Configuration du login manager
-login_manager.login_view = 'login'
+login_manager.login_view = 'auth.login'
 login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
 
 @login_manager.user_loader
