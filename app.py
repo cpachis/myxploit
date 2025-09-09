@@ -348,6 +348,8 @@ def customer_debug():
         <ul>
             {''.join([f'<li>{info}</li>' for info in debug_info])}
         </ul>
+        <h2>Test de la route customer corrigée :</h2>
+        <p><a href="/customer">Essayer /customer maintenant</a></p>
         <p><a href="/customer-simple">Retour au test simple</a></p>
     </body>
     </html>

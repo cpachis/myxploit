@@ -28,9 +28,9 @@ customer_bp = Blueprint('customer', __name__)
 def get_models():
     """Récupère les modèles depuis l'application Flask"""
     from models import create_models
-    from flask import current_app
-    models = create_models(current_app.extensions['sqlalchemy'].db)
-    models['db'] = current_app.extensions['sqlalchemy'].db
+    from app import db  # Import direct depuis app.py
+    models = create_models(db)
+    models['db'] = db
     return models
 
 @customer_bp.route('/customer')
@@ -84,7 +84,11 @@ def creer_bon():
         
         # Générer un numéro de bon unique
         numero_bon = f"TX{datetime.now().strftime('%Y%m%d')}{str(uuid.uuid4())[:8].upper()}"
-        code_barre = str(uuid.uuid4())
+        
+        # Utiliser le code-barre fourni par le formulaire ou en générer un
+        code_barre = request.form.get('code_barre')
+        if not code_barre:
+            code_barre = f"TX{datetime.now().strftime('%Y%m%d%H%M%S')}{str(uuid.uuid4())[:6].upper()}"
         
         # Créer le bon de transport
         order = TransportOrder(
