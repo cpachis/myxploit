@@ -1586,6 +1586,9 @@ function editTransport(id) {
   // Afficher le facteur d'émission si une énergie est sélectionnée
   updateEnergieFacteur();
   
+  // Calculer les émissions pour afficher les pastilles
+  calculateEmissions();
+  
   document.getElementById('transport-modal').style.display = 'block';
 }
 
@@ -2443,38 +2446,6 @@ function showVehiculeMutualiseOptions() {
   alert('🚧 Fonctionnalité "Options véhicule mutualisé" en cours de développement !\n\nCette fonctionnalité permettra de :\n• Configurer les paramètres de mutualisation\n• Définir les règles de partage de véhicule\n• Gérer les coûts et émissions partagés\n• Optimiser les trajets mutualisés');
 }
 
-// Fonction pour réinitialiser le formulaire
-function resetTransportForm() {
-  document.getElementById('transport-form').reset();
-  document.getElementById('transport-modal-title').textContent = 'Nouveau Transport';
-  currentEditingId = null;
-  
-  // Définir la date d'aujourd'hui par défaut
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('transport-date').value = today;
-  
-  // Réinitialiser les champs spécifiques
-  document.getElementById('transport-niveau-calcul').value = 'niveau1';
-  document.getElementById('transport-vehicule-type').value = 'dedie';
-  document.getElementById('transport-poids-pris-en-compte').value = '';
-  document.getElementById('transport-poids-pris-en-compte').placeholder = '0.000';
-  
-  // Masquer les paramètres du véhicule
-  const vehiculeParams = document.getElementById('vehicule-params');
-  if (vehiculeParams) {
-    vehiculeParams.style.display = 'none';
-  }
-  
-  // Masquer le bouton options véhicule mutualisé
-  const mutualiseActions = document.getElementById('vehicule-mutualise-actions');
-  if (mutualiseActions) {
-    mutualiseActions.style.display = 'none';
-  }
-  
-  // Mettre à jour l'état des champs
-  updateConsumptionFieldState();
-  toggleVehiculeMutualise();
-}
 
 // Fonction pour ajouter une phase
 function addPhase() {
