@@ -18,7 +18,9 @@ def get_models():
     """Récupère les modèles depuis l'application Flask"""
     from models import create_models
     from flask import current_app
-    return create_models(current_app.extensions['sqlalchemy'].db)
+    models = create_models(current_app.extensions['sqlalchemy'].db)
+    models['db'] = current_app.extensions['sqlalchemy'].db
+    return models
 
 @transport_management_bp.route('/transport-management')
 @login_required
@@ -30,12 +32,7 @@ def dashboard():
         Transport = models['Transport']
         db = models['db']
         
-        # S'assurer que les tables existent
-        try:
-            TransportOrder.query.first()
-        except Exception:
-            # Créer les tables si elles n'existent pas
-            db.create_all()
+        # Les tables sont créées automatiquement par app.py
         
         # Récupérer tous les bons de transport
         orders = TransportOrder.query.order_by(TransportOrder.created_at.desc()).all()

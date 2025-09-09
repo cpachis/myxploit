@@ -29,7 +29,9 @@ def get_models():
     """Récupère les modèles depuis l'application Flask"""
     from models import create_models
     from flask import current_app
-    return create_models(current_app.extensions['sqlalchemy'].db)
+    models = create_models(current_app.extensions['sqlalchemy'].db)
+    models['db'] = current_app.extensions['sqlalchemy'].db
+    return models
 
 @customer_bp.route('/customer')
 @login_required
@@ -40,12 +42,7 @@ def dashboard():
         TransportOrder = models['TransportOrder']
         db = models['db']
         
-        # S'assurer que la table existe
-        try:
-            TransportOrder.query.first()
-        except Exception:
-            # Créer la table si elle n'existe pas
-            db.create_all()
+        # Les tables sont créées automatiquement par app.py
         
         # Récupérer les bons de transport du client
         orders = TransportOrder.query.filter_by(client_id=current_user.id).order_by(TransportOrder.created_at.desc()).all()
@@ -83,12 +80,7 @@ def creer_bon():
         TransportOrder = models['TransportOrder']
         db = models['db']
         
-        # S'assurer que la table existe
-        try:
-            TransportOrder.query.first()
-        except Exception:
-            # Créer la table si elle n'existe pas
-            db.create_all()
+        # Les tables sont créées automatiquement par app.py
         
         # Générer un numéro de bon unique
         numero_bon = f"TX{datetime.now().strftime('%Y%m%d')}{str(uuid.uuid4())[:8].upper()}"
