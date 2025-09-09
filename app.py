@@ -78,7 +78,7 @@ Transporteur = models['Transporteur']
 from blueprints import (
     auth_bp, main_bp, admin_bp, transports_bp, 
     clients_bp, api_bp, api_vehicules_bp, api_energies_bp, api_transports_bp, api_clients_bp, api_invitations_bp, parametrage_bp, invitations_bp,
-    transporteurs_bp, invitations_extended_bp, debug_bp, utils_bp, import_csv_bp
+    transporteurs_bp, invitations_extended_bp, debug_bp, utils_bp, import_csv_bp, expeditions_bp
 )
 
 app.register_blueprint(auth_bp)
@@ -99,6 +99,7 @@ app.register_blueprint(invitations_extended_bp)
 app.register_blueprint(debug_bp, url_prefix='/debug')
 app.register_blueprint(utils_bp)
 app.register_blueprint(import_csv_bp)
+app.register_blueprint(expeditions_bp)
 
 # Initialisation de la base de données avec migration automatique
 with app.app_context():

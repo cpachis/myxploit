@@ -20,9 +20,10 @@ from .invitations_extended import invitations_extended_bp
 from .debug import debug_bp
 from .utils import utils_bp
 from .import_csv import import_csv_bp
+from .expeditions import expeditions_bp
 
 __all__ = [
     'auth_bp', 'main_bp', 'admin_bp', 'transports_bp', 
     'clients_bp', 'api_bp', 'api_vehicules_bp', 'api_energies_bp', 'api_transports_bp', 'api_clients_bp', 'api_invitations_bp', 'parametrage_bp', 'invitations_bp',
-    'transporteurs_bp', 'invitations_extended_bp', 'debug_bp', 'utils_bp', 'import_csv_bp'
+    'transporteurs_bp', 'invitations_extended_bp', 'debug_bp', 'utils_bp', 'import_csv_bp', 'expeditions_bp'
 ] 
