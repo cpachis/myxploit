@@ -294,8 +294,8 @@
             <div class="form-group">
               <label for="transport-vehicule-type">Type de trajet</label>
               <select id="transport-vehicule-type" name="vehicule_type" onchange="toggleVehiculeMutualise(); calculateEmissions();">
-                <option value="dedie" disabled style="display: none;">Véhicule dédié (temporairement désactivé)</option>
-                <option value="mutualise" selected>Véhicule mutualisé</option>
+                <option value="dedie" selected>Véhicule dédié</option>
+                <option value="mutualise" style="display: none;">Véhicule mutualisé (temporairement désactivé)</option>
               </select>
             </div>
             <div class="form-group">
@@ -2678,7 +2678,7 @@ function resetTransportForm() {
   
   // Réinitialiser les champs spécifiques
   document.getElementById('transport-niveau-calcul').value = 'niveau1';
-  document.getElementById('transport-vehicule-type').value = 'mutualise'; // Forcer véhicule mutualisé
+  document.getElementById('transport-vehicule-type').value = 'dedie'; // Forcer véhicule dédié
   document.getElementById('transport-poids-pris-en-compte').value = '';
   document.getElementById('transport-poids-pris-en-compte').placeholder = '0.000';
   
@@ -2688,10 +2688,10 @@ function resetTransportForm() {
     vehiculeParams.style.display = 'none';
   }
   
-  // Afficher le bouton options véhicule mutualisé
+  // Masquer le bouton options véhicule mutualisé
   const mutualiseActions = document.getElementById('vehicule-mutualise-actions');
   if (mutualiseActions) {
-    mutualiseActions.style.display = 'block';
+    mutualiseActions.style.display = 'none';
   }
   
   // Mettre à jour l'état des champs
