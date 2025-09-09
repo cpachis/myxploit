@@ -298,39 +298,60 @@ def customer_simple():
 def customer_debug():
     """Route de débogage pour diagnostiquer l'erreur customer"""
     from flask_login import current_user
+    from flask import current_app
+    
+    debug_info = []
+    
+    # Test 1: Vérifier les extensions disponibles
     try:
-        # Tester la fonction get_models
-        from models import create_models
-        from flask import current_app
-        models = create_models(current_app.extensions['sqlalchemy'].db)
-        
-        return f"""
-        <html>
-        <head><title>Debug Customer Route</title></head>
-        <body>
-            <h1>Debug Customer Route</h1>
-            <h2>Test des modèles :</h2>
-            <ul>
-                <li>Modèles chargés : {list(models.keys())}</li>
-                <li>TransportOrder disponible : {'TransportOrder' in models}</li>
-                <li>DB disponible : {'db' in models}</li>
-            </ul>
-            <h2>Test de la requête :</h2>
-        """
-        
+        extensions = list(current_app.extensions.keys())
+        debug_info.append(f"Extensions disponibles : {extensions}")
     except Exception as e:
-        return f"""
-        <html>
-        <head><title>Debug Customer Route - Erreur</title></head>
-        <body>
-            <h1>Debug Customer Route - Erreur</h1>
-            <h2>Erreur détectée :</h2>
-            <p><strong>Type :</strong> {type(e).__name__}</p>
-            <p><strong>Message :</strong> {str(e)}</p>
-            <p><a href="/customer-simple">Retour au test simple</a></p>
-        </body>
-        </html>
-        """
+        debug_info.append(f"Erreur extensions : {e}")
+    
+    # Test 2: Vérifier l'accès à SQLAlchemy
+    try:
+        if 'sqlalchemy' in current_app.extensions:
+            debug_info.append("SQLAlchemy extension trouvée")
+            # Tester l'accès à db
+            if hasattr(current_app.extensions['sqlalchemy'], 'db'):
+                debug_info.append("db trouvé dans sqlalchemy extension")
+            else:
+                debug_info.append("db NON trouvé dans sqlalchemy extension")
+        else:
+            debug_info.append("SQLAlchemy extension NON trouvée")
+    except Exception as e:
+        debug_info.append(f"Erreur SQLAlchemy : {e}")
+    
+    # Test 3: Essayer d'accéder à db directement
+    try:
+        from app import db
+        debug_info.append("db importé directement depuis app.py")
+    except Exception as e:
+        debug_info.append(f"Erreur import db : {e}")
+    
+    # Test 4: Tester get_models avec db direct
+    try:
+        from models import create_models
+        from app import db
+        models = create_models(db)
+        debug_info.append(f"Modèles chargés avec db direct : {list(models.keys())}")
+    except Exception as e:
+        debug_info.append(f"Erreur get_models avec db direct : {e}")
+    
+    return f"""
+    <html>
+    <head><title>Debug Customer Route</title></head>
+    <body>
+        <h1>Debug Customer Route</h1>
+        <h2>Tests de diagnostic :</h2>
+        <ul>
+            {''.join([f'<li>{info}</li>' for info in debug_info])}
+        </ul>
+        <p><a href="/customer-simple">Retour au test simple</a></p>
+    </body>
+    </html>
+    """
 
 # ============================================================================
 # ROUTES MIGRÉES VERS LES BLUEPRINTS
