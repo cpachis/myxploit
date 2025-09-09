@@ -288,10 +288,49 @@ def customer_simple():
         <p>Utilisateur connecté : {current_user.email}</p>
         <p>Si vous voyez cette page, le problème vient du template ou de la logique complexe.</p>
         <p><a href="/customer">Essayer la vraie route customer</a></p>
+        <p><a href="/customer-debug">Debug customer route</a></p>
         <p><a href="/test-customer">Retour au test</a></p>
     </body>
     </html>
     """
+
+@app.route('/customer-debug')
+def customer_debug():
+    """Route de débogage pour diagnostiquer l'erreur customer"""
+    from flask_login import current_user
+    try:
+        # Tester la fonction get_models
+        from models import create_models
+        from flask import current_app
+        models = create_models(current_app.extensions['sqlalchemy'].db)
+        
+        return f"""
+        <html>
+        <head><title>Debug Customer Route</title></head>
+        <body>
+            <h1>Debug Customer Route</h1>
+            <h2>Test des modèles :</h2>
+            <ul>
+                <li>Modèles chargés : {list(models.keys())}</li>
+                <li>TransportOrder disponible : {'TransportOrder' in models}</li>
+                <li>DB disponible : {'db' in models}</li>
+            </ul>
+            <h2>Test de la requête :</h2>
+        """
+        
+    except Exception as e:
+        return f"""
+        <html>
+        <head><title>Debug Customer Route - Erreur</title></head>
+        <body>
+            <h1>Debug Customer Route - Erreur</h1>
+            <h2>Erreur détectée :</h2>
+            <p><strong>Type :</strong> {type(e).__name__}</p>
+            <p><strong>Message :</strong> {str(e)}</p>
+            <p><a href="/customer-simple">Retour au test simple</a></p>
+        </body>
+        </html>
+        """
 
 # ============================================================================
 # ROUTES MIGRÉES VERS LES BLUEPRINTS
