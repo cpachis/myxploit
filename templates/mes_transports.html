@@ -301,6 +301,7 @@
             <div class="form-group">
               <label for="transport-poids-pris-en-compte">Charge utile (t)</label>
               <input type="number" id="transport-poids-pris-en-compte" name="poids_pris_en_compte" step="0.001" min="0" readonly placeholder="0.000" onchange="calculateEmissions()" oninput="calculateEmissions()">
+              <small class="form-help" id="charge-utile-help">Charge utile du véhicule</small>
             </div>
             <div class="form-group" id="vehicule-mutualise-actions" style="display: none;">
               <label>&nbsp;</label>
@@ -2234,6 +2235,7 @@ function updateConsumptionFieldState() {
   const consoField = document.getElementById('transport-conso-vehicule');
   const consoHelp = document.getElementById('conso-help');
   const chargeUtileField = document.getElementById('transport-poids-pris-en-compte');
+  const chargeUtileHelp = document.getElementById('charge-utile-help');
   
   if (niveauCalcul === 'niveau1') {
     // Niveau 1 : consommation automatique depuis le véhicule
@@ -2254,6 +2256,12 @@ function updateConsumptionFieldState() {
       chargeUtileField.style.color = '#6c757d';
     }
     
+    if (chargeUtileHelp) {
+      chargeUtileHelp.innerHTML = 'Charge utile automatique depuis le type de véhicule sélectionné';
+      chargeUtileHelp.style.color = '#6c757d';
+      chargeUtileHelp.style.fontStyle = 'italic';
+    }
+    
   } else {
     // Niveaux 2, 3, 4 : consommation manuelle
     consoField.readOnly = false;
@@ -2271,6 +2279,20 @@ function updateConsumptionFieldState() {
       chargeUtileField.style.backgroundColor = '';
       chargeUtileField.style.cursor = '';
       chargeUtileField.style.color = '';
+    }
+    
+    if (chargeUtileHelp) {
+      if (niveauCalcul === 'niveau2') {
+        chargeUtileHelp.innerHTML = 'Charge utile spécifique du véhicule utilisé (saisie manuelle)';
+      } else if (niveauCalcul === 'niveau3') {
+        chargeUtileHelp.innerHTML = 'Charge utile réelle du véhicule utilisé (saisie manuelle)';
+      } else if (niveauCalcul === 'niveau4') {
+        chargeUtileHelp.innerHTML = 'Charge utile mesurée du véhicule utilisé (saisie manuelle)';
+      } else {
+        chargeUtileHelp.innerHTML = 'Charge utile du véhicule (saisie manuelle)';
+      }
+      chargeUtileHelp.style.color = '#6b7280';
+      chargeUtileHelp.style.fontStyle = 'normal';
     }
   }
 }
