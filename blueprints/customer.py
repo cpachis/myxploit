@@ -17,7 +17,14 @@ logger = logging.getLogger(__name__)
 def dashboard():
     """Dashboard client"""
     try:
-        return render_template('customer/dashboard.html')
+        # Variables par défaut pour le template
+        context = {
+            'total_orders': 0,
+            'total_distance': 0.0,
+            'total_emissions': 0.0,
+            'recent_orders': []
+        }
+        return render_template('customer/dashboard.html', **context)
     except Exception as e:
         logger.error(f"Erreur lors du chargement du dashboard client: {str(e)}")
         return render_template('error.html', error=str(e)), 500

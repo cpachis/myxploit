@@ -16,12 +16,14 @@ def api_transports():
     """API pour récupérer les transports"""
     try:
         from flask import current_app
+        from flask_sqlalchemy import SQLAlchemy
         
         # Récupérer la base de données
-        db = current_app.extensions['sqlalchemy'].db
+        db = current_app.extensions['sqlalchemy']
         
         # Utiliser une requête SQL directe pour éviter les problèmes d'import
-        result = db.session.execute(db.text("""
+        from sqlalchemy import text
+        result = db.session.execute(text("""
             SELECT id, ref, date, lieu_collecte, lieu_livraison, 
                    poids_tonnes, distance_km, emis_kg, emis_tkm, 
                    niveau_calcul, type_vehicule, energie, conso_vehicule, 
@@ -72,16 +74,17 @@ def create_transport():
         from datetime import datetime
         
         # Récupérer la base de données
-        db = current_app.extensions['sqlalchemy'].db
+        db = current_app.extensions['sqlalchemy']
         
         # Récupérer les données de la requête
         data = request.get_json()
         
         # Utiliser une requête SQL directe pour insérer
+        from sqlalchemy import text
         ref = data.get('ref', f'T{datetime.now().strftime("%Y%m%d%H%M%S")}')
         date = datetime.strptime(data.get('date'), '%Y-%m-%d').date() if data.get('date') else datetime.now().date()
         
-        db.session.execute(db.text("""
+        db.session.execute(text("""
             INSERT INTO transports (ref, date, lieu_collecte, lieu_livraison, poids_tonnes, 
                                   distance_km, emis_kg, emis_tkm, niveau_calcul, type_vehicule, 
                                   energie, conso_vehicule, vehicule_dedie, client, type_transport)
@@ -109,7 +112,7 @@ def create_transport():
         db.session.commit()
         
         # Récupérer l'ID du transport créé
-        result = db.session.execute(db.text("SELECT id FROM transports WHERE ref = :ref"), {'ref': ref})
+        result = db.session.execute(text("SELECT id FROM transports WHERE ref = :ref"), {'ref': ref})
         transport_id = result.fetchone()[0]
         
         return jsonify({

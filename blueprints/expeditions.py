@@ -25,7 +25,14 @@ def expeditions():
 def mes_expeditions():
     """Mes expéditions"""
     try:
-        return render_template('expeditions.html')
+        # Variables par défaut pour le template
+        context = {
+            'total_distance': 0.0,
+            'total_emissions': 0.0,
+            'total_transports': 0,
+            'expeditions': []
+        }
+        return render_template('expeditions.html', **context)
     except Exception as e:
         logger.error(f"Erreur lors de l'affichage de mes expéditions: {str(e)}")
         return render_template('error.html', error=str(e)), 500
