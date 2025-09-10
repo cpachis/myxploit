@@ -26,3 +26,51 @@ def api_vehicules():
             'success': False,
             'error': str(e)
         }), 500
+
+@api_vehicules_bp.route('/vehicules/types')
+def api_vehicules_types():
+    """API pour récupérer les types de véhicules"""
+    try:
+        # Types de véhicules par défaut
+        types_vehicules = [
+            {
+                'id': 1,
+                'nom': 'Camion léger',
+                'consommation_base': 15.0,
+                'facteur_emission': 3.1,
+                'charge_utile_max': 3.5
+            },
+            {
+                'id': 2,
+                'nom': 'Camion moyen',
+                'consommation_base': 25.0,
+                'facteur_emission': 3.1,
+                'charge_utile_max': 7.5
+            },
+            {
+                'id': 3,
+                'nom': 'Camion lourd',
+                'consommation_base': 35.0,
+                'facteur_emission': 3.1,
+                'charge_utile_max': 26.0
+            },
+            {
+                'id': 4,
+                'nom': 'Véhicule utilitaire',
+                'consommation_base': 12.0,
+                'facteur_emission': 3.1,
+                'charge_utile_max': 1.5
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'types': types_vehicules,
+            'message': 'Types de véhicules chargés avec succès'
+        })
+    except Exception as e:
+        logger.error(f"Erreur API types véhicules: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
