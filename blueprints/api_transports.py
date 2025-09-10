@@ -16,36 +16,40 @@ def api_transports():
     """API pour récupérer les transports"""
     try:
         from flask import current_app
-        from models import create_models
         
-        # Récupérer la base de données et les modèles
+        # Récupérer la base de données
         db = current_app.extensions['sqlalchemy'].db
-        models = create_models(db)
-        Transport = models['Transport']
         
-        # Récupérer tous les transports
-        transports = Transport.query.order_by(Transport.id.desc()).all()
+        # Utiliser une requête SQL directe pour éviter les problèmes d'import
+        result = db.session.execute(db.text("""
+            SELECT id, ref, date, lieu_collecte, lieu_livraison, 
+                   poids_tonnes, distance_km, emis_kg, emis_tkm, 
+                   niveau_calcul, type_vehicule, energie, conso_vehicule, 
+                   vehicule_dedie, client, type_transport
+            FROM transports 
+            ORDER BY id DESC
+        """))
         
         # Convertir en format JSON
         transports_data = []
-        for transport in transports:
+        for row in result:
             transports_data.append({
-                'id': transport.id,
-                'ref': transport.ref,
-                'date': transport.date.isoformat() if transport.date else None,
-                'lieu_collecte': transport.lieu_collecte,
-                'lieu_livraison': transport.lieu_livraison,
-                'poids_tonnes': transport.poids_tonnes,
-                'distance_km': transport.distance_km,
-                'emis_kg': transport.emis_kg,
-                'emis_tkm': transport.emis_tkm,
-                'niveau_calcul': transport.niveau_calcul,
-                'type_vehicule': transport.type_vehicule,
-                'energie': transport.energie,
-                'conso_vehicule': transport.conso_vehicule,
-                'vehicule_dedie': transport.vehicule_dedie,
-                'client': transport.client,
-                'type_transport': transport.type_transport
+                'id': row[0],
+                'ref': row[1],
+                'date': row[2].isoformat() if row[2] else None,
+                'lieu_collecte': row[3],
+                'lieu_livraison': row[4],
+                'poids_tonnes': float(row[5]) if row[5] else 0.0,
+                'distance_km': float(row[6]) if row[6] else 0.0,
+                'emis_kg': float(row[7]) if row[7] else 0.0,
+                'emis_tkm': float(row[8]) if row[8] else 0.0,
+                'niveau_calcul': row[9],
+                'type_vehicule': row[10],
+                'energie': row[11],
+                'conso_vehicule': float(row[12]) if row[12] else 0.0,
+                'vehicule_dedie': bool(row[13]) if row[13] is not None else False,
+                'client': row[14],
+                'type_transport': row[15]
             })
         
         return jsonify({
@@ -65,59 +69,68 @@ def create_transport():
     """API pour créer un nouveau transport"""
     try:
         from flask import current_app
-        from models import create_models
         from datetime import datetime
         
-        # Récupérer la base de données et les modèles
+        # Récupérer la base de données
         db = current_app.extensions['sqlalchemy'].db
-        models = create_models(db)
-        Transport = models['Transport']
         
         # Récupérer les données de la requête
         data = request.get_json()
         
-        # Créer le nouveau transport
-        transport = Transport(
-            ref=data.get('ref', f'T{datetime.now().strftime("%Y%m%d%H%M%S")}'),
-            date=datetime.strptime(data.get('date'), '%Y-%m-%d').date() if data.get('date') else datetime.now().date(),
-            lieu_collecte=data.get('lieu_collecte', ''),
-            lieu_livraison=data.get('lieu_livraison', ''),
-            poids_tonnes=float(data.get('poids_tonnes', 0)),
-            distance_km=float(data.get('distance_km', 0)),
-            emis_kg=float(data.get('emis_kg', 0)),
-            emis_tkm=float(data.get('emis_tkm', 0)),
-            niveau_calcul=data.get('niveau_calcul', ''),
-            type_vehicule=data.get('type_vehicule', ''),
-            energie=data.get('energie', ''),
-            conso_vehicule=float(data.get('conso_vehicule', 0)) if data.get('conso_vehicule') else None,
-            vehicule_dedie=bool(data.get('vehicule_dedie', False)),
-            client=data.get('client', ''),
-            type_transport=data.get('type_transport', 'direct')
-        )
+        # Utiliser une requête SQL directe pour insérer
+        ref = data.get('ref', f'T{datetime.now().strftime("%Y%m%d%H%M%S")}')
+        date = datetime.strptime(data.get('date'), '%Y-%m-%d').date() if data.get('date') else datetime.now().date()
         
-        # Sauvegarder en base
-        db.session.add(transport)
+        db.session.execute(db.text("""
+            INSERT INTO transports (ref, date, lieu_collecte, lieu_livraison, poids_tonnes, 
+                                  distance_km, emis_kg, emis_tkm, niveau_calcul, type_vehicule, 
+                                  energie, conso_vehicule, vehicule_dedie, client, type_transport)
+            VALUES (:ref, :date, :lieu_collecte, :lieu_livraison, :poids_tonnes, 
+                    :distance_km, :emis_kg, :emis_tkm, :niveau_calcul, :type_vehicule, 
+                    :energie, :conso_vehicule, :vehicule_dedie, :client, :type_transport)
+        """), {
+            'ref': ref,
+            'date': date,
+            'lieu_collecte': data.get('lieu_collecte', ''),
+            'lieu_livraison': data.get('lieu_livraison', ''),
+            'poids_tonnes': float(data.get('poids_tonnes', 0)),
+            'distance_km': float(data.get('distance_km', 0)),
+            'emis_kg': float(data.get('emis_kg', 0)),
+            'emis_tkm': float(data.get('emis_tkm', 0)),
+            'niveau_calcul': data.get('niveau_calcul', ''),
+            'type_vehicule': data.get('type_vehicule', ''),
+            'energie': data.get('energie', ''),
+            'conso_vehicule': float(data.get('conso_vehicule', 0)) if data.get('conso_vehicule') else None,
+            'vehicule_dedie': bool(data.get('vehicule_dedie', False)),
+            'client': data.get('client', ''),
+            'type_transport': data.get('type_transport', 'direct')
+        })
+        
         db.session.commit()
+        
+        # Récupérer l'ID du transport créé
+        result = db.session.execute(db.text("SELECT id FROM transports WHERE ref = :ref"), {'ref': ref})
+        transport_id = result.fetchone()[0]
         
         return jsonify({
             'success': True,
             'transport': {
-                'id': transport.id,
-                'ref': transport.ref,
-                'date': transport.date.isoformat(),
-                'lieu_collecte': transport.lieu_collecte,
-                'lieu_livraison': transport.lieu_livraison,
-                'poids_tonnes': transport.poids_tonnes,
-                'distance_km': transport.distance_km,
-                'emis_kg': transport.emis_kg,
-                'emis_tkm': transport.emis_tkm,
-                'niveau_calcul': transport.niveau_calcul,
-                'type_vehicule': transport.type_vehicule,
-                'energie': transport.energie,
-                'conso_vehicule': transport.conso_vehicule,
-                'vehicule_dedie': transport.vehicule_dedie,
-                'client': transport.client,
-                'type_transport': transport.type_transport
+                'id': transport_id,
+                'ref': ref,
+                'date': date.isoformat(),
+                'lieu_collecte': data.get('lieu_collecte', ''),
+                'lieu_livraison': data.get('lieu_livraison', ''),
+                'poids_tonnes': float(data.get('poids_tonnes', 0)),
+                'distance_km': float(data.get('distance_km', 0)),
+                'emis_kg': float(data.get('emis_kg', 0)),
+                'emis_tkm': float(data.get('emis_tkm', 0)),
+                'niveau_calcul': data.get('niveau_calcul', ''),
+                'type_vehicule': data.get('type_vehicule', ''),
+                'energie': data.get('energie', ''),
+                'conso_vehicule': float(data.get('conso_vehicule', 0)) if data.get('conso_vehicule') else 0.0,
+                'vehicule_dedie': bool(data.get('vehicule_dedie', False)),
+                'client': data.get('client', ''),
+                'type_transport': data.get('type_transport', 'direct')
             },
             'message': 'Transport créé avec succès'
         })
