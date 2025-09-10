@@ -190,10 +190,10 @@ def load_user(user_id):
 @login_manager.request_loader
 def load_user_from_request(request):
     """Charge automatiquement un utilisateur fictif pour toutes les requêtes"""
-    # Vérifier si l'utilisateur est déjà connecté
-    from flask_login import current_user
-    if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
-        return current_user
+    # Vérifier si l'utilisateur est déjà chargé pour éviter la récursion
+    from flask import g
+    if hasattr(g, 'user') and g.user is not None:
+        return g.user
     
     class DevUser:
         def __init__(self):
@@ -211,7 +211,10 @@ def load_user_from_request(request):
         def get_id(self):
             return str(self.id)
     
-    return DevUser()
+    # Stocker l'utilisateur dans g pour éviter les rechargements
+    dev_user = DevUser()
+    g.user = dev_user
+    return dev_user
     
     # Mode production - charger depuis la base de données (DÉSACTIVÉ TEMPORAIREMENT)
     # try:
