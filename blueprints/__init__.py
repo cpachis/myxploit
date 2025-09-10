@@ -1,5 +1,5 @@
 """
-Blueprints pour l'application MyXploit
+Blueprintntntnts pour l'application MyXploit
 """
 
 from .auth import auth_bp

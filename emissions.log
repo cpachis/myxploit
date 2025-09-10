@@ -206,3 +206,10 @@ FROM vehicules]
 2025-09-10 09:07:13,951 - app - INFO - Ajout de la colonne vehicule_dedie...
 2025-09-10 09:07:13,968 - app - INFO - Colonne vehicule_dedie ajoutee avec succes
 2025-09-10 09:07:13,968 - app - INFO - Base de donnees initialisee avec succes
+2025-09-10 10:00:09,602 - app - WARNING - DATABASE_URL non trouvee, utilisation de la configuration par defaut
+2025-09-10 10:00:26,366 - app - WARNING - DATABASE_URL non trouvee, utilisation de la configuration par defaut
+2025-09-10 10:01:41,493 - app - WARNING - DATABASE_URL non trouvee, utilisation de la configuration par defaut
+2025-09-10 10:09:21,626 - app - WARNING - DATABASE_URL non trouvee, utilisation de la configuration par defaut
+2025-09-10 10:17:42,729 - app - WARNING - DATABASE_URL non trouvee, utilisation de la configuration par defaut
+2025-09-10 10:17:42,785 - app - INFO - Colonne vehicule_dedie existe deja
+2025-09-10 10:17:42,785 - app - INFO - Base de donnees initialisee avec succes

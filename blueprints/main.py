@@ -85,6 +85,3 @@ def health():
             'error': str(e),
             'timestamp': datetime.utcnow().isoformat()
         }), 500
-
-
-

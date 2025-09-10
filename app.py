@@ -347,7 +347,8 @@ def customer_debug():
     
     # Test 3: Essayer d'accéder à db directement
     try:
-        from app import db
+        from flask_sqlalchemy import SQLAlchemy
+        db = current_app.extensions['sqlalchemy'].db
         debug_info.append("db importé directement depuis app.py")
     except Exception as e:
         debug_info.append(f"Erreur import db : {e}")
@@ -355,7 +356,8 @@ def customer_debug():
     # Test 4: Tester get_models avec db direct
     try:
         from models import create_models
-        from app import db
+        from flask_sqlalchemy import SQLAlchemy
+        db = current_app.extensions['sqlalchemy'].db
         models = create_models(db)
         debug_info.append(f"Modèles chargés avec db direct : {list(models.keys())}")
     except Exception as e:
