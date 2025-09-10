@@ -25,7 +25,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('emissions.log'),
+        logging.FileHandler('emissions.log', encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
@@ -44,9 +44,9 @@ if database_url:
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     config.SQLALCHEMY_DATABASE_URI = database_url
-    logger.info(f"🔧 Configuration forcée: Base PostgreSQL détectée - {database_url[:50]}...")
+    logger.info(f"Configuration forcee: Base PostgreSQL detectee - {database_url[:50]}...")
 else:
-    logger.warning("⚠️ DATABASE_URL non trouvée, utilisation de la configuration par défaut")
+    logger.warning("DATABASE_URL non trouvee, utilisation de la configuration par defaut")
 
 app.config.from_object(config)
 
@@ -110,31 +110,53 @@ with app.app_context():
         
         # Vérifier et ajouter la colonne vehicule_dedie si elle n'existe pas
         try:
-            result = db.session.execute(text("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'transports' 
-                AND column_name = 'vehicule_dedie'
-            """))
+            # Détecter le type de base de données
+            db_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+            is_postgresql = 'postgresql' in db_url.lower()
+            is_sqlite = 'sqlite' in db_url.lower()
             
-            if not result.fetchone():
-                logger.info("🔧 Ajout de la colonne vehicule_dedie...")
-                db.session.execute(text("""
-                    ALTER TABLE transports 
-                    ADD COLUMN vehicule_dedie BOOLEAN DEFAULT FALSE
+            if is_postgresql:
+                # Pour PostgreSQL, utiliser information_schema
+                result = db.session.execute(text("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'transports' 
+                    AND column_name = 'vehicule_dedie'
                 """))
-                db.session.commit()
-                logger.info("✅ Colonne vehicule_dedie ajoutée avec succès")
+                column_exists = result.fetchone() is not None
+            elif is_sqlite:
+                # Pour SQLite, utiliser PRAGMA table_info
+                result = db.session.execute(text("PRAGMA table_info(transports)"))
+                columns = [row[1] for row in result.fetchall()]
+                column_exists = 'vehicule_dedie' in columns
             else:
-                logger.info("✅ Colonne vehicule_dedie existe déjà")
+                # Pour les autres bases, essayer de créer la colonne directement
+                column_exists = False
+            
+            if not column_exists:
+                logger.info("Ajout de la colonne vehicule_dedie...")
+                if is_sqlite:
+                    db.session.execute(text("""
+                        ALTER TABLE transports 
+                        ADD COLUMN vehicule_dedie BOOLEAN DEFAULT 0
+                    """))
+                else:
+                    db.session.execute(text("""
+                        ALTER TABLE transports 
+                        ADD COLUMN vehicule_dedie BOOLEAN DEFAULT FALSE
+                    """))
+                db.session.commit()
+                logger.info("Colonne vehicule_dedie ajoutee avec succes")
+            else:
+                logger.info("Colonne vehicule_dedie existe deja")
                 
         except Exception as migration_error:
-            logger.warning(f"⚠️ Erreur lors de la vérification/ajout de vehicule_dedie: {str(migration_error)}")
+            logger.warning(f"Erreur lors de la verification/ajout de vehicule_dedie: {str(migration_error)}")
             # Ne pas faire échouer l'initialisation pour cette erreur
         
-        logger.info("✅ Base de données initialisée avec succès")
+        logger.info("Base de donnees initialisee avec succes")
     except Exception as e:
-        logger.error(f"❌ Erreur lors de l'initialisation de la base de données: {str(e)}")
+        logger.error(f"Erreur lors de l'initialisation de la base de donnees: {str(e)}")
 
 # Configuration du login manager - DÉSACTIVÉ POUR LE DÉVELOPPEMENT
 # login_manager.login_view = 'auth.login'
@@ -390,20 +412,20 @@ def internal_error(error):
     try:
         db.session.rollback()
     except Exception as rollback_error:
-        logger.error(f"❌ Erreur lors du rollback: {str(rollback_error)}")
+        logger.error(f"Erreur lors du rollback: {str(rollback_error)}")
     
-    logger.error(f"❌ Erreur interne 500: {str(error)}")
-    logger.error(f"❌ Type d'erreur: {type(error).__name__}")
+    logger.error(f"Erreur interne 500: {str(error)}")
+    logger.error(f"Type d'erreur: {type(error).__name__}")
     
     try:
         return render_template('error.html', error='Erreur interne du serveur'), 500
     except Exception as template_error:
-        logger.error(f"❌ Erreur lors du rendu du template d'erreur: {str(template_error)}")
+        logger.error(f"Erreur lors du rendu du template d'erreur: {str(template_error)}")
         return f"""
         <html>
         <head><title>Erreur 500 - MyXploit</title></head>
         <body>
-            <h1>❌ Erreur interne du serveur</h1>
+            <h1>Erreur interne du serveur</h1>
             <p>Une erreur s'est produite lors du traitement de votre demande.</p>
             <p>Détails: {str(error)}</p>
             <p><a href="/health">Vérifier le statut de l'application</a></p>
@@ -420,9 +442,9 @@ def init_database():
     try:
         with app.app_context():
             db.create_all()
-            logger.info("✅ Base de données initialisée avec succès")
+            logger.info("Base de donnees initialisee avec succes")
     except Exception as e:
-        logger.error(f"❌ Erreur lors de l'initialisation de la base: {str(e)}")
+        logger.error(f"Erreur lors de l'initialisation de la base: {str(e)}")
         raise
 
 # ============================================================================
@@ -431,7 +453,7 @@ def init_database():
 
 if __name__ == '__main__':
     # Démarrage de l'application
-    logger.info("🚀 Démarrage de l'application Myxploit...")
+    logger.info("Demarrage de l'application Myxploit...")
     
     try:
         # Initialiser la base de données
@@ -445,5 +467,5 @@ if __name__ == '__main__':
         )
         
     except Exception as e:
-        logger.error(f"❌ Erreur au démarrage: {str(e)}")
+        logger.error(f"Erreur au demarrage: {str(e)}")
         raise

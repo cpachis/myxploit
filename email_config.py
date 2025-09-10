@@ -29,3 +29,5 @@ EMAIL_PASSWORD = ''  # Mot de passe de l'email (à configurer dans Render)
 
 
 
+
+
