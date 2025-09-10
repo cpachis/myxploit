@@ -33,7 +33,7 @@ def homepage():
 def myxploit():
     """Page MyXploit"""
     try:
-        return render_template('myxploit.html')
+        return render_template('myxploit_home.html')
     except Exception as e:
         logger.error(f"Erreur lors du chargement de la page MyXploit: {str(e)}")
         return render_template('error.html', error=str(e)), 500
