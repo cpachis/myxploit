@@ -65,7 +65,7 @@ def api_vehicules_types():
         
         return jsonify({
             'success': True,
-            'types': types_vehicules,
+            'types_vehicules': types_vehicules,
             'message': 'Types de véhicules chargés avec succès'
         })
     except Exception as e:
