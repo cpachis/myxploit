@@ -1561,10 +1561,32 @@ function editTransport(id) {
   document.getElementById('transport-lieu-livraison').value = transport.lieu_livraison || '';
   document.getElementById('transport-poids').value = transport.poids_tonnes || '';
   document.getElementById('transport-type').value = transport.type_transport || '';
-  document.getElementById('transport-type-vehicule').value = transport.type_vehicule || '';
+  // Mapper le type de véhicule par nom vers ID
+  const typeVehiculeSelect = document.getElementById('transport-type-vehicule');
+  if (typeVehiculeSelect && transport.type_vehicule) {
+    const options = typeVehiculeSelect.querySelectorAll('option');
+    for (let option of options) {
+      if (option.textContent.includes(transport.type_vehicule)) {
+        typeVehiculeSelect.value = option.value;
+        break;
+      }
+    }
+  }
+  
+  // Mapper l'énergie par nom vers ID
+  const energieSelect = document.getElementById('transport-energie');
+  if (energieSelect && transport.energie) {
+    const options = energieSelect.querySelectorAll('option');
+    for (let option of options) {
+      if (option.textContent.includes(transport.energie)) {
+        energieSelect.value = option.value;
+        break;
+      }
+    }
+  }
+  
   document.getElementById('transport-niveau-calcul').value = transport.niveau_calcul || 'niveau1';
   document.getElementById('transport-conso-vehicule').value = transport.conso_vehicule || '';
-  document.getElementById('transport-energie').value = transport.energie || '';
   document.getElementById('transport-distance').value = transport.distance_km || '';
   // Gérer le type de véhicule (convertir l'ancienne case à cocher)
   const vehiculeType = transport.vehicule_dedie ? 'dedie' : 'mutualise';
@@ -2015,11 +2037,11 @@ function populateVehiculeTypes(typesVehicules) {
     const option = document.createElement('option');
     option.value = vehicule.value || vehicule.id;
     option.textContent = vehicule.label || vehicule.nom;
-    option.dataset.conso = vehicule.consommation || 0;
-    option.dataset.emissions = vehicule.emissions || 0;
-    option.dataset.chargeUtile = vehicule.charge_utile || 0;
+    option.dataset.conso = vehicule.consommation_base || vehicule.consommation || 0;
+    option.dataset.emissions = vehicule.facteur_emission || vehicule.emissions || 0;
+    option.dataset.chargeUtile = vehicule.charge_utile_max || vehicule.charge_utile || 0;
     
-    console.log('Véhicule chargé:', vehicule.nom, 'Charge utile:', vehicule.charge_utile);
+    console.log('Véhicule chargé:', vehicule.nom, 'Consommation:', vehicule.consommation_base, 'Charge utile:', vehicule.charge_utile_max);
     
     select.appendChild(option);
   });
@@ -2071,15 +2093,17 @@ function populateEnergies(energies) {
   
   energies.forEach(energie => {
     const option = document.createElement('option');
-    option.value = energie.identifiant || energie.id;
+    option.value = energie.id;
     option.textContent = `${energie.nom} (${energie.unite})`;
-    option.dataset.facteur = energie.facteur || 2.7;
+    option.dataset.facteur = energie.facteur_emission || energie.facteur || 2.7;
     select.appendChild(option);
+    
+    console.log('Énergie chargée:', energie.nom, 'Facteur:', energie.facteur_emission);
     
     // Ajouter aussi au filtre des énergies
     if (filterSelect) {
       const filterOption = document.createElement('option');
-      filterOption.value = energie.identifiant || energie.id;
+      filterOption.value = energie.id;
       filterOption.textContent = `${energie.nom} (${energie.unite})`;
       filterSelect.appendChild(filterOption);
     }
