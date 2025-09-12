@@ -1547,12 +1547,18 @@ function toggleSelectAll() {
 }
 
 // Fonction pour éditer un transport
-function editTransport(id) {
+async function editTransport(id) {
   const transport = transports.find(t => t.id === id);
   if (!transport) return;
   
   currentEditingId = id;
   document.getElementById('transport-modal-title').textContent = 'Modifier le Transport';
+  
+  // S'assurer que les types de véhicules et énergies sont chargés
+  await Promise.all([
+    loadTypesVehicules(),
+    loadEnergies()
+  ]);
   
   // Remplir le formulaire
   document.getElementById('transport-ref').value = transport.ref || '';
@@ -1561,6 +1567,7 @@ function editTransport(id) {
   document.getElementById('transport-lieu-livraison').value = transport.lieu_livraison || '';
   document.getElementById('transport-poids').value = transport.poids_tonnes || '';
   document.getElementById('transport-type').value = transport.type_transport || '';
+  
   // Mapper le type de véhicule par nom vers ID
   const typeVehiculeSelect = document.getElementById('transport-type-vehicule');
   if (typeVehiculeSelect && transport.type_vehicule) {
@@ -1588,6 +1595,7 @@ function editTransport(id) {
   document.getElementById('transport-niveau-calcul').value = transport.niveau_calcul || 'niveau1';
   document.getElementById('transport-conso-vehicule').value = transport.conso_vehicule || '';
   document.getElementById('transport-distance').value = transport.distance_km || '';
+  
   // Gérer le type de véhicule (convertir l'ancienne case à cocher)
   const vehiculeType = transport.vehicule_dedie ? 'dedie' : 'mutualise';
   document.getElementById('transport-vehicule-type').value = vehiculeType;
